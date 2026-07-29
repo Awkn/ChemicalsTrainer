@@ -1,19 +1,11 @@
 import { db } from "./db";
 import { nuovoId } from "./id";
-import type {
-  Assegnazione,
-  Categoria,
-  Esercizio,
-  Giorno,
-  MetricaDef,
-} from "../types";
+import type { Categoria, Esercizio, MetricaDef } from "../types";
 
 /**
- * Programma di allenamento di default, caricato al primo avvio.
- * E' il programma settimanale della squadra: chi installa l'app lo trova
- * gia' pronto. Le modifiche successive si condividono via esporta/importa.
- *
- * Sessioni: Lun / Mer / Ven al mattino, Mar / Gio alla sera.
+ * Al primo avvio popola solo la LIBRERIA di esercizi (con le relative metriche).
+ * Nessun programma preimpostato: ogni giocatore si crea il proprio programma
+ * settimanale dalla scheda Programma, scegliendo tra questi esercizi pronti.
  */
 
 type Chiave = string;
@@ -261,76 +253,23 @@ const ESERCIZI: DefEsercizio[] = [
   },
 ];
 
-/** Assegnazioni per giorno (0 = Lun ... 6 = Dom), come lista di chiavi esercizio. */
-const SETTIMANA: { giorno: Giorno; chiavi: Chiave[] }[] = [
-  { giorno: 0, chiavi: ["ris-lun", "t20-precision", "doubles-ladder", "bull"] },
-  {
-    giorno: 1,
-    chiavi: ["ris-sera", "match-501", "pressure-doubles", "challenge-121"],
-  },
-  { giorno: 2, chiavi: ["ris-mer", "atc-doubles", "bobs-27", "co-61-100"] },
-  {
-    giorno: 3,
-    chiavi: [
-      "ris-sera",
-      "co-60-170",
-      "doubles-pressure-game",
-      "shanghai-20",
-      "game-shot",
-    ],
-  },
-  { giorno: 4, chiavi: ["ris-ven", "cricket-accuracy", "scoring-100", "finishing-drill"] },
-];
-
 export async function seedSePrimoAvvio(): Promise<void> {
   const giaPopolato = (await db.esercizi.count()) > 0;
   if (giaPopolato) return;
 
   const now = Date.now();
 
-  // Crea gli esercizi e memorizza chiave -> id per collegare le assegnazioni.
-  const idPerChiave = new Map<Chiave, string>();
-  const esercizi: Esercizio[] = ESERCIZI.map((def) => {
-    const id = nuovoId();
-    idPerChiave.set(def.chiave, id);
-    return {
-      id,
-      nome: def.nome,
-      categoria: def.categoria,
-      descrizione: def.descrizione,
-      obiettivo: def.obiettivo,
-      durataMin: def.durataMin,
-      metriche: def.metriche,
-      createdAt: now,
-    };
-  });
+  // Solo la libreria di esercizi: niente programma, lo crea l'utente.
+  const esercizi: Esercizio[] = ESERCIZI.map((def) => ({
+    id: nuovoId(),
+    nome: def.nome,
+    categoria: def.categoria,
+    descrizione: def.descrizione,
+    obiettivo: def.obiettivo,
+    durataMin: def.durataMin,
+    metriche: def.metriche,
+    createdAt: now,
+  }));
 
-  const programmaId = nuovoId();
-
-  const assegnazioni: Assegnazione[] = SETTIMANA.flatMap((giornata) =>
-    giornata.chiavi.map((chiave, ordine) => ({
-      id: nuovoId(),
-      programmaId,
-      giorno: giornata.giorno,
-      esercizioId: idPerChiave.get(chiave)!,
-      ordine,
-    })),
-  );
-
-  await db.transaction(
-    "rw",
-    db.esercizi,
-    db.programmi,
-    db.assegnazioni,
-    async () => {
-      await db.esercizi.bulkAdd(esercizi);
-      await db.programmi.add({
-        id: programmaId,
-        nome: "Programma settimanale",
-        descrizione: "Mattina: Lun · Mer · Ven — Sera: Mar · Gio.",
-        createdAt: now,
-      });
-      await db.assegnazioni.bulkAdd(assegnazioni);
-    },
-  );
+  await db.esercizi.bulkAdd(esercizi);
 }
