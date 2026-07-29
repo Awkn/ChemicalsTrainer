@@ -79,7 +79,7 @@ export function Gioco501Page() {
                 onClick={() => setLivelloId(l.id)}
               >
                 <strong>{l.nome}</strong>
-                <span className="mini">Media {l.media}</span>
+                <span className="mini">{l.nota ?? `Media ${l.media}`}</span>
               </button>
             ))}
           </div>

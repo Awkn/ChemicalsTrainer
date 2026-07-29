@@ -23,9 +23,12 @@ export function Tastierino({ rimanente, onInvia }: Props) {
 
   function digita(d: string) {
     setErrore(null);
-    const nuovo = (testo + d).replace(/^0+(?=\d)/, "");
-    if (parseInt(nuovo, 10) > 180) return; // niente sopra 180
-    setTesto(nuovo);
+    // aggiornamento funzionale: con tocchi ravvicinati il valore letto dalla
+    // closure sarebbe ancora quello vecchio e si perderebbero le cifre
+    setTesto((precedente) => {
+      const nuovo = (precedente + d).replace(/^0+(?=\d)/, "");
+      return parseInt(nuovo, 10) > 180 ? precedente : nuovo; // niente sopra 180
+    });
   }
 
   function invia(p: number) {
@@ -47,7 +50,7 @@ export function Tastierino({ rimanente, onInvia }: Props) {
         {testo !== "" && (
           <button
             className="icona-btn mini-btn"
-            onClick={() => setTesto(testo.slice(0, -1))}
+            onClick={() => setTesto((prec) => prec.slice(0, -1))}
             aria-label="Cancella"
           >
             ⌫

@@ -9,7 +9,13 @@
 
 export type Giocatore = "umano" | "bot";
 
-export type LivelloId = "base" | "medio" | "alto" | "super" | "letale";
+export type LivelloId =
+  | "base"
+  | "medio"
+  | "alto"
+  | "super"
+  | "letale"
+  | "fuego";
 
 export interface Livello {
   id: LivelloId;
@@ -20,6 +26,13 @@ export interface Livello {
   pCheckout: number;
   /** Punteggio massimo dal quale il bot tenta la chiusura. */
   capCheckout: number;
+  /**
+   * Tirate prestabilite: se presente, il bot ripete sempre questa sequenza
+   * invece di tirare attorno alla media. Usato per il leg perfetto.
+   */
+  sequenza?: number[];
+  /** Testo mostrato nella scelta del livello al posto della media. */
+  nota?: string;
 }
 
 export const LIVELLI: Livello[] = [
@@ -28,6 +41,15 @@ export const LIVELLI: Livello[] = [
   { id: "alto", nome: "Alto", media: 65, pCheckout: 0.3, capCheckout: 110 },
   { id: "super", nome: "Super", media: 80, pCheckout: 0.45, capCheckout: 140 },
   { id: "letale", nome: "Letale", media: 95, pCheckout: 0.6, capCheckout: 170 },
+  {
+    id: "fuego",
+    nome: "Fuego 🔥",
+    media: 167,
+    pCheckout: 1,
+    capCheckout: 170,
+    sequenza: [180, 180, 141],
+    nota: "Leg perfetto: 180 · 180 · 141",
+  },
 ];
 
 export type ModoChiusura = "single" | "master" | "double";
@@ -175,12 +197,30 @@ function totaleOttenibile(n: number): number {
   return x;
 }
 
+/**
+ * Punteggio successivo di una sequenza prestabilita, dedotto dal rimanente:
+ * il percorso e' deterministico (501 → 321 → 141 → 0), quindi il punteggio
+ * rimasto identifica sempre la tirata da fare.
+ */
+function tirataDaSequenza(rimanente: number, sequenza: number[]): number {
+  let restante = PUNTI_INIZIALI;
+  for (const tirata of sequenza) {
+    if (restante === rimanente) return tirata;
+    restante -= tirata;
+  }
+  // Fuori sequenza (non dovrebbe accadere): chiude se puo', altrimenti tira al massimo.
+  return Math.min(rimanente, sequenza[0] ?? 0);
+}
+
 /** Calcola il punteggio della tirata del bot (mai bust, sempre ottenibile). */
 export function mossaBot(
   rimanente: number,
   livello: Livello,
   modo: ModoChiusura,
 ): number {
+  if (livello.sequenza) {
+    return tirataDaSequenza(rimanente, livello.sequenza);
+  }
   if (
     finibile(rimanente, modo) &&
     rimanente <= livello.capCheckout &&
