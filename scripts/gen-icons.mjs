@@ -1,13 +1,18 @@
 // Genera le icone della PWA a partire dallo stemma della squadra.
 // Eseguire dopo aver cambiato il logo: npm run gen-icons
 import sharp from "sharp";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // Sta in src/assets perche' lo stemma e' usato anche dall'intestazione dell'app.
 const sorgente = join(root, "src", "assets", "logo.png");
+
+// public/ contiene solo file generati (sono nel .gitignore), quindi al checkout
+// pulito della CI la cartella non esiste: la creiamo prima di scriverci dentro.
+const destinazione = join(root, "public");
+await mkdir(destinazione, { recursive: true });
 
 let logo;
 try {
