@@ -130,6 +130,26 @@ export function eliminaRisultato(id: string): Promise<void> {
   return db.risultati.delete(id);
 }
 
+/** Segna come fatto un esercizio senza metriche (registra solo la data). */
+export function segnaFatto(esercizioId: string, data: string): Promise<string> {
+  return registraRisultato({ esercizioId, data, valori: {} });
+}
+
+/** Annulla il "fatto" di una data, senza toccare i risultati con misure. */
+export async function annullaFatto(
+  esercizioId: string,
+  data: string,
+): Promise<void> {
+  const dellaData = await db.risultati
+    .where("[esercizioId+data]")
+    .equals([esercizioId, data])
+    .toArray();
+  const daRimuovere = dellaData
+    .filter((r) => Object.keys(r.valori).length === 0)
+    .map((r) => r.id);
+  await db.risultati.bulkDelete(daRimuovere);
+}
+
 /** Risultati di un esercizio, ordinati per data crescente (per i grafici). */
 export async function risultatiPerEsercizio(
   esercizioId: string,

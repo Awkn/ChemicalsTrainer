@@ -2,15 +2,28 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
-import { giornoDiOggi } from "../../lib/date";
-import { GIORNI, type Esercizio } from "../../types";
+import { dataIso, giornoDiOggi } from "../../lib/date";
+import { annullaFatto, segnaFatto } from "../../lib/repo";
+import {
+  eCompletamento,
+  GIORNI,
+  soloCompletamento,
+  type Esercizio,
+} from "../../types";
 import { useProgrammaAttivo } from "../../lib/useProgrammaAttivo";
 import { RegistraRisultato } from "../risultati/RegistraRisultato";
 
 export function OggiPage() {
   const { programmi, attivo, seleziona } = useProgrammaAttivo();
   const oggi = giornoDiOggi();
+  const dataOggi = dataIso();
   const [daRegistrare, setDaRegistrare] = useState<Esercizio | null>(null);
+
+  // Esercizi gia' spuntati oggi (solo quelli senza metriche).
+  const fattiOggi = useLiveQuery(async () => {
+    const odierni = await db.risultati.where("data").equals(dataOggi).toArray();
+    return new Set(odierni.filter(eCompletamento).map((r) => r.esercizioId));
+  }, [dataOggi]);
 
   // Assegnazioni di oggi per il programma attivo, arricchite con l'esercizio.
   const compiti = useLiveQuery(async () => {
@@ -94,12 +107,29 @@ export function OggiPage() {
               <p className="compito-obiettivo">
                 🎯 {assegnazione.note || esercizio.obiettivo || "Nessun obiettivo"}
               </p>
-              <button
-                className="bottone secondario piccolo compito-registra"
-                onClick={() => setDaRegistrare(esercizio)}
-              >
-                ＋ Registra risultato
-              </button>
+              {soloCompletamento(esercizio) ? (
+                <button
+                  className={
+                    fattiOggi?.has(esercizio.id)
+                      ? "bottone piccolo compito-registra fatto"
+                      : "bottone secondario piccolo compito-registra"
+                  }
+                  onClick={() =>
+                    fattiOggi?.has(esercizio.id)
+                      ? annullaFatto(esercizio.id, dataOggi)
+                      : segnaFatto(esercizio.id, dataOggi)
+                  }
+                >
+                  {fattiOggi?.has(esercizio.id) ? "✓ Fatto" : "Segna come fatto"}
+                </button>
+              ) : (
+                <button
+                  className="bottone secondario piccolo compito-registra"
+                  onClick={() => setDaRegistrare(esercizio)}
+                >
+                  ＋ Registra risultato
+                </button>
+              )}
             </li>
           ) : null,
         )}

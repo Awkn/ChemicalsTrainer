@@ -70,8 +70,13 @@ export interface Esercizio {
   createdAt: number;
 }
 
-/** Chiave usata per un valore generico quando l'esercizio non ha metriche definite. */
-export const METRICA_GENERICA = "valore";
+/**
+ * Un esercizio senza metriche non ha un punteggio da misurare (es. un
+ * riscaldamento): si registra solo con un "fatto".
+ */
+export function soloCompletamento(e: Esercizio): boolean {
+  return !e.metriche || e.metriche.length === 0;
+}
 
 /** Un risultato registrato in una data per un esercizio. */
 export interface Risultato {
@@ -79,10 +84,18 @@ export interface Risultato {
   esercizioId: string;
   /** Data della sessione in formato "YYYY-MM-DD". */
   data: string;
-  /** Valori per ogni metrica: chiave = MetricaDef.id (o METRICA_GENERICA). */
+  /**
+   * Valori per ogni metrica: chiave = MetricaDef.id.
+   * Se vuoto, il record indica soltanto "esercizio fatto" in quella data.
+   */
   valori: Record<string, number>;
   note?: string;
   createdAt: number;
+}
+
+/** True se il risultato registra solo il completamento, senza misure. */
+export function eCompletamento(r: Risultato): boolean {
+  return Object.keys(r.valori).length === 0;
 }
 
 /** Un programma di allenamento: un nome + un insieme di assegnazioni settimanali. */

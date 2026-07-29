@@ -3,7 +3,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
 import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
 import { Grafico, formattaValore } from "../../components/Grafico";
-import { METRICA_GENERICA, type MetricaDef } from "../../types";
+import { dataIso } from "../../lib/date";
+import type { MetricaDef } from "../../types";
 
 export function ProgressiPage() {
   // Solo esercizi che hanno almeno un risultato registrato.
@@ -48,11 +49,9 @@ export function ProgressiPage() {
     );
   }
 
-  // metriche da mostrare: quelle definite sull'esercizio, o quella generica.
-  const metriche: MetricaDef[] =
-    esercizio?.metriche && esercizio.metriche.length > 0
-      ? esercizio.metriche
-      : [{ id: METRICA_GENERICA, nome: "Valore", unita: "numero" }];
+  // Esercizi senza metriche (es. riscaldamenti): si mostra la costanza.
+  const metriche: MetricaDef[] = esercizio?.metriche ?? [];
+  const daSpuntare = metriche.length === 0;
 
   return (
     <section>
@@ -76,6 +75,8 @@ export function ProgressiPage() {
           ))}
         </select>
       </label>
+
+      {daSpuntare && <Costanza date={(risultati ?? []).map((r) => r.data)} />}
 
       {metriche.map((m) => {
         const serie = (risultati ?? [])
@@ -107,7 +108,7 @@ export function ProgressiPage() {
       })}
 
       <div className="scheda">
-        <h3>Sessioni registrate</h3>
+        <h3>{daSpuntare ? "Quando l'hai fatto" : "Sessioni registrate"}</h3>
         <ul className="lista-sessioni">
           {[...(risultati ?? [])]
             .sort((a, b) => b.data.localeCompare(a.data))
@@ -116,13 +117,15 @@ export function ProgressiPage() {
                 <div>
                   <strong>{r.data}</strong>
                   <span className="sessione-valori">
-                    {metriche
-                      .filter((m) => m.id in r.valori)
-                      .map(
-                        (m) =>
-                          `${m.nome}: ${formattaValore(r.valori[m.id], m.unita)}`,
-                      )
-                      .join(" · ")}
+                    {daSpuntare
+                      ? "✓ Fatto"
+                      : metriche
+                          .filter((m) => m.id in r.valori)
+                          .map(
+                            (m) =>
+                              `${m.nome}: ${formattaValore(r.valori[m.id], m.unita)}`,
+                          )
+                          .join(" · ")}
                   </span>
                   {r.note && <p className="mini">{r.note}</p>}
                 </div>
@@ -138,5 +141,48 @@ export function ProgressiPage() {
         </ul>
       </div>
     </section>
+  );
+}
+
+/**
+ * Riepilogo di costanza per gli esercizi senza punteggio: quante volte sono
+ * stati fatti, quando l'ultima volta e quanti negli ultimi 30 giorni.
+ */
+function Costanza({ date }: { date: string[] }) {
+  if (date.length === 0) return null;
+
+  const ordinate = [...date].sort();
+  const ultima = ordinate[ordinate.length - 1];
+
+  const limite = new Date();
+  limite.setDate(limite.getDate() - 30);
+  const soglia = dataIso(limite);
+  const ultimi30 = ordinate.filter((d) => d >= soglia).length;
+
+  const oggi = dataIso();
+  const ieri = new Date();
+  ieri.setDate(ieri.getDate() - 1);
+  const etichettaUltima =
+    ultima === oggi
+      ? "oggi"
+      : ultima === dataIso(ieri)
+        ? "ieri"
+        : ultima.split("-").reverse().join("/");
+
+  return (
+    <div className="scheda costanza">
+      <div className="costanza-box">
+        <strong>{date.length}</strong>
+        <span className="mini">volte in totale</span>
+      </div>
+      <div className="costanza-box">
+        <strong>{ultimi30}</strong>
+        <span className="mini">ultimi 30 giorni</span>
+      </div>
+      <div className="costanza-box">
+        <strong>{etichettaUltima}</strong>
+        <span className="mini">ultima volta</span>
+      </div>
+    </div>
   );
 }

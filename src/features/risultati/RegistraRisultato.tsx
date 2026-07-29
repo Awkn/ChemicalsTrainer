@@ -1,10 +1,7 @@
 import { useMemo, useState } from "react";
 import { registraRisultato } from "../../lib/repo";
-import {
-  METRICA_GENERICA,
-  type Esercizio,
-  type MetricaDef,
-} from "../../types";
+import { dataIso } from "../../lib/date";
+import type { Esercizio, MetricaDef } from "../../types";
 
 interface Props {
   esercizio: Esercizio;
@@ -12,25 +9,18 @@ interface Props {
   onSalvato?: () => void;
 }
 
-function oggiIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 /**
- * Modale per registrare il risultato di un esercizio in una data.
- * Mostra un campo per ogni metrica definita; se l'esercizio non ne ha,
- * offre un singolo campo "Valore" generico.
+ * Modale per registrare il risultato di un esercizio in una data: un campo
+ * per ogni metrica definita. Gli esercizi senza metriche non passano di qui,
+ * si segnano con un semplice "fatto" dalla pagina Oggi.
  */
 export function RegistraRisultato({ esercizio, onChiudi, onSalvato }: Props) {
   const metriche: MetricaDef[] = useMemo(
-    () =>
-      esercizio.metriche && esercizio.metriche.length > 0
-        ? esercizio.metriche
-        : [{ id: METRICA_GENERICA, nome: "Valore", unita: "numero" }],
+    () => esercizio.metriche ?? [],
     [esercizio],
   );
 
-  const [data, setData] = useState(oggiIso);
+  const [data, setData] = useState(dataIso);
   const [valori, setValori] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [errore, setErrore] = useState<string | null>(null);
@@ -70,7 +60,7 @@ export function RegistraRisultato({ esercizio, onChiudi, onSalvato }: Props) {
           <input
             type="date"
             value={data}
-            max={oggiIso()}
+            max={dataIso()}
             onChange={(e) => setData(e.target.value)}
           />
         </label>
