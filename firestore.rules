@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// Regole della bacheca di squadra.
+// Da incollare in Firebase: Firestore Database -> scheda "Regole" -> Pubblica.
+//
+// Chiunque abbia effettuato l'accesso (anche anonimo) puo' LEGGERE la bacheca,
+// ma ognuno puo' SCRIVERE soltanto il proprio documento: l'id del documento
+// deve coincidere con l'identificativo dell'utente. Cosi' nessuno puo'
+// modificare o cancellare i dati di un compagno.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /squadra/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

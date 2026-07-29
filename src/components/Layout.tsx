@@ -1,29 +1,63 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 
-const voci = [
+/** Voci principali, sempre visibili nella barra in basso. */
+const principali = [
   { to: "/", label: "Oggi", icona: "🎯", end: true },
+  { to: "/programma", label: "Programma", icona: "📅", end: false },
   { to: "/501", label: "501", icona: "🎮", end: false },
   { to: "/progressi", label: "Progressi", icona: "📈", end: false },
-  { to: "/programma", label: "Programma", icona: "📅", end: false },
-  { to: "/esercizi", label: "Esercizi", icona: "📋", end: false },
-  { to: "/impostazioni", label: "Dati", icona: "⚙️", end: false },
+  { to: "/squadra", label: "Squadra", icona: "👥", end: false },
+];
+
+/** Voci secondarie, raccolte nel menu in alto. */
+const secondarie = [
+  { to: "/esercizi", label: "Esercizi", icona: "📋" },
+  { to: "/impostazioni", label: "Dati", icona: "⚙️" },
 ];
 
 export function Layout() {
+  const [menuAperto, setMenuAperto] = useState(false);
+  const posizione = useLocation();
+
+  // Cambiando pagina il menu si richiude da solo.
+  useEffect(() => setMenuAperto(false), [posizione.pathname]);
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>
           <span className="logo">🎯</span> Darts Trainer
         </h1>
+        <button
+          className="icona-btn"
+          aria-label="Altre sezioni"
+          aria-expanded={menuAperto}
+          onClick={() => setMenuAperto((a) => !a)}
+        >
+          ☰
+        </button>
       </header>
+
+      {menuAperto && (
+        <>
+          <div className="menu-sfondo" onClick={() => setMenuAperto(false)} />
+          <nav className="menu-alto">
+            {secondarie.map((v) => (
+              <NavLink key={v.to} to={v.to} className="menu-voce">
+                <span>{v.icona}</span> {v.label}
+              </NavLink>
+            ))}
+          </nav>
+        </>
+      )}
 
       <main className="app-main">
         <Outlet />
       </main>
 
       <nav className="app-nav">
-        {voci.map((v) => (
+        {principali.map((v) => (
           <NavLink
             key={v.to}
             to={v.to}

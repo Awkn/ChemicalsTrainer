@@ -52,6 +52,46 @@ a {
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: blur(8px);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.menu-sfondo {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+}
+
+.menu-alto {
+  position: fixed;
+  top: 3.6rem;
+  right: max(1rem, calc(50% - 320px + 1rem));
+  z-index: 20;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.menu-voce {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  color: var(--testo);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.menu-voce:hover {
+  background: var(--bg-3);
 }
 
 .app-header h1 {
@@ -660,6 +700,75 @@ textarea:focus {
   color: var(--testo-2);
   font-size: 0.82rem;
   margin-top: 0.15rem;
+}
+
+/* ---------- bacheca di squadra ---------- */
+
+.lista-squadra {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.riga-squadra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+}
+
+.nome-gioc {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.nome-gioc.io {
+  color: var(--accento-2);
+}
+
+.badge-io {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--accento);
+  color: white;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+}
+
+.posizione {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--bg-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.valore-classifica {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.valore-classifica .mini {
+  display: block;
+  font-weight: 400;
+  margin: 0;
 }
 
 /* ---------- 501 vs bot ---------- */
