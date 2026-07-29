@@ -53,6 +53,16 @@ export interface MetricaDef {
   unita: UnitaMetrica;
   /** Valore obiettivo, mostrato come linea di riferimento nei grafici. */
   obiettivo?: number;
+  /**
+   * Direzione del miglioramento. Default "alto" (piu' alto = meglio).
+   * "basso" per metriche come le frecce usate, dove meno e' meglio.
+   */
+  verso?: "alto" | "basso";
+}
+
+/** True se la variazione indicata rappresenta un miglioramento per la metrica. */
+export function eMiglioramento(m: MetricaDef, delta: number): boolean {
+  return m.verso === "basso" ? delta < 0 : delta > 0;
 }
 
 /** Un esercizio nella libreria (riutilizzabile in piu' giorni/programmi). */

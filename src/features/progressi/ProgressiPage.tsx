@@ -4,7 +4,7 @@ import { db } from "../../lib/db";
 import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
 import { Grafico, formattaValore } from "../../components/Grafico";
 import { dataIso } from "../../lib/date";
-import type { MetricaDef } from "../../types";
+import { eMiglioramento, type MetricaDef } from "../../types";
 
 export function ProgressiPage() {
   // Solo esercizi che hanno almeno un risultato registrato.
@@ -95,7 +95,12 @@ export function ProgressiPage() {
               <div className="metrica-valore">
                 <strong>{formattaValore(ultimo, m.unita)}</strong>
                 {delta != null && delta !== 0 && (
-                  <span className={delta > 0 ? "delta su" : "delta giu"}>
+                  // la freccia indica la direzione, il colore se e' un progresso
+                  <span
+                    className={
+                      eMiglioramento(m, delta) ? "delta su" : "delta giu"
+                    }
+                  >
                     {delta > 0 ? "▲" : "▼"}{" "}
                     {formattaValore(Math.abs(delta), m.unita)}
                   </span>

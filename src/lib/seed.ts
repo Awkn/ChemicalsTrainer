@@ -78,7 +78,7 @@ const ESERCIZI: DefEsercizio[] = [
     metriche: [
       { id: "perc", nome: "Doppi chiusi %", unita: "percentuale" },
       { id: "chiusi", nome: "Doppi chiusi", unita: "numero" },
-      { id: "frecce", nome: "Frecce usate", unita: "numero" },
+      { id: "frecce", nome: "Frecce usate", unita: "numero", verso: "basso" },
     ],
   },
   {
@@ -103,6 +103,9 @@ const ESERCIZI: DefEsercizio[] = [
     descrizione:
       "Da D1 a D20, una sola freccia.\nSe prendi vai avanti; se sbagli ritenti finche' non prendi.",
     obiettivo: "Completa D1 → D20",
+    metriche: [
+      { id: "frecce", nome: "Frecce usate", unita: "numero", verso: "basso" },
+    ],
   },
   {
     chiave: "bobs-27",
@@ -138,6 +141,7 @@ const ESERCIZI: DefEsercizio[] = [
     descrizione:
       "Tira solo: 20, 19, 18, 17, 16, 15, Bull.\nCerca la precisione sulle triple.",
     obiettivo: "Tripla precisione",
+    metriche: [{ id: "triple", nome: "Triple centrate", unita: "numero" }],
   },
   {
     chiave: "scoring-100",
@@ -250,6 +254,14 @@ const ESERCIZI: DefEsercizio[] = [
     descrizione:
       "Con il cronometro, gioca solo gli ultimi turni: 52, 68, 81, 96, 100, 110, 121, 124, 130.\nOgni turno e' 'per vincere il match'.\nNon ritirare mai le frecce se sbagli la prima: gioca sempre la soluzione migliore.",
     obiettivo: "Chiudi sotto pressione",
+    metriche: [
+      {
+        id: "chiuse",
+        nome: "Chiusure riuscite (su 9)",
+        unita: "numero",
+        obiettivo: 5,
+      },
+    ],
   },
 ];
 

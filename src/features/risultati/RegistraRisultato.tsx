@@ -70,7 +70,9 @@ export function RegistraRisultato({ esercizio, onChiudi, onSalvato }: Props) {
             <span>
               {m.nome}
               {m.unita === "percentuale" ? " (%)" : ""}
-              {m.obiettivo != null ? ` · obiettivo ${m.obiettivo}` : ""}
+              {m.obiettivo != null
+                ? ` · obiettivo ${m.verso === "basso" ? "≤" : "≥"} ${m.obiettivo}`
+                : ""}
             </span>
             <input
               type="number"
