@@ -1,10 +1,23 @@
 import { useRef, useState } from "react";
-import { importaBundle, scaricaExport } from "../../lib/exportImport";
+import { importaBundle } from "../../lib/exportImport";
+import { esportaConBackup, usaStatoBackup } from "../../lib/backup";
 
 export function ImpostazioniPage() {
   const inputFile = useRef<HTMLInputElement>(null);
   const [esito, setEsito] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
+  const stato = usaStatoBackup();
+
+  const ultimoBackupTesto =
+    stato && !stato.maiFatto
+      ? new Date(stato.ultimoBackup).toLocaleString("it-IT", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -40,9 +53,14 @@ export function ImpostazioniPage() {
           Scarica un file con tutti i tuoi programmi ed esercizi. Passalo ai
           compagni (WhatsApp, email…) e loro lo importano qui.
         </p>
-        <button className="bottone" onClick={() => scaricaExport()}>
+        <button className="bottone" onClick={() => esportaConBackup()}>
           Scarica file di backup
         </button>
+        <p className="mini">
+          {ultimoBackupTesto
+            ? `Ultimo backup: ${ultimoBackupTesto}`
+            : "Non hai ancora fatto un backup."}
+        </p>
       </div>
 
       <div className="scheda">

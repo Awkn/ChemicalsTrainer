@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { PromemoriaBackup } from "../features/backup/PromemoriaBackup";
 
 /** Voci principali, sempre visibili nella barra in basso. */
 const principali = [
@@ -54,6 +55,7 @@ export function Layout() {
       )}
 
       <main className="app-main">
+        <PromemoriaBackup />
         <Outlet />
       </main>
 
