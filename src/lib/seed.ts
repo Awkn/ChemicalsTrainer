@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { nuovoId } from "./id";
-import type { Categoria, Esercizio, MetricaDef } from "../types";
+import type { Categoria, Esercizio, GiocoId, MetricaDef } from "../types";
 
 /**
  * Al primo avvio popola solo la LIBRERIA di esercizi (con le relative metriche).
@@ -18,6 +18,7 @@ interface DefEsercizio {
   obiettivo?: string;
   durataMin?: number;
   metriche?: MetricaDef[];
+  gioco?: GiocoId;
 }
 
 const ESERCIZI: DefEsercizio[] = [
@@ -113,10 +114,12 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Doppi",
     durataMin: 20,
     descrizione:
-      "Parti da 27 punti, da D1 fino al Bull.\nDoppio preso: + valore. Doppio sbagliato con 3 frecce: - valore.\nSegna il punteggio finale.",
+      "Parti da 27 punti, da D1 fino al Bull.\nDoppio preso: + valore. Doppio sbagliato con 3 frecce: - valore.\nTocca 'Inizia' e segui il bersaglio: il punteggio si calcola da solo.",
     obiettivo: "Oltre 250 punti",
+    gioco: "bob27",
     metriche: [
       { id: "punteggio", nome: "Punteggio", unita: "punti", obiettivo: 250 },
+      { id: "perc", nome: "Doppi %", unita: "percentuale" },
     ],
   },
   {
@@ -280,6 +283,7 @@ export async function seedSePrimoAvvio(): Promise<void> {
     obiettivo: def.obiettivo,
     durataMin: def.durataMin,
     metriche: def.metriche,
+    gioco: def.gioco,
     createdAt: now,
   }));
 

@@ -301,6 +301,131 @@ a {
   color: var(--testo);
 }
 
+/* ---------- gioco Bob's 27 ---------- */
+
+.bob27 {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.bob27-testa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bob27-testa h2 {
+  font-size: 1.15rem;
+}
+
+.bob27-punteggio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg-2));
+  border: 1px solid color-mix(in srgb, var(--accento) 45%, var(--bordo));
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.bob27-numero {
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bob27-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--testo-2);
+  text-align: right;
+}
+
+.bob27-stat strong {
+  color: var(--testo);
+  margin-left: 0.35rem;
+}
+
+.bob27-obiettivo {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bob27-bersaglio {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--accento-2);
+  letter-spacing: 0.02em;
+}
+
+.bob27-frecce {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.bob27-frecce .freccia {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid var(--bordo);
+  background: transparent;
+}
+
+.bob27-frecce .freccia.centro {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.bob27-frecce .freccia.mancata {
+  background: var(--ko);
+  border-color: var(--ko);
+}
+
+.bob27-azioni {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.bob27-btn {
+  border: none;
+  border-radius: var(--radius);
+  padding: 1.4rem 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+}
+
+.bob27-btn.mancato {
+  background: var(--bg-3);
+}
+
+.bob27-btn.mancato:hover {
+  background: var(--bordo);
+}
+
+.bob27-btn.centro {
+  background: var(--ok);
+  color: #06240f;
+}
+
+.bob27-btn.centro:hover {
+  background: color-mix(in srgb, var(--ok) 85%, black);
+}
+
+.bob27-annulla {
+  align-self: center;
+}
+
 /* ---------- campi form ---------- */
 
 .campo {

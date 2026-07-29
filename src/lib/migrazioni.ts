@@ -1,5 +1,5 @@
 import { db } from "./db";
-import type { MetricaDef } from "../types";
+import type { GiocoId, MetricaDef } from "../types";
 
 /**
  * Aggiornamenti una tantum dei dati gia' presenti sul dispositivo.
@@ -59,9 +59,30 @@ async function correggiVersoFrecce(): Promise<void> {
   }
 }
 
+/**
+ * Rende "Bob's 27" un gioco interattivo e gli aggiunge la metrica dei doppi %,
+ * senza toccare eventuali personalizzazioni: aggiorna solo cio' che manca.
+ */
+async function collegaGiocoBob27(): Promise<void> {
+  const esercizi = await db.esercizi.where("nome").equals("Bob's 27").toArray();
+  for (const e of esercizi) {
+    const modifiche: { gioco?: GiocoId; metriche?: MetricaDef[] } = {};
+    if (e.gioco == null) modifiche.gioco = "bob27";
+    const haPerc = e.metriche?.some((m) => m.id === "perc");
+    if (!haPerc) {
+      modifiche.metriche = [
+        ...(e.metriche ?? []),
+        { id: "perc", nome: "Doppi %", unita: "percentuale" },
+      ];
+    }
+    if (Object.keys(modifiche).length > 0) await db.esercizi.update(e.id, modifiche);
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
+  { versione: 3, esegui: collegaGiocoBob27 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {

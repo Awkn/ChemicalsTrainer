@@ -42,6 +42,13 @@ export const CATEGORIE: Categoria[] = [
 export type UnitaMetrica = "numero" | "punti" | "percentuale";
 
 /**
+ * Giochi interattivi collegabili a un esercizio: al posto di "Registra
+ * risultato" l'esercizio mostra "Inizia" e il gioco salva il risultato da se'.
+ * Elenco aperto: i prossimi giochi si aggiungono qui.
+ */
+export type GiocoId = "bob27";
+
+/**
  * Definizione di una metrica misurabile per un esercizio (es. "Punteggio",
  * "Checkout %"). I risultati registrati riempiono un valore per ogni metrica.
  * Si assume che "piu' alto = meglio" (i grafici confrontano con l'obiettivo).
@@ -77,6 +84,8 @@ export interface Esercizio {
   durataMin?: number;
   /** Metriche tracciabili di questo esercizio (per la pagina Progressi). */
   metriche?: MetricaDef[];
+  /** Se presente, l'esercizio si svolge come gioco interattivo (vedi GiocoId). */
+  gioco?: GiocoId;
   createdAt: number;
 }
 

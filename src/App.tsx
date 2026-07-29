@@ -9,6 +9,8 @@ import { useSincronizzaSquadra } from "./lib/squadra/useSincronizza";
 // La bacheca porta con se' la libreria Firebase, pesante: si carica solo
 // quando si apre davvero la sezione Squadra.
 const SquadraPage = lazy(() => import("./features/squadra/SquadraPage"));
+// I giochi si caricano solo quando si avvia un esercizio giocabile.
+const Bob27Page = lazy(() => import("./features/giochi/bob27/Bob27Page"));
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -28,6 +30,14 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <SquadraPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/bob27/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <Bob27Page />
             </Suspense>
           }
         />

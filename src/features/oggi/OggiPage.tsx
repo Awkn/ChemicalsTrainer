@@ -12,6 +12,7 @@ import {
 } from "../../types";
 import { useProgrammaAttivo } from "../../lib/useProgrammaAttivo";
 import { RegistraRisultato } from "../risultati/RegistraRisultato";
+import { percorsoGioco } from "../giochi/registry";
 
 export function OggiPage() {
   const { programmi, attivo, seleziona } = useProgrammaAttivo();
@@ -107,7 +108,14 @@ export function OggiPage() {
               <p className="compito-obiettivo">
                 🎯 {assegnazione.note || esercizio.obiettivo || "Nessun obiettivo"}
               </p>
-              {soloCompletamento(esercizio) ? (
+              {esercizio.gioco ? (
+                <Link
+                  className="bottone piccolo compito-registra"
+                  to={percorsoGioco(esercizio.gioco, esercizio.id)}
+                >
+                  ▶ Inizia
+                </Link>
+              ) : soloCompletamento(esercizio) ? (
                 <button
                   className={
                     fattiOggi?.has(esercizio.id)
