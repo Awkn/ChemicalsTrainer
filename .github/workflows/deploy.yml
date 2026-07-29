@@ -1,0 +1,57 @@
+name: Deploy PWA su GitHub Pages
+
+# Ogni push sul branch principale ricostruisce e pubblica il sito.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permessi necessari al deploy su Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un deploy alla volta; annulla quelli in coda se ne arriva uno nuovo.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Genera le icone PWA
+        run: npm run gen-icons
+
+      - name: Typecheck
+        run: npx tsc -b
+
+      # Il base path deve combaciare col nome del repo (sito in sottocartella).
+      # Viene calcolato in automatico, cosi' funziona con qualunque nome.
+      - name: Build
+        run: npx vite build --base "/${{ github.event.repository.name }}/"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

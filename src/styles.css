@@ -1,0 +1,629 @@
+:root {
+  --bg: #0f172a;
+  --bg-2: #1e293b;
+  --bg-3: #334155;
+  --testo: #e2e8f0;
+  --testo-2: #94a3b8;
+  --accento: #ef4444;
+  --accento-2: #f87171;
+  --ok: #22c55e;
+  --bordo: #334155;
+  --radius: 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--testo);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+}
+
+a {
+  color: var(--accento-2);
+}
+
+/* ---------- layout ---------- */
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bordo);
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.25rem;
+  padding-bottom: 5.5rem;
+}
+
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  background: var(--bg-2);
+  border-top: 1px solid var(--bordo);
+  padding: 0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom));
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 10px;
+  color: var(--testo-2);
+  text-decoration: none;
+  font-size: 0.66rem;
+}
+
+.nav-link.attivo {
+  color: var(--accento-2);
+}
+
+.nav-icona {
+  font-size: 1.35rem;
+}
+
+/* ---------- elementi comuni ---------- */
+
+.pagina-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.occhiello {
+  margin: 0 0 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: var(--testo-2);
+}
+
+.bottone {
+  background: var(--accento);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.bottone:hover {
+  background: var(--accento-2);
+}
+
+.bottone.secondario {
+  background: var(--bg-3);
+}
+
+.bottone.piccolo {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.bottone:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icona-btn {
+  background: var(--bg-3);
+  border: none;
+  color: var(--testo);
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.icona-btn:hover {
+  background: var(--bordo);
+}
+
+.mini-btn {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.mini {
+  color: var(--testo-2);
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.vuoto {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--testo-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avviso {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--testo-2);
+}
+
+/* ---------- campi form ---------- */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.campo > span {
+  font-size: 0.8rem;
+  color: var(--testo-2);
+}
+
+input,
+select,
+textarea {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accento);
+  outline-offset: 0;
+}
+
+/* ---------- tag categorie ---------- */
+
+.tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--testo);
+  white-space: nowrap;
+}
+
+.tag-scoring {
+  background: #1d4ed8;
+}
+.tag-doppi {
+  background: #b91c1c;
+}
+.tag-checkout {
+  background: #7c3aed;
+}
+.tag-tripli {
+  background: #c2410c;
+}
+.tag-aroundtheclock {
+  background: #0f766e;
+}
+.tag-partita {
+  background: #0891b2;
+}
+.tag-riscaldamento {
+  background: #a16207;
+}
+.tag-altro {
+  background: #475569;
+}
+
+/* ---------- pagina Oggi ---------- */
+
+.lista-compiti {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.compito {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.compito-testa {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.compito-testa h3 {
+  font-size: 1.05rem;
+  flex: 1;
+}
+
+.durata {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--testo-2);
+  background: var(--bg-3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.compito-desc {
+  color: var(--testo-2);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.6rem;
+  white-space: pre-line;
+}
+
+.compito-obiettivo {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ---------- pagina Esercizi ---------- */
+
+.lista-esercizi {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.esercizio-riga {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.esercizio-info {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.esercizio-info h3 {
+  font-size: 1rem;
+}
+
+.azioni {
+  display: flex;
+  gap: 0.35rem;
+}
+
+/* ---------- pagina Programma ---------- */
+
+.programma-barra {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.programma-barra select {
+  flex: 1;
+}
+
+.settimana {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.giorno-card {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+}
+
+.giorno-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+  color: var(--accento-2);
+}
+
+.giorno-vuoto {
+  opacity: 0.8;
+}
+
+.giorno-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.giorno-item {
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+}
+
+.giorno-item-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.nota-input {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.giorno-riposo {
+  color: var(--testo-2);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.aggiungi-riga {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.aggiungi-riga select {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+/* ---------- modale ---------- */
+
+.modale-sfondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  padding: 0;
+}
+
+.modale {
+  background: var(--bg-2);
+  border-top: 1px solid var(--bordo);
+  border-radius: 18px 18px 0 0;
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.modale h3 {
+  margin-bottom: 1rem;
+}
+
+.modale-azioni {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 480px) {
+  .modale-sfondo {
+    align-items: center;
+    padding: 1rem;
+  }
+  .modale {
+    border-radius: 18px;
+    border: 1px solid var(--bordo);
+  }
+}
+
+/* ---------- pagina Dati ---------- */
+
+.scheda {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.scheda h3 {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.esito-ok {
+  color: var(--ok);
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.esito-ko {
+  color: var(--accento-2);
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+/* ---------- pagina Oggi: registra ---------- */
+
+.compito-registra {
+  margin-top: 0.75rem;
+}
+
+/* ---------- pagina Progressi ---------- */
+
+.metrica-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.metrica-valore {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.metrica-valore strong {
+  font-size: 1.25rem;
+}
+
+.delta {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.delta.su {
+  color: var(--ok);
+}
+
+.delta.giu {
+  color: var(--accento-2);
+}
+
+.grafico {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.g-linea {
+  fill: none;
+  stroke: var(--accento);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.g-punto {
+  fill: var(--accento-2);
+}
+
+.g-obiettivo {
+  stroke: var(--ok);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.g-obiettivo-txt {
+  fill: var(--ok);
+  font-size: 9px;
+  text-anchor: end;
+}
+
+.g-asse {
+  fill: var(--testo-2);
+  font-size: 9px;
+}
+
+.g-asse-fine {
+  text-anchor: end;
+}
+
+.g-ultimo {
+  fill: var(--testo);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.lista-sessioni {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sessione {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+}
+
+.sessione-valori {
+  display: block;
+  color: var(--testo-2);
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
