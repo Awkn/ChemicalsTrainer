@@ -85,12 +85,12 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
-  padding: 0.35rem 0.45rem;
+  gap: 0.12rem;
+  padding: 0.35rem 0.3rem;
   border-radius: 10px;
   color: var(--testo-2);
   text-decoration: none;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
 }
 
 .nav-link.attivo {
@@ -98,7 +98,7 @@ a {
 }
 
 .nav-icona {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
 }
 
 /* ---------- elementi comuni ---------- */
@@ -626,4 +626,269 @@ textarea:focus {
   color: var(--testo-2);
   font-size: 0.82rem;
   margin-top: 0.15rem;
+}
+
+/* ---------- 501 vs bot ---------- */
+
+.bottone-largo {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.opzioni-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.opzione {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+}
+
+.opzione.attiva {
+  border-color: var(--accento);
+  background: color-mix(in srgb, var(--accento) 15%, var(--bg));
+}
+
+.opzione .mini {
+  margin: 0;
+}
+
+.centro-schermo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  padding-top: 2rem;
+}
+
+.centro-schermo .modale-azioni {
+  margin-top: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.moneta {
+  font-size: 4rem;
+  animation: rotea 1s ease-out;
+}
+
+@keyframes rotea {
+  from {
+    transform: rotateY(0) scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(720deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.punteggio-finale {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0.25rem 0;
+}
+
+.gioco-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.leg-score {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.tavolo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.pannello {
+  background: var(--bg-2);
+  border: 2px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.75rem;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.pannello.attivo {
+  border-color: var(--accento);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accento) 25%, transparent);
+}
+
+.pannello.vincitore {
+  border-color: var(--ok);
+}
+
+.pannello-nome {
+  font-size: 0.8rem;
+  color: var(--testo-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pannello-punti {
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pannello-sotto {
+  min-height: 1.2rem;
+  font-size: 0.85rem;
+  color: var(--testo-2);
+}
+
+.pannello-media {
+  font-size: 0.72rem;
+  color: var(--testo-2);
+  margin-top: 0.15rem;
+}
+
+.bust {
+  color: var(--accento-2);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.fine-leg {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.attesa-bot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--testo-2);
+  padding: 1.5rem 0;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--bordo);
+  border-top-color: var(--accento);
+  border-radius: 50%;
+  animation: gira 0.7s linear infinite;
+}
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* tastierino */
+.tastierino {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tast-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  min-height: 3.5rem;
+}
+
+.tast-display .placeholder {
+  color: var(--testo-2);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.tast-rapidi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip-punteggio {
+  flex: 1 0 auto;
+  min-width: 3rem;
+  background: var(--bg-3);
+  border: none;
+  color: var(--testo);
+  border-radius: 8px;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chip-punteggio:hover {
+  background: var(--bordo);
+}
+
+.tast-griglia {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.tast-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 10px;
+  padding: 1rem 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tast-btn:hover {
+  background: var(--bg-3);
+}
+
+.tast-btn.invia {
+  background: var(--accento);
+  border-color: var(--accento);
+  color: white;
+}
+
+.tast-btn.invia:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tast-hint {
+  text-align: center;
+  margin: 0;
 }

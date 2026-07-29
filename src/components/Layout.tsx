@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const voci = [
   { to: "/", label: "Oggi", icona: "🎯", end: true },
+  { to: "/501", label: "501", icona: "🎮", end: false },
   { to: "/progressi", label: "Progressi", icona: "📈", end: false },
   { to: "/programma", label: "Programma", icona: "📅", end: false },
   { to: "/esercizi", label: "Esercizi", icona: "📋", end: false },
