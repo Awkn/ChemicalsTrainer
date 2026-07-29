@@ -1,13 +1,19 @@
 :root {
-  --bg: #0f172a;
-  --bg-2: #1e293b;
-  --bg-3: #334155;
-  --testo: #e2e8f0;
-  --testo-2: #94a3b8;
-  --accento: #ef4444;
-  --accento-2: #f87171;
+  /* Colori squadra: il nero e il viola dello stemma Chemicals Darts. */
+  --bg: #0a0810;
+  --bg-2: #151122;
+  --bg-3: #241c38;
+  --testo: #ece8f5;
+  --testo-2: #a79dbd;
+  /* --accento sta sotto al testo bianco dei bottoni: tenuto scuro per leggibilita'. */
+  --accento: #9333ea;
+  /* --accento-2 sta invece SOPRA lo sfondo scuro (link, voce di menu attiva). */
+  --accento-2: #c084fc;
   --ok: #22c55e;
-  --bordo: #334155;
+  /* Colore del negativo (errori, peggioramenti): separato dall'accento,
+     altrimenti con un tema viola un peggioramento non si distinguerebbe. */
+  --ko: #fb7185;
+  --bordo: #322947;
   --radius: 14px;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -101,6 +107,14 @@ a {
   gap: 0.5rem;
 }
 
+/* stemma della squadra nell'intestazione */
+.logo {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
 .app-main {
   flex: 1;
   padding: 1.25rem;
@@ -173,7 +187,8 @@ a {
 }
 
 .bottone:hover {
-  background: var(--accento-2);
+  /* schiarita contenuta: con --accento-2 pieno il testo bianco perderebbe contrasto */
+  background: color-mix(in srgb, var(--accento) 85%, white);
 }
 
 .bottone.secondario {
@@ -300,7 +315,8 @@ textarea:focus {
   background: #0f766e;
 }
 .tag-partita {
-  background: #0891b2;
+  /* scurito: sul ciano chiaro la scritta bianca minuscola si leggeva male */
+  background: #0e7490;
 }
 .tag-riscaldamento {
   background: #a16207;
@@ -550,7 +566,7 @@ textarea:focus {
 }
 
 .esito-ko {
-  color: var(--accento-2);
+  color: var(--ko);
   font-size: 0.9rem;
   margin-top: 0.75rem;
 }
@@ -625,7 +641,7 @@ textarea:focus {
 }
 
 .delta.giu {
-  color: var(--accento-2);
+  color: var(--ko);
 }
 
 .grafico {

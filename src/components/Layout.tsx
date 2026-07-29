@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 /** Voci principali, sempre visibili nella barra in basso. */
 const principali = [
@@ -27,7 +28,7 @@ export function Layout() {
     <div className="app">
       <header className="app-header">
         <h1>
-          <span className="logo">🎯</span> Darts Trainer
+          <img className="logo" src={logo} alt="" /> Chemicals Darts
         </h1>
         <button
           className="icona-btn"

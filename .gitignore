@@ -7,10 +7,12 @@ dist-ssr
 # cache incrementale TypeScript
 *.tsbuildinfo
 
-# icone PNG generate da gen-icons.mjs
+# icone PNG generate da gen-icons.mjs (sorgente: src/assets/logo.png)
 public/pwa-192.png
 public/pwa-512.png
+public/pwa-maskable-512.png
 public/apple-touch-icon.png
+public/favicon.png
 
 # log
 npm-debug.log*

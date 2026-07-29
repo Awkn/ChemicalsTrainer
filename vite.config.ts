@@ -10,14 +10,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png"],
       manifest: {
-        name: "Darts Trainer",
-        short_name: "Darts",
+        name: "Chemicals Darts",
+        short_name: "Chemicals",
         description:
           "Pianifica i tuoi allenamenti settimanali di freccette e tieni traccia degli esercizi.",
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
+        theme_color: "#0a0810",
+        background_color: "#0a0810",
         display: "standalone",
         orientation: "portrait",
         lang: "it",
@@ -25,7 +25,8 @@ export default defineConfig({
           { src: "pwa-192.png", sizes: "192x192", type: "image/png" },
           { src: "pwa-512.png", sizes: "512x512", type: "image/png" },
           {
-            src: "pwa-512.png",
+            // versione con margine: Android ritaglia le icone "maskable"
+            src: "pwa-maskable-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
