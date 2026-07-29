@@ -9,12 +9,12 @@
  * resto dell'app funziona normalmente.
  */
 export const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyDD2DRjf8rd8Yo8dbUjwA0WNu7-3XLum7E",
+  authDomain: "darts-trainer-chemicals.firebaseapp.com",
+  projectId: "darts-trainer-chemicals",
+  storageBucket: "darts-trainer-chemicals.firebasestorage.app",
+  messagingSenderId: "775835556109",
+  appId: "1:775835556109:web:14c4d608967d3bf9867844",
 };
 
 /** True se la bacheca di squadra e' stata configurata. */
