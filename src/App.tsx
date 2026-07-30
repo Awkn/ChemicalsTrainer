@@ -12,6 +12,11 @@ const SquadraPage = lazy(() => import("./features/squadra/SquadraPage"));
 // I giochi si caricano solo quando si avvia un esercizio giocabile.
 const Bob27Page = lazy(() => import("./features/giochi/bob27/Bob27Page"));
 const Co121Page = lazy(() => import("./features/giochi/co121/Co121Page"));
+const AtcPage = lazy(() => import("./features/giochi/atc/AtcPage"));
+const LadderPage = lazy(() => import("./features/giochi/ladder/LadderPage"));
+const PressureDoublesPage = lazy(
+  () => import("./features/giochi/pressuredoubles/PressureDoublesPage"),
+);
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -47,6 +52,30 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <Co121Page />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/atc/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <AtcPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/ladder/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <LadderPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/pressuredoubles/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <PressureDoublesPage />
             </Suspense>
           }
         />

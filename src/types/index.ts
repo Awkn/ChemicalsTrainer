@@ -46,7 +46,12 @@ export type UnitaMetrica = "numero" | "punti" | "percentuale";
  * risultato" l'esercizio mostra "Inizia" e il gioco salva il risultato da se'.
  * Elenco aperto: i prossimi giochi si aggiungono qui.
  */
-export type GiocoId = "bob27" | "co121";
+export type GiocoId =
+  | "bob27"
+  | "co121"
+  | "atc"
+  | "ladder"
+  | "pressuredoubles";
 
 /**
  * Definizione di una metrica misurabile per un esercizio (es. "Punteggio",

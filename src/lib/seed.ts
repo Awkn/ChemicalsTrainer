@@ -74,8 +74,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Doppi",
     durataMin: 20,
     descrizione:
-      "Chiudi in sequenza da D1 a D20.\nMax 3 visite per doppio: se fallisci passi al successivo.\nSegna: frecce usate, doppi chiusi, percentuale.\nRipeti ogni settimana per confrontare i progressi.",
+      "Chiudi in sequenza da D1 a D20.\nMax 3 frecce per doppio: se fallisci passi al successivo.\nSegna: frecce usate, doppi chiusi, percentuale.\nRipeti ogni settimana per confrontare i progressi.",
     obiettivo: "Traccia la % di doppi chiusi",
+    gioco: "ladder",
     metriche: [
       { id: "perc", nome: "Doppi chiusi %", unita: "percentuale" },
       { id: "chiusi", nome: "Doppi chiusi", unita: "numero" },
@@ -104,6 +105,7 @@ const ESERCIZI: DefEsercizio[] = [
     descrizione:
       "Da D1 a D20, una sola freccia.\nSe prendi vai avanti; se sbagli ritenti finche' non prendi.",
     obiettivo: "Completa D1 → D20",
+    gioco: "atc",
     metriche: [
       { id: "frecce", nome: "Frecce usate", unita: "numero", verso: "basso" },
     ],
@@ -193,6 +195,7 @@ const ESERCIZI: DefEsercizio[] = [
     descrizione:
       "Doppi: D16, D20, D10, D8, D12.\nPer ognuno devi fare 5 consecutivi.\nSe sbagli ricominci.",
     obiettivo: "5 consecutivi per doppio",
+    gioco: "pressuredoubles",
     metriche: [
       { id: "d16", nome: "D16 %", unita: "percentuale", obiettivo: 45 },
       { id: "d20", nome: "D20 %", unita: "percentuale", obiettivo: 40 },

@@ -87,11 +87,26 @@ async function collegaGioco121(): Promise<void> {
   }
 }
 
+/** Collega i giochi "around the clock" agli esercizi gia' in libreria. */
+async function collegaGiochiAtc(): Promise<void> {
+  const GIOCO_PER_NOME: Record<string, GiocoId> = {
+    "Around the Clock Doubles": "atc",
+    "Doubles Ladder": "ladder",
+    "Pressure Doubles": "pressuredoubles",
+  };
+  const esercizi = await db.esercizi.toArray();
+  for (const e of esercizi) {
+    const gioco = GIOCO_PER_NOME[e.nome];
+    if (gioco && e.gioco == null) await db.esercizi.update(e.id, { gioco });
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
   { versione: 3, esegui: collegaGiocoBob27 },
   { versione: 4, esegui: collegaGioco121 },
+  { versione: 5, esegui: collegaGiochiAtc },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {
