@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Tastierino } from "./Tastierino";
+import { suggerisciChiusura } from "../../lib/checkout";
 import {
   avanzaLeg,
   creaPartita,
@@ -205,10 +206,13 @@ export function Gioco501Page() {
           </button>
         </div>
       ) : leg.turno === "umano" ? (
-        <Tastierino
-          rimanente={leg.puntiUmano}
-          onInvia={(p) => setStato(giocaUmano(stato, p))}
-        />
+        <>
+          <SuggerimentoChiusura rimanente={leg.puntiUmano} />
+          <Tastierino
+            rimanente={leg.puntiUmano}
+            onInvia={(p) => setStato(giocaUmano(stato, p))}
+          />
+        </>
       ) : (
         <div className="attesa-bot">
           <span className="spinner" /> Il bot sta tirando…
@@ -220,6 +224,24 @@ export function Gioco501Page() {
 
 function modoNome(m: ModoChiusura): string {
   return MODI_CHIUSURA.find((x) => x.id === m)?.nome ?? m;
+}
+
+/** Mostra la chiusura consigliata quando il rimanente e' un checkout. */
+function SuggerimentoChiusura({ rimanente }: { rimanente: number }) {
+  const chiusura = suggerisciChiusura(rimanente);
+  if (!chiusura) return null;
+  return (
+    <div className="suggerimento-chiusura">
+      <span className="mini">Chiusura</span>
+      <div className="co121-chiusura">
+        {chiusura.map((c, i) => (
+          <span key={i} className="co121-freccia">
+            {c}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 interface PannelloProps {

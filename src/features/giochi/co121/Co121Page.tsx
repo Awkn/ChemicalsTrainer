@@ -4,6 +4,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
+import { suggerisciChiusura } from "../../../lib/checkout";
 import { Tastierino } from "../../gioco501/Tastierino";
 import {
   crea121,
@@ -11,7 +12,6 @@ import {
   inviaPunteggio,
   percentualeSuccesso,
   risultato121,
-  suggerisciChiusura,
   type Stato121,
 } from "./logica";
 
