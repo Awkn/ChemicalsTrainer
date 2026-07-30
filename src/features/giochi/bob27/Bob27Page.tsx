@@ -102,7 +102,7 @@ export default function Bob27Page() {
 
   // ---------- GIOCO ----------
   const bersaglio = bersaglioCorrente(stato)!;
-  const frecceRimaste = FRECCE_PER_BERSAGLIO - stato.frecceTurno.length;
+  const tentativiRimasti = FRECCE_PER_BERSAGLIO - stato.mancatiSuTarget;
 
   return (
     <section className="bob27">
@@ -135,17 +135,16 @@ export default function Bob27Page() {
       <div className="bob27-obiettivo">
         <p className="occhiello">Obiettivo</p>
         <div className="bob27-bersaglio">{bersaglio.etichetta}</div>
-        <div className="bob27-frecce" aria-label={`${frecceRimaste} frecce rimaste`}>
-          {Array.from({ length: FRECCE_PER_BERSAGLIO }, (_, i) => {
-            const esito = stato.frecceTurno[i];
-            const classe =
-              esito === true
-                ? "freccia centro"
-                : esito === false
-                  ? "freccia mancata"
-                  : "freccia";
-            return <span key={i} className={classe} />;
-          })}
+        <div
+          className="bob27-frecce"
+          aria-label={`${tentativiRimasti} tentativi rimasti su ${bersaglio.etichetta}`}
+        >
+          {Array.from({ length: FRECCE_PER_BERSAGLIO }, (_, i) => (
+            <span
+              key={i}
+              className={i < stato.mancatiSuTarget ? "freccia mancata" : "freccia"}
+            />
+          ))}
         </div>
       </div>
 

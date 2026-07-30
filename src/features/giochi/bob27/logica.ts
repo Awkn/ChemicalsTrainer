@@ -4,10 +4,11 @@
  * Regole adottate:
  * - Si parte da 27 punti.
  * - Si affrontano in ordine D1, D2, ... D20 e infine il Bull (doppio 25).
- * - Per ogni bersaglio si tirano 3 frecce. Ogni freccia a segno vale il doppio
- *   del numero (D1 = 2, D20 = 40, Bull = 50).
- * - Se in un bersaglio non si centra nessuna delle 3 frecce, si SOTTRAE il
- *   valore del doppio.
+ * - Si hanno fino a 3 freccette per centrare ogni doppio. Appena lo si centra
+ *   si SOMMA il suo valore (D1 = 2, D20 = 40, Bull = 50) e si passa subito al
+ *   doppio successivo: ogni doppio vale al massimo una volta.
+ * - Se si mancano tutte e 3 le freccette su un doppio, si SOTTRAE il suo valore
+ *   e si passa comunque al successivo.
  * - Non c'e' "bust": si gioca sempre fino al Bull e il punteggio puo' anche
  *   scendere sotto zero.
  *
@@ -38,8 +39,8 @@ export interface StatoBob27 {
   indice: number;
   /** Punteggio corrente (parte da 27, puo' diventare negativo). */
   punteggio: number;
-  /** Esiti delle frecce gia' tirate sul bersaglio corrente (max 3). */
-  frecceTurno: boolean[];
+  /** Frecce gia' mancate sul bersaglio corrente (0..2; al 3° manca si avanza). */
+  mancatiSuTarget: number;
   /** Totale frecce tirate nella partita (per la percentuale). */
   frecceTirate: number;
   /** Totale doppi centrati nella partita. */
@@ -57,7 +58,7 @@ export function creaBob27(): StatoBob27 {
   return {
     indice: 0,
     punteggio: PUNTEGGIO_INIZIALE,
-    frecceTurno: [],
+    mancatiSuTarget: 0,
     frecceTirate: 0,
     doppiCentrati: 0,
     finito: false,
@@ -69,42 +70,46 @@ export function bersaglioCorrente(stato: StatoBob27): Bersaglio | null {
   return stato.finito ? null : BERSAGLI[stato.indice];
 }
 
+/** Passa al bersaglio successivo azzerando i tentativi. */
+function avanza(stato: StatoBob27): Pick<StatoBob27, "indice" | "mancatiSuTarget" | "finito"> {
+  const indice = stato.indice + 1;
+  return { indice, mancatiSuTarget: 0, finito: indice >= BERSAGLI.length };
+}
+
 /**
- * Registra l'esito di una freccia (a segno o mancata). Quando il turno arriva
- * a 3 frecce, applica l'eventuale penalita' e passa al bersaglio successivo.
+ * Registra l'esito di una freccia. Se centra il doppio, ne somma il valore e
+ * avanza subito; se e' il terzo errore sul doppio, ne sottrae il valore e
+ * avanza. Altrimenti resta sul doppio per la freccia successiva.
  */
 export function tiraFreccia(stato: StatoBob27, colpito: boolean): StatoBob27 {
   if (stato.finito) return stato;
 
-  const bersaglio = BERSAGLI[stato.indice];
-  const valore = puntiDoppio(bersaglio);
-
-  const frecceTurno = [...stato.frecceTurno, colpito];
-  let punteggio = stato.punteggio + (colpito ? valore : 0);
+  const valore = puntiDoppio(BERSAGLI[stato.indice]);
   const frecceTirate = stato.frecceTirate + 1;
-  const doppiCentrati = stato.doppiCentrati + (colpito ? 1 : 0);
 
-  // Turno non ancora concluso: aspetta le altre frecce.
-  if (frecceTurno.length < FRECCE_PER_BERSAGLIO) {
-    return { ...stato, frecceTurno, punteggio, frecceTirate, doppiCentrati };
+  if (colpito) {
+    return {
+      ...stato,
+      ...avanza(stato),
+      punteggio: stato.punteggio + valore,
+      doppiCentrati: stato.doppiCentrati + 1,
+      frecceTirate,
+    };
   }
 
-  // Fine turno: se nessuna freccia a segno, sottrai il valore del doppio.
-  const centri = frecceTurno.filter(Boolean).length;
-  if (centri === 0) punteggio -= valore;
+  const mancati = stato.mancatiSuTarget + 1;
+  // Terzo errore: penalita' e avanti.
+  if (mancati >= FRECCE_PER_BERSAGLIO) {
+    return {
+      ...stato,
+      ...avanza(stato),
+      punteggio: stato.punteggio - valore,
+      frecceTirate,
+    };
+  }
 
-  const indice = stato.indice + 1;
-  const finito = indice >= BERSAGLI.length;
-
-  return {
-    ...stato,
-    indice,
-    punteggio,
-    frecceTurno: [],
-    frecceTirate,
-    doppiCentrati,
-    finito,
-  };
+  // Ancora frecce disponibili su questo doppio.
+  return { ...stato, mancatiSuTarget: mancati, frecceTirate };
 }
 
 /** Percentuale di doppi centrati sul totale delle frecce tirate (0..100). */
