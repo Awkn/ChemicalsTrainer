@@ -426,6 +426,87 @@ a {
   align-self: center;
 }
 
+/* ---------- gioco 121 Checkout ---------- */
+
+.co121 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.co121-rimanente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg-2));
+  border: 1px solid color-mix(in srgb, var(--accento) 45%, var(--bordo));
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.co121-chiusura {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.co121-freccia {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 8px;
+  padding: 0.2rem 0.55rem;
+}
+
+.co121-esito {
+  text-align: center;
+  border-radius: var(--radius);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.co121-esito.chiuso {
+  background: color-mix(in srgb, var(--ok) 22%, var(--bg-2));
+  border: 1px solid color-mix(in srgb, var(--ok) 50%, var(--bordo));
+}
+
+.co121-esito.fallito {
+  background: color-mix(in srgb, var(--ko) 20%, var(--bg-2));
+  border: 1px solid color-mix(in srgb, var(--ko) 45%, var(--bordo));
+}
+
+.co121-stat {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.co121-stat > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  padding: 0.5rem 0.25rem;
+}
+
+.co121-stat-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.co121-azioni {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 /* ---------- campi form ---------- */
 
 .campo {

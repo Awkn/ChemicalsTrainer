@@ -11,6 +11,7 @@ import { useSincronizzaSquadra } from "./lib/squadra/useSincronizza";
 const SquadraPage = lazy(() => import("./features/squadra/SquadraPage"));
 // I giochi si caricano solo quando si avvia un esercizio giocabile.
 const Bob27Page = lazy(() => import("./features/giochi/bob27/Bob27Page"));
+const Co121Page = lazy(() => import("./features/giochi/co121/Co121Page"));
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -38,6 +39,14 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <Bob27Page />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/co121/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <Co121Page />
             </Suspense>
           }
         />

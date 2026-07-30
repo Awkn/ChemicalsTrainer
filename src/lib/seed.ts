@@ -207,8 +207,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Checkout",
     durataMin: 15,
     descrizione:
-      "Parti sempre da 121, hai 9 frecce.\nSe chiudi: +1 livello. Se fallisci: ripeti.",
+      "Parti sempre da 121, hai 9 frecce.\nInserisci il punteggio a ogni round: se chiudi conti +1, altrimenti si riprova.\nSessione a oltranza: alla fine salva la percentuale di chiusure.",
     obiettivo: "Almeno il 50% di successo",
+    gioco: "co121",
     metriche: [
       { id: "successo", nome: "Successo %", unita: "percentuale", obiettivo: 50 },
     ],

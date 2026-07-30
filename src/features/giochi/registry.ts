@@ -7,6 +7,7 @@ import type { GiocoId } from "../../types";
  */
 export const GIOCHI: Record<GiocoId, { titolo: string }> = {
   bob27: { titolo: "Bob's 27" },
+  co121: { titolo: "121 Checkout" },
 };
 
 /** Percorso della schermata di gioco per un dato esercizio. */

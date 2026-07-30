@@ -79,10 +79,19 @@ async function collegaGiocoBob27(): Promise<void> {
   }
 }
 
+/** Rende "121 Challenge" un gioco interattivo (la metrica c'e' gia'). */
+async function collegaGioco121(): Promise<void> {
+  const esercizi = await db.esercizi.where("nome").equals("121 Challenge").toArray();
+  for (const e of esercizi) {
+    if (e.gioco == null) await db.esercizi.update(e.id, { gioco: "co121" });
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
   { versione: 3, esegui: collegaGiocoBob27 },
+  { versione: 4, esegui: collegaGioco121 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {
