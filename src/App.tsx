@@ -17,6 +17,7 @@ const LadderPage = lazy(() => import("./features/giochi/ladder/LadderPage"));
 const PressureDoublesPage = lazy(
   () => import("./features/giochi/pressuredoubles/PressureDoublesPage"),
 );
+const Co61100Page = lazy(() => import("./features/giochi/co61100/Co61100Page"));
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -76,6 +77,14 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <PressureDoublesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/co61100/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <Co61100Page />
             </Suspense>
           }
         />

@@ -101,12 +101,37 @@ async function collegaGiochiAtc(): Promise<void> {
   }
 }
 
+/**
+ * Rende "61-100 Checkouts" un gioco e porta la metrica da conteggio a
+ * percentuale (il gioco salva la % di chiusure). Non tocca le personalizzazioni.
+ */
+async function collegaGioco61100(): Promise<void> {
+  const esercizi = await db.esercizi
+    .where("nome")
+    .equals("61-100 Checkouts")
+    .toArray();
+  for (const e of esercizi) {
+    const modifiche: { gioco?: GiocoId; metriche?: MetricaDef[] } = {};
+    if (e.gioco == null) modifiche.gioco = "co61100";
+    // Sostituisce la vecchia metrica "riusciti" (numero) con "successo" (%).
+    const soloVecchia =
+      e.metriche?.length === 1 && e.metriche[0].id === "riusciti";
+    if (soloVecchia) {
+      modifiche.metriche = [
+        { id: "successo", nome: "Checkout %", unita: "percentuale", obiettivo: 40 },
+      ];
+    }
+    if (Object.keys(modifiche).length > 0) await db.esercizi.update(e.id, modifiche);
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
   { versione: 3, esegui: collegaGiocoBob27 },
   { versione: 4, esegui: collegaGioco121 },
   { versione: 5, esegui: collegaGiochiAtc },
+  { versione: 6, esegui: collegaGioco61100 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {

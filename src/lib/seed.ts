@@ -130,10 +130,11 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Checkout",
     durataMin: 10,
     descrizione:
-      "Genera checkout casuali tra 61 e 100.\nHai 3 frecce.\nConta: checkout riusciti, dart usati.",
-    obiettivo: "Traccia i checkout riusciti",
+      "Esce un checkout casuale tra 61 e 100.\nHai una visita (3 frecce) per chiuderlo: inserisci il punteggio.\nSessione a oltranza: alla fine salva la percentuale di chiusure.",
+    obiettivo: "Almeno il 40% di chiusure",
+    gioco: "co61100",
     metriche: [
-      { id: "riusciti", nome: "Checkout riusciti", unita: "numero" },
+      { id: "successo", nome: "Checkout %", unita: "percentuale", obiettivo: 40 },
     ],
   },
 

@@ -11,6 +11,7 @@ export const GIOCHI: Record<GiocoId, { titolo: string }> = {
   atc: { titolo: "Around the Clock" },
   ladder: { titolo: "Doubles Ladder" },
   pressuredoubles: { titolo: "Pressure Doubles" },
+  co61100: { titolo: "61-100 Checkouts" },
 };
 
 /** Percorso della schermata di gioco per un dato esercizio. */
