@@ -1685,6 +1685,60 @@ textarea:focus {
   margin: 0;
 }
 
+/* ---------- Hub Giochi ---------- */
+.giochi-griglia {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.gioco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 1rem 0.85rem;
+  text-decoration: none;
+  color: var(--testo);
+  transition: border-color 0.2s, transform 0.1s;
+}
+
+.gioco-card:hover {
+  border-color: var(--accento);
+}
+
+.gioco-card:active {
+  transform: scale(0.98);
+}
+
+.gioco-card strong {
+  font-size: 1.02rem;
+}
+
+.gioco-card .mini {
+  margin: 0;
+}
+
+.gioco-icona {
+  font-size: 1.9rem;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+
+/* Prima card (501) a tutta larghezza, in evidenza. */
+.gioco-card:first-child {
+  grid-column: 1 / -1;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accento) 22%, var(--bg-2)),
+    var(--bg-2)
+  );
+  border-color: color-mix(in srgb, var(--accento) 45%, var(--bordo));
+}
+
 /* ---------- Sfida: esito a due bottoni (Chiuso / Mancato) ---------- */
 .sfida-esiti {
   display: grid;

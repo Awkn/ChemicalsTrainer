@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { OggiPage } from "./features/oggi/OggiPage";
+import { GiochiPage } from "./features/giochi/GiochiPage";
 import { Gioco501Page } from "./features/gioco501/Gioco501Page";
 import { lazy, Suspense } from "react";
 import { ProgressiPage } from "./features/progressi/ProgressiPage";
@@ -30,6 +31,7 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<OggiPage />} />
+        <Route path="giochi" element={<GiochiPage />} />
         <Route path="501" element={<Gioco501Page />} />
         <Route path="progressi" element={<ProgressiPage />} />
         <Route

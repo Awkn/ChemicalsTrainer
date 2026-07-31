@@ -7,7 +7,7 @@ import { PromemoriaBackup } from "../features/backup/PromemoriaBackup";
 const principali = [
   { to: "/", label: "Oggi", icona: "🎯", end: true },
   { to: "/programma", label: "Programma", icona: "📅", end: false },
-  { to: "/501", label: "501", icona: "🎮", end: false },
+  { to: "/giochi", label: "Giochi", icona: "🎮", end: false },
   { to: "/progressi", label: "Progressi", icona: "📈", end: false },
   { to: "/squadra", label: "Squadra", icona: "👥", end: false },
 ];
