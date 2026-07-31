@@ -1665,3 +1665,22 @@ textarea:focus {
   padding: 0.25rem 0.7rem;
   white-space: nowrap;
 }
+
+.recap-salvato {
+  text-align: center;
+  margin: 0.9rem 0 0;
+  color: var(--ok);
+}
+
+/* ---------- Bot livello squadra ---------- */
+.squadra-bot-toggle {
+  border-style: dashed;
+}
+
+.squadra-bot-vuoto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.2rem;
+  margin: 0;
+}

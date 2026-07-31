@@ -11,12 +11,14 @@ import {
 
 interface Props {
   stato: StatoPartita;
+  /** True quando le statistiche sono state salvate nell'esercizio 501. */
+  salvato?: boolean;
   onRivincita: () => void;
   onImpostazioni: () => void;
 }
 
 /** Recap statistico a fine partita, in stile scheda risultato. */
-export function Recap501({ stato, onRivincita, onImpostazioni }: Props) {
+export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props) {
   const { config, statsUmano, statsBot } = stato;
   const vintoUmano = stato.vincitore === "umano";
 
@@ -100,6 +102,12 @@ export function Recap501({ stato, onRivincita, onImpostazioni }: Props) {
           </div>
         ))}
       </div>
+
+      {salvato && (
+        <p className="mini recap-salvato">
+          💾 Statistiche salvate nei Progressi e condivise in squadra.
+        </p>
+      )}
 
       <div className="modale-azioni">
         <button className="bottone secondario" onClick={onImpostazioni}>

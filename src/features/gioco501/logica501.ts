@@ -17,7 +17,8 @@ export type LivelloId =
   | "alto"
   | "super"
   | "letale"
-  | "fuego";
+  | "fuego"
+  | "squadra";
 
 export interface Livello {
   id: LivelloId;
@@ -35,6 +36,51 @@ export interface Livello {
   sequenza?: number[];
   /** Testo mostrato nella scelta del livello al posto della media. */
   nota?: string;
+  /** Se e' un "bot livello squadra", id del compagno di cui imita la media. */
+  compagnoId?: string;
+}
+
+/**
+ * Costruisce un livello a partire dalla media condivisa di un compagno:
+ * probabilita' e cap di chiusura sono interpolati sugli ancoraggi dei livelli
+ * fissi, cosi' il bot "gioca come" chi ha quella media.
+ */
+export function livelloDaMedia(
+  nome: string,
+  media: number,
+  compagnoId: string,
+): Livello {
+  const ancore = [
+    { m: 30, p: 0.08, c: 40 },
+    { m: 40, p: 0.12, c: 50 },
+    { m: 55, p: 0.2, c: 80 },
+    { m: 65, p: 0.3, c: 110 },
+    { m: 80, p: 0.45, c: 140 },
+    { m: 95, p: 0.6, c: 170 },
+    { m: 110, p: 0.78, c: 170 },
+    { m: 140, p: 0.92, c: 170 },
+  ];
+  const x = Math.max(ancore[0].m, Math.min(ancore[ancore.length - 1].m, media));
+  let p = ancore[0].p;
+  let c = ancore[0].c;
+  for (let i = 0; i < ancore.length - 1; i++) {
+    const a = ancore[i];
+    const b = ancore[i + 1];
+    if (x >= a.m && x <= b.m) {
+      const t = (x - a.m) / (b.m - a.m);
+      p = a.p + t * (b.p - a.p);
+      c = Math.round(a.c + t * (b.c - a.c));
+      break;
+    }
+  }
+  return {
+    id: "squadra",
+    nome,
+    media,
+    pCheckout: Math.round(p * 100) / 100,
+    capCheckout: c,
+    compagnoId,
+  };
 }
 
 export const LIVELLI: Livello[] = [

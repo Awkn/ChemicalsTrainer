@@ -3,8 +3,12 @@ import { Tastierino } from "./Tastierino";
 import { Impostazioni501 } from "./Impostazioni501";
 import { Recap501 } from "./Recap501";
 import { suggerisciChiusura } from "../../lib/checkout";
+import { db } from "../../lib/db";
+import { registraRisultato } from "../../lib/repo";
+import { dataIso } from "../../lib/date";
 import {
   avanzaLeg,
+  checkoutPerc,
   configPredefinita,
   creaPartita,
   giocaBot,
@@ -12,10 +16,14 @@ import {
   lancioMoneta,
   LIVELLI,
   media3,
+  mediaFirst9,
   risultatoVisita,
   type ConfigPartita,
   type StatoPartita,
 } from "./logica501";
+
+/** Esercizio di libreria su cui salvare le statistiche del 501 vs bot. */
+const NOME_ESERCIZIO_501 = "501 contro il computer";
 
 type Fase = "setup" | "moneta" | "gioco";
 
@@ -27,6 +35,8 @@ export function Gioco501Page() {
   const [stato, setStato] = useState<StatoPartita | null>(null);
   // Punteggio che chiude un leg, in attesa che l'utente indichi le frecce usate.
   const [chiusura, setChiusura] = useState<number | null>(null);
+  // Le statistiche della partita finita sono state salvate nell'esercizio 501.
+  const [salvato, setSalvato] = useState(false);
 
   // Il bot gioca da solo quando e' il suo turno.
   useEffect(() => {
@@ -43,10 +53,43 @@ export function Gioco501Page() {
     return () => clearTimeout(t);
   }, [fase, stato]);
 
+  // A partita finita salva le mie statistiche nell'esercizio 501 (una volta):
+  // finiscono nei Progressi e, tramite la sincronizzazione, sulla bacheca.
+  useEffect(() => {
+    if (!stato || !stato.vincitore || salvato) return;
+    if (stato.statsUmano.frecce === 0) {
+      setSalvato(true);
+      return;
+    }
+    let annullato = false;
+    (async () => {
+      const es = await db.esercizi
+        .where("nome")
+        .equals(NOME_ESERCIZIO_501)
+        .first();
+      if (es && !annullato) {
+        await registraRisultato({
+          esercizioId: es.id,
+          data: dataIso(),
+          valori: {
+            media: media3(stato.statsUmano),
+            first9: mediaFirst9(stato.statsUmano),
+            checkout: checkoutPerc(stato.statsUmano),
+          },
+        });
+      }
+      if (!annullato) setSalvato(true);
+    })();
+    return () => {
+      annullato = true;
+    };
+  }, [stato, salvato]);
+
   function avvia() {
     const primo = lancioMoneta();
     setStato(creaPartita(config, primo));
     setChiusura(null);
+    setSalvato(false);
     setFase("moneta");
   }
 
@@ -55,6 +98,7 @@ export function Gioco501Page() {
     const primo = lancioMoneta();
     setStato(creaPartita(stato.config, primo));
     setChiusura(null);
+    setSalvato(false);
     setFase("moneta");
   }
 
@@ -115,6 +159,7 @@ export function Gioco501Page() {
     return (
       <Recap501
         stato={stato}
+        salvato={salvato}
         onRivincita={rivincita}
         onImpostazioni={() => setFase("setup")}
       />

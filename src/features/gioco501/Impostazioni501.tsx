@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { SelettoreSquadraBot } from "./SelettoreSquadraBot";
 import {
   LIVELLI,
+  livelloDaMedia,
   MODI_CHIUSURA,
   MODI_INGRESSO,
   PUNTEGGI_INIZIALI,
@@ -27,6 +29,9 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
     const n = Math.min(15, Math.max(1, config.numero + d));
     patch({ numero: n });
   };
+
+  const botSquadra = config.livello.id === "squadra";
+  const [mostraSquadra, setMostraSquadra] = useState(botSquadra);
 
   return (
     <section>
@@ -181,6 +186,29 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
               <span className="mini">{l.nota ?? `Media ${l.media}`}</span>
             </button>
           ))}
+
+          <button
+            className={`opzione squadra-bot-toggle${botSquadra ? " attiva" : ""}`}
+            onClick={() => setMostraSquadra((v) => !v)}
+          >
+            <strong>Bot livello squadra 👥</strong>
+            <span className="mini">
+              {botSquadra
+                ? `Stai sfidando: ${config.livello.nome} (media ${Math.round(
+                    config.livello.media,
+                  )})`
+                : "Gioca con la media di un compagno di squadra"}
+            </span>
+          </button>
+
+          {mostraSquadra && (
+            <SelettoreSquadraBot
+              selezionatoId={botSquadra ? config.livello.compagnoId : undefined}
+              onScegli={(c) =>
+                patch({ livello: livelloDaMedia(c.nome, c.media, c.id) })
+              }
+            />
+          )}
         </div>
       </div>
 
