@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { Tastierino } from "./Tastierino";
+import { Impostazioni501 } from "./Impostazioni501";
+import { Recap501 } from "./Recap501";
 import { suggerisciChiusura } from "../../lib/checkout";
 import {
   avanzaLeg,
+  configPredefinita,
   creaPartita,
   giocaBot,
   giocaUmano,
   lancioMoneta,
   LIVELLI,
   media3,
-  MODI_CHIUSURA,
-  type LivelloId,
-  type ModoChiusura,
+  risultatoVisita,
+  type ConfigPartita,
   type StatoPartita,
 } from "./logica501";
 
@@ -19,9 +21,12 @@ type Fase = "setup" | "moneta" | "gioco";
 
 export function Gioco501Page() {
   const [fase, setFase] = useState<Fase>("setup");
-  const [livelloId, setLivelloId] = useState<LivelloId>("medio");
-  const [modo, setModo] = useState<ModoChiusura>("double");
+  const [config, setConfig] = useState<ConfigPartita>(() =>
+    configPredefinita(LIVELLI[1]),
+  );
   const [stato, setStato] = useState<StatoPartita | null>(null);
+  // Punteggio che chiude un leg, in attesa che l'utente indichi le frecce usate.
+  const [chiusura, setChiusura] = useState<number | null>(null);
 
   // Il bot gioca da solo quando e' il suo turno.
   useEffect(() => {
@@ -39,73 +44,45 @@ export function Gioco501Page() {
   }, [fase, stato]);
 
   function avvia() {
-    const livello = LIVELLI.find((l) => l.id === livelloId)!;
     const primo = lancioMoneta();
-    setStato(creaPartita(livello, modo, primo));
+    setStato(creaPartita(config, primo));
+    setChiusura(null);
     setFase("moneta");
   }
 
   function rivincita() {
     if (!stato) return;
     const primo = lancioMoneta();
-    setStato(creaPartita(stato.livello, stato.modo, primo));
+    setStato(creaPartita(stato.config, primo));
+    setChiusura(null);
     setFase("moneta");
+  }
+
+  // L'umano invia il totale: se chiude, chiedo con quante frecce; altrimenti applico.
+  function inviaUmano(punteggio: number) {
+    if (!stato) return;
+    const chiude = risultatoVisita(
+      stato.leg.puntiUmano,
+      punteggio,
+      stato.config.chiusura,
+    ).chiuso;
+    if (chiude) {
+      setChiusura(punteggio);
+    } else {
+      setStato(giocaUmano(stato, punteggio));
+    }
+  }
+
+  function confermaChiusura(frecce: number) {
+    if (!stato || chiusura == null) return;
+    setStato(giocaUmano(stato, chiusura, frecce));
+    setChiusura(null);
   }
 
   // ---------- SETUP ----------
   if (fase === "setup") {
     return (
-      <section>
-        <div className="pagina-testa">
-          <div>
-            <p className="occhiello">Partita</p>
-            <h2>501 contro il bot</h2>
-          </div>
-        </div>
-
-        <p className="mini">
-          Al meglio dei {5} leg (vince chi arriva a 3). Giochi sul bersaglio
-          vero e inserisci il punteggio di ogni tirata; il bot risponde da solo.
-        </p>
-
-        <div className="scheda">
-          <h3>Livello del bot</h3>
-          <div className="opzioni-lista">
-            {LIVELLI.map((l) => (
-              <button
-                key={l.id}
-                className={
-                  livelloId === l.id ? "opzione attiva" : "opzione"
-                }
-                onClick={() => setLivelloId(l.id)}
-              >
-                <strong>{l.nome}</strong>
-                <span className="mini">{l.nota ?? `Media ${l.media}`}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="scheda">
-          <h3>Modo di chiusura</h3>
-          <div className="opzioni-lista">
-            {MODI_CHIUSURA.map((m) => (
-              <button
-                key={m.id}
-                className={modo === m.id ? "opzione attiva" : "opzione"}
-                onClick={() => setModo(m.id)}
-              >
-                <strong>{m.nome}</strong>
-                <span className="mini">{m.descr}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button className="bottone bottone-largo" onClick={avvia}>
-          🎲 Lancia la moneta e inizia
-        </button>
-      </section>
+      <Impostazioni501 config={config} onChange={setConfig} onAvvia={avvia} />
     );
   }
 
@@ -120,7 +97,8 @@ export function Gioco501Page() {
         <p className="occhiello">Lancio della moneta</p>
         <h2>{inizioUmano ? "Inizi tu!" : "Inizia il bot"}</h2>
         <p className="mini">
-          {stato.livello.nome} · {modoNome(stato.modo)}
+          {stato.config.livello.nome} · {stato.config.puntiIniziali} ·{" "}
+          {formatoNome(stato.config)}
         </p>
         <button
           className="bottone bottone-largo"
@@ -134,27 +112,12 @@ export function Gioco501Page() {
 
   // ---------- PARTITA FINITA ----------
   if (stato.vincitore) {
-    const vinto = stato.vincitore === "umano";
     return (
-      <section className="centro-schermo">
-        <div className="moneta">{vinto ? "🏆" : "🤖"}</div>
-        <p className="occhiello">Partita finita</p>
-        <h2>{vinto ? "Hai vinto!" : "Ha vinto il bot"}</h2>
-        <p className="punteggio-finale">
-          {stato.legUmano} — {stato.legBot}
-        </p>
-        <p className="mini">
-          Tua media: {media3(stato.statsUmano)} · Bot: {media3(stato.statsBot)}
-        </p>
-        <div className="modale-azioni">
-          <button className="bottone secondario" onClick={() => setFase("setup")}>
-            Impostazioni
-          </button>
-          <button className="bottone" onClick={rivincita}>
-            Rivincita
-          </button>
-        </div>
-      </section>
+      <Recap501
+        stato={stato}
+        onRivincita={rivincita}
+        onImpostazioni={() => setFase("setup")}
+      />
     );
   }
 
@@ -169,7 +132,7 @@ export function Gioco501Page() {
         <span className="leg-score">
           {stato.legUmano} — {stato.legBot}
         </span>
-        <span className="mini">Best of {5}</span>
+        <span className="mini">{formatoNome(stato.config)}</span>
       </div>
 
       <div className="tavolo">
@@ -205,13 +168,33 @@ export function Gioco501Page() {
             Prossimo leg
           </button>
         </div>
+      ) : chiusura != null ? (
+        <div className="chiusura-frecce">
+          <h3>Chiuso con {chiusura}! Con quante frecce?</h3>
+          <div className="chiusura-scelte">
+            {[1, 2, 3].map((n) => (
+              <button
+                key={n}
+                className="bottone"
+                onClick={() => confermaChiusura(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <button
+            className="bottone secondario piccolo"
+            onClick={() => setChiusura(null)}
+          >
+            ↶ Annulla
+          </button>
+        </div>
       ) : leg.turno === "umano" ? (
         <>
-          <SuggerimentoChiusura rimanente={leg.puntiUmano} />
-          <Tastierino
-            rimanente={leg.puntiUmano}
-            onInvia={(p) => setStato(giocaUmano(stato, p))}
-          />
+          {stato.config.mostraChiusura && (
+            <SuggerimentoChiusura rimanente={leg.puntiUmano} />
+          )}
+          <Tastierino rimanente={leg.puntiUmano} onInvia={inviaUmano} />
         </>
       ) : (
         <div className="attesa-bot">
@@ -222,8 +205,10 @@ export function Gioco501Page() {
   );
 }
 
-function modoNome(m: ModoChiusura): string {
-  return MODI_CHIUSURA.find((x) => x.id === m)?.nome ?? m;
+function formatoNome(config: ConfigPartita): string {
+  const verbo = config.formato === "bestof" ? "Al meglio di" : "Primo a";
+  const unita = config.unita === "legs" ? "leg" : "set";
+  return `${verbo} ${config.numero} ${unita}`;
 }
 
 /** Mostra la chiusura consigliata quando il rimanente e' un checkout. */

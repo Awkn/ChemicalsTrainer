@@ -1316,3 +1316,352 @@ textarea:focus {
   text-align: center;
   margin: 0;
 }
+
+/* ---------- Impostazioni 501 ---------- */
+.imp-formato {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin-bottom: 0.6rem;
+}
+
+.imp-segmento.verticale {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.imp-segmento button {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 10px;
+  padding: 0.55rem 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.imp-segmento button.attivo {
+  border-color: var(--accento);
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg));
+}
+
+.imp-segmento button.disabilitato,
+.imp-segmento button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.imp-stepper {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  background: var(--accento);
+  border-radius: 12px;
+  min-width: 3.4rem;
+  color: white;
+}
+
+.imp-stepper button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+.imp-stepper span {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.imp-punti {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.imp-punti button {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 12px;
+  padding: 0.7rem 0.3rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.imp-punti button.attivo {
+  border-color: var(--accento);
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg));
+}
+
+.imp-punti button.custom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 1rem;
+}
+
+.imp-punti button.custom .mini {
+  margin: 0;
+  font-weight: 600;
+}
+
+.imp-punti button.custom input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 8px;
+  color: var(--testo);
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.15rem;
+  -moz-appearance: textfield;
+}
+
+.imp-punti button.custom input::-webkit-outer-spin-button,
+.imp-punti button.custom input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.imp-riga3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.imp-riga3 button {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  color: var(--testo);
+  border-radius: 12px;
+  padding: 0.7rem 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.imp-riga3 button.attivo {
+  border-color: var(--accento);
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg));
+}
+
+.imp-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.2rem;
+}
+
+.imp-switch > span:first-child {
+  flex: 1;
+  font-weight: 600;
+}
+
+.imp-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.imp-slider {
+  position: relative;
+  width: 3rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--bg-3);
+  border: 1px solid var(--bordo);
+  transition: background 0.2s;
+  flex: none;
+}
+
+.imp-slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--testo);
+  transition: transform 0.2s;
+}
+
+.imp-switch input:checked + .imp-slider {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.imp-switch input:checked + .imp-slider::after {
+  transform: translateX(1.4rem);
+  background: white;
+}
+
+.imp-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--accento);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: help;
+}
+
+/* ---------- Chiusura: frecce usate ---------- */
+.chiusura-frecce {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 0;
+}
+
+.chiusura-scelte {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 20rem;
+}
+
+.chiusura-scelte .bottone {
+  font-size: 1.6rem;
+  font-weight: 800;
+  padding: 1rem 0;
+}
+
+/* ---------- Recap fine partita ---------- */
+.recap-testa {
+  background: linear-gradient(
+    135deg,
+    var(--accento),
+    color-mix(in srgb, var(--accento) 55%, #000)
+  );
+  border-radius: var(--radius);
+  padding: 1.1rem 1rem 1.3rem;
+  text-align: center;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.recap-testa.perso {
+  background: linear-gradient(
+    135deg,
+    var(--bg-3),
+    color-mix(in srgb, var(--accento) 25%, #000)
+  );
+}
+
+.recap-testa h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recap-data {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.recap-badge {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 0.9rem;
+}
+
+.recap-badge span {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.recap-score {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recap-giocatore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.recap-trofeo {
+  min-height: 1.4rem;
+  font-size: 1.2rem;
+}
+
+.recap-punteggio {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 0.2rem 0.7rem;
+}
+
+.recap-tabella {
+  display: flex;
+  flex-direction: column;
+}
+
+.recap-riga {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.2rem;
+  border-bottom: 1px solid var(--bordo);
+}
+
+.recap-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.recap-val:first-child {
+  text-align: left;
+}
+
+.recap-val:last-child {
+  text-align: right;
+}
+
+.recap-label {
+  font-size: 0.72rem;
+  color: var(--testo-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--bg-3);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  white-space: nowrap;
+}

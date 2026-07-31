@@ -3,8 +3,10 @@
  * stato e restituisce il nuovo stato. Cosi' la logica e' isolata e testabile.
  *
  * Modello di input umano: si gioca su un bersaglio vero e si inserisce il
- * TOTALE segnato nella tirata (3 frecce). Il bot e' simulato in base alla sua
- * media per 3 frecce e a una probabilita' di chiusura crescente col livello.
+ * TOTALE segnato nella tirata (3 frecce). Alla chiusura si indica con quante
+ * frecce (1-3) si e' chiuso, cosi' le statistiche a fine partita sono precise.
+ * Il bot e' simulato in base alla sua media per 3 frecce e a una probabilita'
+ * di chiusura crescente col livello.
  */
 
 export type Giocatore = "umano" | "bot";
@@ -53,17 +55,68 @@ export const LIVELLI: Livello[] = [
 ];
 
 export type ModoChiusura = "single" | "master" | "double";
+export type ModoIngresso = "single" | "master" | "double";
+export type Formato = "bestof" | "firstto";
+export type Unita = "legs" | "sets";
 
 export const MODI_CHIUSURA: { id: ModoChiusura; nome: string; descr: string }[] =
   [
-    { id: "single", nome: "Single out", descr: "Si chiude con qualsiasi bersaglio." },
-    { id: "master", nome: "Master out", descr: "Si chiude su doppio o triplo." },
-    { id: "double", nome: "Double out", descr: "Si chiude solo su un doppio." },
+    { id: "double", nome: "Uscita con doppio", descr: "Si chiude solo su un doppio." },
+    { id: "master", nome: "Uscita Master", descr: "Si chiude su doppio o triplo." },
+    { id: "single", nome: "Uscita diretta", descr: "Si chiude con qualsiasi bersaglio." },
   ];
 
-export const PUNTI_INIZIALI = 501;
-export const BEST_OF = 5;
-export const LEG_PER_VINCERE = 3;
+export const MODI_INGRESSO: { id: ModoIngresso; nome: string; descr: string }[] =
+  [
+    { id: "single", nome: "Ingresso diretto", descr: "Si entra con qualsiasi bersaglio." },
+    { id: "double", nome: "Ingresso con doppio", descr: "Il punteggio conta dopo un doppio." },
+    { id: "master", nome: "Ingresso Master", descr: "Si entra su doppio o triplo." },
+  ];
+
+/** Etichette brevi per i badge del recap. */
+export function etichettaIngresso(m: ModoIngresso): string {
+  return m === "double" ? "Ingresso doppio" : m === "master" ? "Ingresso master" : "Ingresso diretto";
+}
+export function etichettaChiusura(m: ModoChiusura): string {
+  return m === "double" ? "Uscita doppio" : m === "master" ? "Uscita master" : "Uscita diretta";
+}
+
+export const PUNTEGGI_INIZIALI = [301, 501, 701];
+
+/** Configurazione scelta prima di iniziare la partita. */
+export interface ConfigPartita {
+  livello: Livello;
+  puntiIniziali: number;
+  formato: Formato;
+  /** Numero di leg per "il meglio di" / "il primo a". */
+  numero: number;
+  unita: Unita;
+  ingresso: ModoIngresso;
+  chiusura: ModoChiusura;
+  /** Mostra la chiusura consigliata durante la partita. */
+  mostraChiusura: boolean;
+  /** Vittoria solo con due leg di scarto. */
+  dueLegDiff: boolean;
+}
+
+export function configPredefinita(livello: Livello): ConfigPartita {
+  return {
+    livello,
+    puntiIniziali: 501,
+    formato: "bestof",
+    numero: 5,
+    unita: "legs",
+    ingresso: "single",
+    chiusura: "double",
+    mostraChiusura: true,
+    dueLegDiff: false,
+  };
+}
+
+/** Leg necessari per vincere la partita (senza contare la regola dei 2 di scarto). */
+export function legPerVincere(cfg: ConfigPartita): number {
+  return cfg.formato === "bestof" ? Math.floor(cfg.numero / 2) + 1 : cfg.numero;
+}
 
 /** Totali NON ottenibili con 3 freccette. */
 const TOTALI_IMPOSSIBILI = new Set([
@@ -73,9 +126,39 @@ const TOTALI_IMPOSSIBILI = new Set([
 /** Punteggi che non si possono chiudere (usati per double/master out). */
 const BOGEY = new Set([159, 162, 163, 165, 166, 168, 169]);
 
+/** Statistiche accumulate su tutta la partita, per il recap finale. */
 export interface StatsGiocatore {
+  /** Punti segnati (esclusi i bust). */
   punti: number;
-  visite: number;
+  /** Frecce tirate in totale. */
+  frecce: number;
+  /** Punti e frecce delle prime 3 visite di ogni leg (First 9). */
+  first9Punti: number;
+  first9Frecce: number;
+  /** Visite iniziate da un punteggio chiudibile. */
+  chkTentativi: number;
+  /** Chiusure riuscite (= leg vinti). */
+  chkRiusciti: number;
+  /** Punteggio piu' alto in una visita. */
+  highScore: number;
+  /** Chiusura piu' alta. */
+  highFinish: number;
+  /** Frecce usate in ciascun leg vinto (per miglior/peggior leg). */
+  frecceLegVinti: number[];
+}
+
+function statsVuote(): StatsGiocatore {
+  return {
+    punti: 0,
+    frecce: 0,
+    first9Punti: 0,
+    first9Frecce: 0,
+    chkTentativi: 0,
+    chkRiusciti: 0,
+    highScore: 0,
+    highFinish: 0,
+    frecceLegVinti: [],
+  };
 }
 
 export interface StatoLeg {
@@ -88,11 +171,15 @@ export interface StatoLeg {
   bustUmano: boolean;
   bustBot: boolean;
   vincitore: Giocatore | null;
+  /** Visite e frecce del leg corrente (per First 9 e conteggio frecce). */
+  visiteUmano: number;
+  visiteBot: number;
+  frecceUmano: number;
+  frecceBot: number;
 }
 
 export interface StatoPartita {
-  livello: Livello;
-  modo: ModoChiusura;
+  config: ConfigPartita;
   primo: Giocatore;
   numeroLeg: number;
   legUmano: number;
@@ -101,6 +188,8 @@ export interface StatoPartita {
   statsUmano: StatsGiocatore;
   statsBot: StatsGiocatore;
   vincitore: Giocatore | null;
+  /** Istante di inizio, mostrato nel recap. */
+  creato: number;
 }
 
 export function avversario(g: Giocatore): Giocatore {
@@ -112,10 +201,10 @@ export function lancioMoneta(): Giocatore {
   return Math.random() < 0.5 ? "umano" : "bot";
 }
 
-function creaLeg(iniziato: Giocatore): StatoLeg {
+function creaLeg(iniziato: Giocatore, punti: number): StatoLeg {
   return {
-    puntiUmano: PUNTI_INIZIALI,
-    puntiBot: PUNTI_INIZIALI,
+    puntiUmano: punti,
+    puntiBot: punti,
     turno: iniziato,
     iniziato,
     ultimoUmano: null,
@@ -123,25 +212,28 @@ function creaLeg(iniziato: Giocatore): StatoLeg {
     bustUmano: false,
     bustBot: false,
     vincitore: null,
+    visiteUmano: 0,
+    visiteBot: 0,
+    frecceUmano: 0,
+    frecceBot: 0,
   };
 }
 
 export function creaPartita(
-  livello: Livello,
-  modo: ModoChiusura,
+  config: ConfigPartita,
   primo: Giocatore,
 ): StatoPartita {
   return {
-    livello,
-    modo,
+    config,
     primo,
     numeroLeg: 1,
     legUmano: 0,
     legBot: 0,
-    leg: creaLeg(primo),
-    statsUmano: { punti: 0, visite: 0 },
-    statsBot: { punti: 0, visite: 0 },
+    leg: creaLeg(primo, config.puntiIniziali),
+    statsUmano: statsVuote(),
+    statsBot: statsVuote(),
     vincitore: null,
+    creato: Date.now(),
   };
 }
 
@@ -174,7 +266,8 @@ export function punteggioValido(p: number): boolean {
   return Number.isInteger(p) && p >= 0 && p <= 180 && !TOTALI_IMPOSSIBILI.has(p);
 }
 
-function finibile(rimanente: number, modo: ModoChiusura): boolean {
+/** Il totale rimanente e' chiudibile in una visita? */
+export function finibile(rimanente: number, modo: ModoChiusura): boolean {
   if (rimanente < 2 || rimanente > 170) return false;
   if (modo !== "single" && BOGEY.has(rimanente)) return false;
   return true;
@@ -199,11 +292,15 @@ function totaleOttenibile(n: number): number {
 
 /**
  * Punteggio successivo di una sequenza prestabilita, dedotto dal rimanente:
- * il percorso e' deterministico (501 → 321 → 141 → 0), quindi il punteggio
+ * il percorso e' deterministico (es. 501 → 321 → 141 → 0), quindi il punteggio
  * rimasto identifica sempre la tirata da fare.
  */
-function tirataDaSequenza(rimanente: number, sequenza: number[]): number {
-  let restante = PUNTI_INIZIALI;
+function tirataDaSequenza(
+  rimanente: number,
+  sequenza: number[],
+  puntiIniziali: number,
+): number {
+  let restante = puntiIniziali;
   for (const tirata of sequenza) {
     if (restante === rimanente) return tirata;
     restante -= tirata;
@@ -217,9 +314,10 @@ export function mossaBot(
   rimanente: number,
   livello: Livello,
   modo: ModoChiusura,
+  puntiIniziali: number,
 ): number {
   if (livello.sequenza) {
-    return tirataDaSequenza(rimanente, livello.sequenza);
+    return tirataDaSequenza(rimanente, livello.sequenza, puntiIniziali);
   }
   if (
     finibile(rimanente, modo) &&
@@ -235,69 +333,132 @@ export function mossaBot(
   return s;
 }
 
-function aggiornaStats(
-  s: StatsGiocatore,
+interface EsitoApplica {
+  leg: StatoLeg;
+  stats: StatsGiocatore;
+  chiuso: boolean;
+}
+
+/**
+ * Applica una visita di un giocatore aggiornando leg e statistiche.
+ * `frecce` sono le frecce effettivamente tirate (3, o meno alla chiusura).
+ */
+function applicaVisita(
+  leg: StatoLeg,
+  stats: StatsGiocatore,
+  giocatore: Giocatore,
   punteggio: number,
-  bust: boolean,
-): StatsGiocatore {
-  return {
-    punti: s.punti + (bust ? 0 : punteggio),
-    visite: s.visite + 1,
+  frecce: number,
+  modo: ModoChiusura,
+): EsitoApplica {
+  const umano = giocatore === "umano";
+  const rimanentePrima = umano ? leg.puntiUmano : leg.puntiBot;
+  const r = risultatoVisita(rimanentePrima, punteggio, modo);
+  const tentativoChk = finibile(rimanentePrima, modo);
+
+  const visiteLeg = (umano ? leg.visiteUmano : leg.visiteBot) + 1;
+  const frecceLeg = (umano ? leg.frecceUmano : leg.frecceBot) + frecce;
+  const inFirst9 = visiteLeg <= 3;
+
+  const nuoveStats: StatsGiocatore = {
+    ...stats,
+    punti: stats.punti + (r.bust ? 0 : punteggio),
+    frecce: stats.frecce + frecce,
+    first9Punti: stats.first9Punti + (inFirst9 && !r.bust ? punteggio : 0),
+    first9Frecce: stats.first9Frecce + (inFirst9 ? frecce : 0),
+    chkTentativi: stats.chkTentativi + (tentativoChk ? 1 : 0),
+    chkRiusciti: stats.chkRiusciti + (r.chiuso ? 1 : 0),
+    highScore: !r.bust && punteggio > stats.highScore ? punteggio : stats.highScore,
+    highFinish: r.chiuso && punteggio > stats.highFinish ? punteggio : stats.highFinish,
   };
+
+  const nuovoLeg: StatoLeg = umano
+    ? {
+        ...leg,
+        puntiUmano: r.nuovoRimanente,
+        ultimoUmano: punteggio,
+        bustUmano: r.bust,
+        visiteUmano: visiteLeg,
+        frecceUmano: frecceLeg,
+      }
+    : {
+        ...leg,
+        puntiBot: r.nuovoRimanente,
+        ultimoBot: punteggio,
+        bustBot: r.bust,
+        visiteBot: visiteLeg,
+        frecceBot: frecceLeg,
+      };
+
+  return { leg: nuovoLeg, stats: nuoveStats, chiuso: r.chiuso };
 }
 
 function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
   const legUmano = stato.legUmano + (vincitore === "umano" ? 1 : 0);
   const legBot = stato.legBot + (vincitore === "bot" ? 1 : 0);
+  const bersaglio = legPerVincere(stato.config);
   let vincitorePartita: Giocatore | null = null;
-  if (legUmano >= LEG_PER_VINCERE) vincitorePartita = "umano";
-  else if (legBot >= LEG_PER_VINCERE) vincitorePartita = "bot";
+  if (stato.config.dueLegDiff) {
+    if (legUmano >= bersaglio && legUmano - legBot >= 2) vincitorePartita = "umano";
+    else if (legBot >= bersaglio && legBot - legUmano >= 2) vincitorePartita = "bot";
+  } else {
+    if (legUmano >= bersaglio) vincitorePartita = "umano";
+    else if (legBot >= bersaglio) vincitorePartita = "bot";
+  }
   return { ...stato, legUmano, legBot, vincitore: vincitorePartita };
 }
 
-/** Applica la tirata dell'umano (punteggio gia' validato). */
-export function giocaUmano(stato: StatoPartita, punteggio: number): StatoPartita {
+/**
+ * Applica la tirata dell'umano (punteggio gia' validato). Alla chiusura si
+ * passa il numero di frecce usate (1-3); altrimenti sono 3.
+ */
+export function giocaUmano(
+  stato: StatoPartita,
+  punteggio: number,
+  frecceChiusura = 3,
+): StatoPartita {
   const leg = stato.leg;
   if (leg.turno !== "umano" || leg.vincitore || stato.vincitore) return stato;
 
-  const r = risultatoVisita(leg.puntiUmano, punteggio, stato.modo);
-  const statsUmano = aggiornaStats(stato.statsUmano, punteggio, r.bust);
-  const nuovoLeg: StatoLeg = {
-    ...leg,
-    ultimoUmano: punteggio,
-    bustUmano: r.bust,
-    puntiUmano: r.nuovoRimanente,
-  };
+  const chiude = risultatoVisita(leg.puntiUmano, punteggio, stato.config.chiusura).chiuso;
+  const frecce = chiude ? frecceChiusura : 3;
+  const res = applicaVisita(leg, stato.statsUmano, "umano", punteggio, frecce, stato.config.chiusura);
 
-  if (r.chiuso) {
-    nuovoLeg.vincitore = "umano";
+  if (res.chiuso) {
+    const statsUmano: StatsGiocatore = {
+      ...res.stats,
+      frecceLegVinti: [...res.stats.frecceLegVinti, res.leg.frecceUmano],
+    };
+    const nuovoLeg = { ...res.leg, vincitore: "umano" as const };
     return risolviLeg({ ...stato, leg: nuovoLeg, statsUmano }, "umano");
   }
-  nuovoLeg.turno = "bot";
-  return { ...stato, leg: nuovoLeg, statsUmano };
+  const nuovoLeg = { ...res.leg, turno: "bot" as const };
+  return { ...stato, leg: nuovoLeg, statsUmano: res.stats };
 }
 
-/** Simula e applica la tirata del bot. */
+/** Simula e applica la tirata del bot (chiude convenzionalmente con 3 frecce). */
 export function giocaBot(stato: StatoPartita): StatoPartita {
   const leg = stato.leg;
   if (leg.turno !== "bot" || leg.vincitore || stato.vincitore) return stato;
 
-  const punteggio = mossaBot(leg.puntiBot, stato.livello, stato.modo);
-  const r = risultatoVisita(leg.puntiBot, punteggio, stato.modo);
-  const statsBot = aggiornaStats(stato.statsBot, punteggio, r.bust);
-  const nuovoLeg: StatoLeg = {
-    ...leg,
-    ultimoBot: punteggio,
-    bustBot: r.bust,
-    puntiBot: r.nuovoRimanente,
-  };
+  const punteggio = mossaBot(
+    leg.puntiBot,
+    stato.config.livello,
+    stato.config.chiusura,
+    stato.config.puntiIniziali,
+  );
+  const res = applicaVisita(leg, stato.statsBot, "bot", punteggio, 3, stato.config.chiusura);
 
-  if (r.chiuso) {
-    nuovoLeg.vincitore = "bot";
+  if (res.chiuso) {
+    const statsBot: StatsGiocatore = {
+      ...res.stats,
+      frecceLegVinti: [...res.stats.frecceLegVinti, res.leg.frecceBot],
+    };
+    const nuovoLeg = { ...res.leg, vincitore: "bot" as const };
     return risolviLeg({ ...stato, leg: nuovoLeg, statsBot }, "bot");
   }
-  nuovoLeg.turno = "umano";
-  return { ...stato, leg: nuovoLeg, statsBot };
+  const nuovoLeg = { ...res.leg, turno: "umano" as const };
+  return { ...stato, leg: nuovoLeg, statsBot: res.stats };
 }
 
 /** Passa al leg successivo alternando chi inizia. */
@@ -307,10 +468,38 @@ export function avanzaLeg(stato: StatoPartita): StatoPartita {
   // leg dispari: inizia chi ha vinto la moneta; leg pari: l'avversario
   const iniziato =
     numeroLeg % 2 === 1 ? stato.primo : avversario(stato.primo);
-  return { ...stato, numeroLeg, leg: creaLeg(iniziato) };
+  return {
+    ...stato,
+    numeroLeg,
+    leg: creaLeg(iniziato, stato.config.puntiIniziali),
+  };
 }
 
-/** Media per 3 frecce di un giocatore (0 se nessuna tirata). */
+function arrotonda2(x: number): number {
+  return Math.round(x * 100) / 100;
+}
+
+/** Media per 3 frecce (0 se nessuna freccia). */
 export function media3(s: StatsGiocatore): number {
-  return s.visite === 0 ? 0 : Math.round((s.punti / s.visite) * 10) / 10;
+  return s.frecce === 0 ? 0 : arrotonda2((s.punti / s.frecce) * 3);
+}
+
+/** Media dei primi 9 dardi di ogni leg. */
+export function mediaFirst9(s: StatsGiocatore): number {
+  return s.first9Frecce === 0 ? 0 : arrotonda2((s.first9Punti / s.first9Frecce) * 3);
+}
+
+/** Percentuale di chiusura (chiusure / tentativi). */
+export function checkoutPerc(s: StatsGiocatore): number {
+  return s.chkTentativi === 0 ? 0 : arrotonda2((s.chkRiusciti / s.chkTentativi) * 100);
+}
+
+/** Frecce del leg vinto piu' rapido (null se non ne ha vinti). */
+export function migliorLeg(s: StatsGiocatore): number | null {
+  return s.frecceLegVinti.length ? Math.min(...s.frecceLegVinti) : null;
+}
+
+/** Frecce del leg vinto piu' lento (null se non ne ha vinti). */
+export function peggiorLeg(s: StatsGiocatore): number | null {
+  return s.frecceLegVinti.length ? Math.max(...s.frecceLegVinti) : null;
 }
