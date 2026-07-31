@@ -74,14 +74,10 @@ export function Tastierino({ rimanente, onInvia }: Props) {
             {d}
           </button>
         ))}
-        <button
-          className="tast-btn"
-          onClick={() => invia(0)}
-          title="Nessun punto"
-        >
+        <button className="tast-btn" onClick={() => digita("0")}>
           0
         </button>
-        <button className="tast-btn" onClick={() => digita("0")}>
+        <button className="tast-btn" onClick={() => digita("00")}>
           00
         </button>
         <button
