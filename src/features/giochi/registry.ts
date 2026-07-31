@@ -18,3 +18,20 @@ export const GIOCHI: Record<GiocoId, { titolo: string }> = {
 export function percorsoGioco(gioco: GiocoId, esercizioId: string): string {
   return `/gioco/${gioco}/${esercizioId}`;
 }
+
+/**
+ * Giochi lanciabili direttamente dalla sezione Esercizi (senza programma).
+ * I due giochi "a oltranza" partono in versione sfida a numero chiuso.
+ */
+export const GIOCHI_DA_ESERCIZI = new Set<GiocoId>(["co121", "bob27", "co61100"]);
+
+/** True se l'esercizio-gioco puo' essere avviato dalla sezione Esercizi. */
+export function giocabileDaEsercizi(gioco: GiocoId): boolean {
+  return GIOCHI_DA_ESERCIZI.has(gioco);
+}
+
+/** Percorso di avvio dalla sezione Esercizi (sfida a 10 tentativi dove serve). */
+export function percorsoDaEsercizi(gioco: GiocoId, esercizioId: string): string {
+  const sfida = gioco === "co121" || gioco === "co61100";
+  return `/gioco/${gioco}/${esercizioId}${sfida ? "?sfida=1" : ""}`;
+}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
 import {
@@ -6,6 +7,10 @@ import {
   eliminaEsercizio,
   nuovoEsercizio,
 } from "../../lib/repo";
+import {
+  giocabileDaEsercizi,
+  percorsoDaEsercizi,
+} from "../giochi/registry";
 import { CATEGORIE, type Categoria, type Esercizio } from "../../types";
 
 const vuoto = {
@@ -103,6 +108,14 @@ export function EserciziPage() {
               </div>
             </div>
             <div className="azioni">
+              {e.gioco && giocabileDaEsercizi(e.gioco) && (
+                <Link
+                  className="bottone piccolo"
+                  to={percorsoDaEsercizi(e.gioco, e.id)}
+                >
+                  ▶ Gioca
+                </Link>
+              )}
               <button className="icona-btn" onClick={() => apriModifica(e)}>
                 ✏️
               </button>

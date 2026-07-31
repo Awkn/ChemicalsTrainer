@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
 import { Tastierino } from "../../gioco501/Tastierino";
+import Co121SfidaPage from "./Co121SfidaPage";
 import {
   crea121,
   dardiRimasti,
@@ -16,11 +17,17 @@ import {
 } from "./logica";
 
 /**
- * 121 Checkout giocabile. Si prova a chiudere 121 a ripetizione inserendo il
- * punteggio di ogni round; la sessione e' a oltranza e a fine sessione salva la
- * percentuale di chiusure riuscite nei risultati dell'esercizio.
+ * 121 Checkout giocabile. Con `?sfida=1` (dalla sezione Esercizi) parte la
+ * versione a scaletta da 10 tentativi; altrimenti la sessione classica a
+ * oltranza, che a fine sessione salva la percentuale di chiusure riuscite.
  */
 export default function Co121Page() {
+  const [params] = useSearchParams();
+  if (params.get("sfida")) return <Co121SfidaPage />;
+  return <Co121Oltranza />;
+}
+
+function Co121Oltranza() {
   const { esercizioId } = useParams<{ esercizioId: string }>();
   const navigate = useNavigate();
 

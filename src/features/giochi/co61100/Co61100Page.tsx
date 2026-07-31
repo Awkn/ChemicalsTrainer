@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
@@ -15,9 +15,19 @@ import {
   type StatoCo61100,
 } from "./logica";
 
-/** 61-100 Checkouts giocabile: bersaglio casuale, una visita per chiuderlo. */
+/** Numero di tentativi della sfida a numero chiuso (dalla sezione Esercizi). */
+const TENTATIVI_SFIDA = 10;
+
+/**
+ * 61-100 Checkouts giocabile: bersaglio casuale, una visita per chiuderlo.
+ * Con `?sfida=1` (dalla sezione Esercizi) e' una sfida da 10 tentativi che si
+ * conclude da sola; altrimenti la sessione classica a oltranza.
+ */
 export default function Co61100Page() {
   const { esercizioId } = useParams<{ esercizioId: string }>();
+  const [params] = useSearchParams();
+  const sfida = !!params.get("sfida");
+  const tornaA = sfida ? "/esercizi" : "/";
   const navigate = useNavigate();
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
@@ -30,6 +40,11 @@ export default function Co61100Page() {
   const stato = storia[storia.length - 1];
   const [fine, setFine] = useState(false);
   const [salvato, setSalvato] = useState(false);
+
+  // Nella sfida la sessione si chiude da sola raggiunti i 10 tentativi.
+  useEffect(() => {
+    if (sfida && !fine && stato.tentativi >= TENTATIVI_SFIDA) setFine(true);
+  }, [sfida, fine, stato.tentativi]);
 
   useEffect(() => {
     if (!fine || salvato || !esercizio) return;
@@ -60,7 +75,7 @@ export default function Co61100Page() {
     return (
       <section className="centro-schermo">
         <p>Esercizio non trovato.</p>
-        <button className="bottone" onClick={() => navigate("/")}>Torna a Oggi</button>
+        <button className="bottone" onClick={() => navigate(tornaA)}>Indietro</button>
       </section>
     );
   }
@@ -72,7 +87,9 @@ export default function Co61100Page() {
     return (
       <section className="centro-schermo">
         <div className="moneta">{centrato ? "🏆" : "🎯"}</div>
-        <p className="occhiello">61-100 Checkouts — sessione finita</p>
+        <p className="occhiello">
+          {sfida ? "Sfida 61-100 — finita" : "61-100 Checkouts — sessione finita"}
+        </p>
         <p className="punteggio-finale">{r.successo}%</p>
         <p className="mini">
           {r.riusciti} chiusi su {r.tentativi}
@@ -80,12 +97,18 @@ export default function Co61100Page() {
         </p>
         <p className="mini">
           {stato.tentativi > 0
-            ? "💾 Risultato salvato nei Progressi."
+            ? sfida
+              ? "💾 Risultato salvato e condiviso in squadra."
+              : "💾 Risultato salvato nei Progressi."
             : "Nessun tentativo: niente da salvare."}
         </p>
         <div className="modale-azioni">
-          <button className="bottone secondario" onClick={() => navigate("/")}>Torna a Oggi</button>
-          <button className="bottone" onClick={nuovaSessione}>Nuova sessione</button>
+          <button className="bottone secondario" onClick={() => navigate(tornaA)}>
+            {sfida ? "Torna agli esercizi" : "Torna a Oggi"}
+          </button>
+          <button className="bottone" onClick={nuovaSessione}>
+            {sfida ? "Nuova sfida" : "Nuova sessione"}
+          </button>
         </div>
       </section>
     );
@@ -95,9 +118,12 @@ export default function Co61100Page() {
   return (
     <section className="co121">
       <div className="bob27-testa">
-        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => navigate("/")}>✕</button>
-        <h2>61-100 Checkouts</h2>
-        <span className="mini">Tentativo {stato.tentativi + 1}</span>
+        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => navigate(tornaA)}>✕</button>
+        <h2>{sfida ? "Sfida 61-100" : "61-100 Checkouts"}</h2>
+        <span className="mini">
+          Tentativo {Math.min(stato.tentativi + 1, TENTATIVI_SFIDA)}
+          {sfida ? `/${TENTATIVI_SFIDA}` : ""}
+        </span>
       </div>
 
       <div className="co121-rimanente">
@@ -136,9 +162,11 @@ export default function Co61100Page() {
         <button className="bottone secondario piccolo" onClick={annulla} disabled={storia.length === 1}>
           ↶ Annulla
         </button>
-        <button className="bottone piccolo" onClick={() => setFine(true)}>
-          Termina sessione
-        </button>
+        {!sfida && (
+          <button className="bottone piccolo" onClick={() => setFine(true)}>
+            Termina sessione
+          </button>
+        )}
       </div>
     </section>
   );

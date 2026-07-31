@@ -87,6 +87,19 @@ async function collegaGioco121(): Promise<void> {
   }
 }
 
+/** Aggiunge la metrica "Record 121" (sfida a scaletta) al 121, se manca. */
+async function aggiungiRecord121(): Promise<void> {
+  const esercizi = await db.esercizi.where("nome").equals("121 Challenge").toArray();
+  for (const e of esercizi) {
+    if (e.metriche?.some((m) => m.id === "record")) continue;
+    const metriche: MetricaDef[] = [
+      ...(e.metriche ?? []),
+      { id: "record", nome: "Record 121", unita: "numero", obiettivo: 124 },
+    ];
+    await db.esercizi.update(e.id, { metriche });
+  }
+}
+
 /** Collega i giochi "around the clock" agli esercizi gia' in libreria. */
 async function collegaGiochiAtc(): Promise<void> {
   const GIOCO_PER_NOME: Record<string, GiocoId> = {
@@ -132,6 +145,7 @@ const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 4, esegui: collegaGioco121 },
   { versione: 5, esegui: collegaGiochiAtc },
   { versione: 6, esegui: collegaGioco61100 },
+  { versione: 7, esegui: aggiungiRecord121 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {
