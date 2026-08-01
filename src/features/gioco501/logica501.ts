@@ -387,7 +387,10 @@ interface EsitoApplica {
 
 /**
  * Applica una visita di un giocatore aggiornando leg e statistiche.
- * `frecce` sono le frecce effettivamente tirate (3, o meno alla chiusura).
+ * `frecce` sono le frecce effettivamente tirate (3, o meno se si chiude o si
+ * sballa prima). Con `bustForzato` chi chiama dichiara uno sballo che dal solo
+ * totale non si vedrebbe (es. zero raggiunto senza doppio): lo sa solo
+ * l'input a bersaglio, che registra le frecce una per una.
  */
 function applicaVisita(
   leg: StatoLeg,
@@ -396,10 +399,13 @@ function applicaVisita(
   punteggio: number,
   frecce: number,
   modo: ModoChiusura,
+  bustForzato = false,
 ): EsitoApplica {
   const umano = giocatore === "umano";
   const rimanentePrima = umano ? leg.puntiUmano : leg.puntiBot;
-  const r = risultatoVisita(rimanentePrima, punteggio, modo);
+  const r: EsitoVisita = bustForzato
+    ? { nuovoRimanente: rimanentePrima, chiuso: false, bust: true }
+    : risultatoVisita(rimanentePrima, punteggio, modo);
   const tentativoChk = finibile(rimanentePrima, modo);
 
   const visiteLeg = (umano ? leg.visiteUmano : leg.visiteBot) + 1;
@@ -455,20 +461,29 @@ function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
 }
 
 /**
- * Applica la tirata dell'umano (punteggio gia' validato). Alla chiusura si
- * passa il numero di frecce usate (1-3); altrimenti sono 3.
+ * Applica la tirata dell'umano (punteggio gia' validato). `frecce` sono quelle
+ * tirate nella visita: 3 col tastierino, il numero esatto quando si chiude o
+ * quando si gioca con l'input a bersaglio. Con `bustForzato` la visita e'
+ * sballata anche se il totale porterebbe a zero (zero senza doppio).
  */
 export function giocaUmano(
   stato: StatoPartita,
   punteggio: number,
-  frecceChiusura = 3,
+  frecce = 3,
+  bustForzato = false,
 ): StatoPartita {
   const leg = stato.leg;
   if (leg.turno !== "umano" || leg.vincitore || stato.vincitore) return stato;
 
-  const chiude = risultatoVisita(leg.puntiUmano, punteggio, stato.config.chiusura).chiuso;
-  const frecce = chiude ? frecceChiusura : 3;
-  const res = applicaVisita(leg, stato.statsUmano, "umano", punteggio, frecce, stato.config.chiusura);
+  const res = applicaVisita(
+    leg,
+    stato.statsUmano,
+    "umano",
+    punteggio,
+    frecce,
+    stato.config.chiusura,
+    bustForzato,
+  );
 
   if (res.chiuso) {
     const statsUmano: StatsGiocatore = {

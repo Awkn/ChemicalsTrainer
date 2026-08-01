@@ -33,13 +33,18 @@ export function creaCo61100(primoBersaglio: number): StatoCo61100 {
   return { bersaglio: primoBersaglio, tentativi: 0, riusciti: 0, esitoUltimo: null };
 }
 
-/** Registra il punteggio della visita e passa al bersaglio successivo. */
+/**
+ * Registra il punteggio della visita e passa al bersaglio successivo.
+ * `bustForzato` segnala uno sballo che dal totale non si vedrebbe (lo zero
+ * raggiunto senza doppio): lo riconosce solo l'input a bersaglio.
+ */
 export function inviaPunteggio(
   stato: StatoCo61100,
   punteggio: number,
   prossimoBersaglio: number,
+  bustForzato = false,
 ): StatoCo61100 {
-  const riuscito = punteggio === stato.bersaglio;
+  const riuscito = !bustForzato && punteggio === stato.bersaglio;
   return {
     bersaglio: prossimoBersaglio,
     tentativi: stato.tentativi + 1,

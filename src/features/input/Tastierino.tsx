@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { punteggioValido } from "./logica501";
+import { punteggioValido } from "../gioco501/logica501";
+import { tirataDaTotale, type Tirata } from "./tirata";
 
 interface Props {
   /** Punteggio rimanente, per validazioni/hint. */
   rimanente: number;
   /** Chiamato all'invio con un punteggio valido. */
-  onInvia: (punteggio: number) => void;
+  onInvia: (tirata: Tirata) => void;
 }
 
 const RAPIDI = [26, 41, 45, 60, 81, 85, 100, 140, 180];
@@ -38,7 +39,7 @@ export function Tastierino({ rimanente, onInvia }: Props) {
     }
     setTesto("");
     setErrore(null);
-    onInvia(p);
+    onInvia(tirataDaTotale(p));
   }
 
   return (

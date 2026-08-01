@@ -5,7 +5,8 @@ import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
-import { Tastierino } from "../../gioco501/Tastierino";
+import { InputTirata } from "../../input/InputTirata";
+import type { Tirata } from "../../input/tirata";
 import Co121SfidaPage from "./Co121SfidaPage";
 import {
   crea121,
@@ -55,8 +56,8 @@ function Co121Oltranza() {
     setSalvato(true);
   }, [fine, salvato, esercizio]);
 
-  function invia(punteggio: number) {
-    setStoria((s) => [...s, inviaPunteggio(s[s.length - 1], punteggio)]);
+  function invia(t: Tirata) {
+    setStoria((s) => [...s, inviaPunteggio(s[s.length - 1], t.punteggio, t.bust)]);
   }
 
   function annulla() {
@@ -171,7 +172,7 @@ function Co121Oltranza() {
         </div>
       </div>
 
-      <Tastierino rimanente={stato.rimanente} onInvia={invia} />
+      <InputTirata rimanente={stato.rimanente} onInvia={invia} />
 
       <div className="co121-azioni">
         <button

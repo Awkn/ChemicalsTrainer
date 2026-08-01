@@ -5,7 +5,8 @@ import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
-import { Tastierino } from "../../gioco501/Tastierino";
+import { InputTirata } from "../../input/InputTirata";
+import type { Tirata } from "../../input/tirata";
 import {
   bersaglioCasuale,
   creaCo61100,
@@ -58,10 +59,10 @@ export default function Co61100Page() {
     setSalvato(true);
   }, [fine, salvato, esercizio]);
 
-  const invia = (punteggio: number) =>
+  const invia = (t: Tirata) =>
     setStoria((s) => [
       ...s,
-      inviaPunteggio(s[s.length - 1], punteggio, bersaglioCasuale()),
+      inviaPunteggio(s[s.length - 1], t.punteggio, bersaglioCasuale(), t.bust),
     ]);
   const annulla = () => setStoria((s) => (s.length > 1 ? s.slice(0, -1) : s));
   const nuovaSessione = () => {
@@ -156,7 +157,7 @@ export default function Co61100Page() {
         </div>
       </div>
 
-      <Tastierino rimanente={stato.bersaglio} onInvia={invia} />
+      <InputTirata rimanente={stato.bersaglio} onInvia={invia} />
 
       <div className="co121-azioni">
         <button className="bottone secondario piccolo" onClick={annulla} disabled={storia.length === 1}>

@@ -1317,6 +1317,141 @@ textarea:focus {
   margin: 0;
 }
 
+/* ---------- Scelta del modo di input ---------- */
+.input-tirata {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.input-scelta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.25rem;
+}
+
+.input-tab {
+  background: none;
+  border: none;
+  color: var(--testo-2);
+  border-radius: 9px;
+  padding: 0.55rem 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.input-tab.attivo {
+  background: color-mix(in srgb, var(--accento) 22%, var(--bg-3));
+  color: var(--testo);
+}
+
+/* ---------- Input a bersaglio ---------- */
+.bersaglio-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.brs-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+  min-height: 3.5rem;
+}
+
+.brs-dardi {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.brs-dardo {
+  min-width: 3.1rem;
+  text-align: center;
+  background: var(--bg-3);
+  border-radius: 8px;
+  padding: 0.35rem 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--testo-2);
+}
+
+.brs-dardo.pieno {
+  background: color-mix(in srgb, var(--accento) 25%, var(--bg-3));
+  color: var(--testo);
+}
+
+.brs-conti {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+
+.brs-totale {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.brs-svg {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  display: block;
+  touch-action: manipulation;
+}
+
+.brs-bordo {
+  fill: #14100f;
+}
+
+/* Le zone toccabili: colori del tabellone vero, non del tema. */
+.brs-zona {
+  cursor: pointer;
+  stroke: #14100f;
+  stroke-width: 1;
+}
+
+.brs-zona:active {
+  filter: brightness(1.7);
+}
+
+.brs-nero {
+  fill: #1f1c1a;
+}
+
+.brs-crema {
+  fill: #e8d9b0;
+}
+
+.brs-rosso {
+  fill: #cc3730;
+}
+
+.brs-verde {
+  fill: #1b8a4c;
+}
+
+.brs-numero {
+  fill: #efeae0;
+  font-size: 24px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.brs-fuori {
+  align-self: center;
+}
+
 /* ---------- Impostazioni 501 ---------- */
 .imp-formato {
   display: grid;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Tastierino } from "./Tastierino";
+import { InputTirata } from "../input/InputTirata";
+import type { Tirata } from "../input/tirata";
 import { Impostazioni501 } from "./Impostazioni501";
 import { Recap501 } from "./Recap501";
 import { suggerisciChiusura } from "../../lib/checkout";
@@ -102,18 +103,26 @@ export function Gioco501Page() {
     setFase("moneta");
   }
 
-  // L'umano invia il totale: se chiude, chiedo con quante frecce; altrimenti applico.
-  function inviaUmano(punteggio: number) {
+  // L'umano invia la tirata. Col tastierino si conosce solo il totale: se
+  // chiude, chiedo con quante frecce. Col bersaglio le frecce sono gia' note
+  // (e cosi' pure gli sballi che dal totale non si vedrebbero), quindi si
+  // applica direttamente senza domande.
+  function inviaUmano(t: Tirata) {
     if (!stato) return;
+    const frecce = t.frecce ?? 3;
+    if (t.bust) {
+      setStato(giocaUmano(stato, t.punteggio, frecce, true));
+      return;
+    }
     const chiude = risultatoVisita(
       stato.leg.puntiUmano,
-      punteggio,
+      t.punteggio,
       stato.config.chiusura,
     ).chiuso;
-    if (chiude) {
-      setChiusura(punteggio);
+    if (chiude && t.frecce == null) {
+      setChiusura(t.punteggio);
     } else {
-      setStato(giocaUmano(stato, punteggio));
+      setStato(giocaUmano(stato, t.punteggio, frecce));
     }
   }
 
@@ -239,7 +248,11 @@ export function Gioco501Page() {
           {stato.config.mostraChiusura && (
             <SuggerimentoChiusura rimanente={leg.puntiUmano} />
           )}
-          <Tastierino rimanente={leg.puntiUmano} onInvia={inviaUmano} />
+          <InputTirata
+            rimanente={leg.puntiUmano}
+            chiusura={stato.config.chiusura}
+            onInvia={inviaUmano}
+          />
         </>
       ) : (
         <div className="attesa-bot">

@@ -67,8 +67,18 @@ function concludi(stato: Stato121, esito: EsitoTentativo): Stato121 {
   };
 }
 
-/** Registra il punteggio di una visita (3 freccette) nel tentativo corrente. */
-export function inviaPunteggio(stato: Stato121, punteggio: number): Stato121 {
+/**
+ * Registra il punteggio di una visita (3 freccette) nel tentativo corrente.
+ * `bustForzato` segnala uno sballo che dal totale non si vedrebbe (lo zero
+ * raggiunto senza doppio): lo riconosce solo l'input a bersaglio.
+ */
+export function inviaPunteggio(
+  stato: Stato121,
+  punteggio: number,
+  bustForzato = false,
+): Stato121 {
+  if (bustForzato) return concludi(stato, "fallito");
+
   const nuovo = stato.rimanente - punteggio;
 
   if (nuovo === 0) return concludi(stato, "chiuso");
