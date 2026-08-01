@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { squadraConfigurata } from "../../lib/squadra/config";
-import { ascoltaSquadra, type VoceSquadra } from "../../lib/squadra/client";
+import {
+  ascoltaSquadra,
+  rimuoviRiepilogo,
+  type VoceSquadra,
+} from "../../lib/squadra/client";
 import { impostaNomeGiocatore, nomeGiocatore } from "../../lib/giocatore";
 import { formattaValore } from "../../components/Grafico";
 import type { UnitaMetrica } from "../../types";
@@ -11,6 +15,8 @@ export function SquadraPage() {
   const [voci, setVoci] = useState<VoceSquadra[] | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
   const [statSelezionata, setStatSelezionata] = useState<string>("");
+  const [erroreUscita, setErroreUscita] = useState<string | null>(null);
+  const [uscendo, setUscendo] = useState(false);
 
   useEffect(() => {
     if (!squadraConfigurata()) return;
@@ -61,6 +67,36 @@ export function SquadraPage() {
     );
     return righe.map((r, i) => ({ ...r, posizione: i + 1, unita: def.unita }));
   }, [voci, chiaveAttiva, statistiche]);
+
+  /**
+   * Toglie la propria voce dalla bacheca. Il nome va cancellato subito dopo:
+   * e' quello che tiene accesa la pubblicazione automatica, e senza di lui il
+   * documento non verrebbe ricreato al prossimo allenamento. Se la rimozione
+   * non riesce (offline, permessi) il nome resta, cosi' si puo' riprovare.
+   */
+  async function esciDallaSquadra() {
+    if (
+      !confirm(
+        "La tua voce sparirà dalla bacheca dei compagni. I tuoi allenamenti restano su questo dispositivo. Continuare?",
+      )
+    ) {
+      return;
+    }
+    setUscendo(true);
+    setErroreUscita(null);
+    try {
+      await rimuoviRiepilogo();
+      impostaNomeGiocatore("");
+      setNome(null);
+      setBozzaNome("");
+    } catch (e) {
+      setErroreUscita(
+        e instanceof Error ? e.message : "Uscita dalla squadra non riuscita.",
+      );
+    } finally {
+      setUscendo(false);
+    }
+  }
 
   // ---------- non configurata ----------
   if (!squadraConfigurata()) {
@@ -194,6 +230,25 @@ export function SquadraPage() {
           )}
         </>
       )}
+
+      <div className="scheda">
+        <h3>La tua identità</h3>
+        <p className="mini">
+          Sei in squadra come <strong>{nome}</strong>.
+        </p>
+        <button
+          className="bottone secondario"
+          onClick={esciDallaSquadra}
+          disabled={uscendo}
+        >
+          {uscendo ? "Attendi…" : "Esci dalla squadra"}
+        </button>
+        <p className="mini">
+          Toglie la tua voce dalla bacheca dei compagni. I tuoi allenamenti
+          restano su questo dispositivo e puoi rientrare quando vuoi.
+        </p>
+        {erroreUscita && <p className="esito-ko">⚠️ {erroreUscita}</p>}
+      </div>
     </section>
   );
 }
