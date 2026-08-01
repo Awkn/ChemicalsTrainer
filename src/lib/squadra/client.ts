@@ -51,6 +51,21 @@ async function utente(): Promise<User | null> {
   return cred.user;
 }
 
+/**
+ * Firestore + uid pronti all'uso (accesso anonimo effettuato). Serve ai moduli
+ * che scrivono su Firestore (bacheca, backup). `null` se la squadra non e'
+ * configurata o l'accesso non e' riuscito.
+ */
+export async function connessione(): Promise<{
+  db: Firestore;
+  uid: string;
+} | null> {
+  const fb = inizializza();
+  const u = await utente();
+  if (!fb || !u) return null;
+  return { db: fb.db, uid: u.uid };
+}
+
 /** Pubblica (o aggiorna) il proprio riepilogo sulla bacheca. */
 export async function pubblicaRiepilogo(
   riepilogo: RiepilogoGiocatore,

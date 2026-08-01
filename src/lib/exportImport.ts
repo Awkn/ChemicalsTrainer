@@ -56,6 +56,58 @@ function isBundle(x: unknown): x is ExportBundle {
   );
 }
 
+/** Interpreta e valida un bundle serializzato in JSON. */
+export function parseBundle(testoJson: string): ExportBundle {
+  const parsed: unknown = JSON.parse(testoJson);
+  if (!isBundle(parsed)) {
+    throw new Error("Backup non valido: non sembra un export di Darts Trainer.");
+  }
+  return parsed;
+}
+
+export interface ConteggiRipristino {
+  esercizi: number;
+  programmi: number;
+  assegnazioni: number;
+  risultati: number;
+}
+
+/**
+ * Ripristina un backup SOSTITUENDO i dati locali: azzera le tabelle e ricarica
+ * gli oggetti con i loro id originali. A differenza dell'import additivo, cosi'
+ * si riproduce esattamente lo stato salvato, senza duplicare la libreria.
+ */
+export async function ripristinaBundle(
+  bundle: ExportBundle,
+): Promise<ConteggiRipristino> {
+  const risultati = bundle.risultati ?? [];
+  await db.transaction(
+    "rw",
+    db.esercizi,
+    db.programmi,
+    db.assegnazioni,
+    db.risultati,
+    async () => {
+      await Promise.all([
+        db.esercizi.clear(),
+        db.programmi.clear(),
+        db.assegnazioni.clear(),
+        db.risultati.clear(),
+      ]);
+      await db.esercizi.bulkAdd(bundle.esercizi);
+      await db.programmi.bulkAdd(bundle.programmi);
+      await db.assegnazioni.bulkAdd(bundle.assegnazioni);
+      await db.risultati.bulkAdd(risultati);
+    },
+  );
+  return {
+    esercizi: bundle.esercizi.length,
+    programmi: bundle.programmi.length,
+    assegnazioni: bundle.assegnazioni.length,
+    risultati: risultati.length,
+  };
+}
+
 /**
  * Importa un bundle. Per evitare collisioni di id con i dati gia' presenti,
  * rigenera gli id di programmi/esercizi e rimappa le assegnazioni.

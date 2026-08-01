@@ -13,5 +13,14 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
+
+    // Backup completi ("strada semplice"): il codice di ripristino e' la
+    // chiave/segreto. Serve l'accesso (anche anonimo) e conoscere il codice
+    // esatto: si puo' leggere/scrivere il singolo documento, ma NON elencare
+    // la collezione, quindi i codici altrui non sono scopribili.
+    match /backup/{codice} {
+      allow get, write: if request.auth != null;
+      allow list: if false;
+    }
   }
 }

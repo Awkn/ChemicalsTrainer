@@ -6,6 +6,7 @@ import { Gioco501Page } from "./features/gioco501/Gioco501Page";
 import { lazy, Suspense } from "react";
 import { ProgressiPage } from "./features/progressi/ProgressiPage";
 import { useSincronizzaSquadra } from "./lib/squadra/useSincronizza";
+import { useBackupAutomatico } from "./lib/squadra/useBackupAutomatico";
 
 // La bacheca porta con se' la libreria Firebase, pesante: si carica solo
 // quando si apre davvero la sezione Squadra.
@@ -26,6 +27,8 @@ import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
 export function App() {
   // tiene aggiornata la bacheca di squadra quando cambiano i risultati
   useSincronizzaSquadra();
+  // se attivo, tiene aggiornato il backup completo nel cloud
+  useBackupAutomatico();
 
   return (
     <Routes>
