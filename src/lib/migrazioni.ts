@@ -100,6 +100,26 @@ async function aggiungiRecord121(): Promise<void> {
   }
 }
 
+/**
+ * Aggiunge al 501 la metrica "Doppi %": la percentuale vera di doppi centrati,
+ * contata freccia per freccia. Affianca il "Checkout %" esistente, che e' una
+ * stima per visita e conserva il proprio storico.
+ */
+async function aggiungiDoppi501(): Promise<void> {
+  const esercizi = await db.esercizi
+    .where("nome")
+    .equals("501 contro il computer")
+    .toArray();
+  for (const e of esercizi) {
+    if (e.metriche?.some((m) => m.id === "doppi")) continue;
+    const metriche: MetricaDef[] = [
+      ...(e.metriche ?? []),
+      { id: "doppi", nome: "Doppi %", unita: "percentuale", obiettivo: 40 },
+    ];
+    await db.esercizi.update(e.id, { metriche });
+  }
+}
+
 /** Collega i giochi "around the clock" agli esercizi gia' in libreria. */
 async function collegaGiochiAtc(): Promise<void> {
   const GIOCO_PER_NOME: Record<string, GiocoId> = {
@@ -146,6 +166,7 @@ const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 5, esegui: collegaGiochiAtc },
   { versione: 6, esegui: collegaGioco61100 },
   { versione: 7, esegui: aggiungiRecord121 },
+  { versione: 8, esegui: aggiungiDoppi501 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {

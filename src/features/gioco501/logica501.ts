@@ -9,6 +9,9 @@
  * di chiusura crescente col livello.
  */
 
+import type { Dardo } from "../../lib/bersaglio";
+import { contaDoppiVisita, unisciConti, type ContiDoppi } from "../../lib/doppi";
+
 export type Giocatore = "umano" | "bot";
 
 export type LivelloId =
@@ -172,6 +175,21 @@ const TOTALI_IMPOSSIBILI = new Set([
 /** Punteggi che non si possono chiudere (usati per double/master out). */
 const BOGEY = new Set([159, 162, 163, 165, 166, 168, 169]);
 
+/**
+ * Tirata dell'umano: il totale, piu' tutto quello che l'input riesce a dire.
+ * Il tastierino conosce solo il punteggio; l'input a bersaglio sa anche
+ * quante frecce sono servite, dove sono finite e se la visita e' sballata.
+ */
+export interface TirataUmana {
+  punteggio: number;
+  /** Frecce tirate nella visita; 3 quando non si sa. */
+  frecce?: number;
+  /** Sballo certo (zero raggiunto senza doppio), visibile solo per freccia. */
+  bust?: boolean;
+  /** Dettaglio delle singole frecce, se l'input le conosce. */
+  dardi?: Dardo[];
+}
+
 /** Statistiche accumulate su tutta la partita, per il recap finale. */
 export interface StatsGiocatore {
   /** Punti segnati (esclusi i bust). */
@@ -191,6 +209,12 @@ export interface StatsGiocatore {
   highFinish: number;
   /** Frecce usate in ciascun leg vinto (per miglior/peggior leg). */
   frecceLegVinti: number[];
+  /**
+   * Tentativi al doppio per bersaglio, contati freccia per freccia. Si
+   * riempie solo giocando con l'input a bersaglio e a uscita con doppio:
+   * altrove non c'e' modo di sapere dove sia finita ogni freccia.
+   */
+  doppi: ContiDoppi;
 }
 
 function statsVuote(): StatsGiocatore {
@@ -204,6 +228,7 @@ function statsVuote(): StatsGiocatore {
     highScore: 0,
     highFinish: 0,
     frecceLegVinti: [],
+    doppi: {},
   };
 }
 
@@ -400,6 +425,7 @@ function applicaVisita(
   frecce: number,
   modo: ModoChiusura,
   bustForzato = false,
+  dardi?: Dardo[],
 ): EsitoApplica {
   const umano = giocatore === "umano";
   const rimanentePrima = umano ? leg.puntiUmano : leg.puntiBot;
@@ -422,6 +448,12 @@ function applicaVisita(
     chkRiusciti: stats.chkRiusciti + (r.chiuso ? 1 : 0),
     highScore: !r.bust && punteggio > stats.highScore ? punteggio : stats.highScore,
     highFinish: r.chiuso && punteggio > stats.highFinish ? punteggio : stats.highFinish,
+    // I doppi si contano solo se si sa dove e' finita ogni freccia, e solo a
+    // uscita con doppio: con Master o uscita diretta non si mira per forza li'.
+    doppi:
+      dardi && modo === "double"
+        ? unisciConti(stats.doppi, contaDoppiVisita(rimanentePrima, dardi))
+        : stats.doppi,
   };
 
   const nuovoLeg: StatoLeg = umano
@@ -461,16 +493,13 @@ function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
 }
 
 /**
- * Applica la tirata dell'umano (punteggio gia' validato). `frecce` sono quelle
- * tirate nella visita: 3 col tastierino, il numero esatto quando si chiude o
- * quando si gioca con l'input a bersaglio. Con `bustForzato` la visita e'
- * sballata anche se il totale porterebbe a zero (zero senza doppio).
+ * Applica la tirata dell'umano (punteggio gia' validato). Quello che l'input
+ * non sa ha un valore di ripiego: 3 frecce, nessuno sballo dichiarato e
+ * nessun dettaglio per freccia.
  */
 export function giocaUmano(
   stato: StatoPartita,
-  punteggio: number,
-  frecce = 3,
-  bustForzato = false,
+  tirata: TirataUmana,
 ): StatoPartita {
   const leg = stato.leg;
   if (leg.turno !== "umano" || leg.vincitore || stato.vincitore) return stato;
@@ -479,10 +508,11 @@ export function giocaUmano(
     leg,
     stato.statsUmano,
     "umano",
-    punteggio,
-    frecce,
+    tirata.punteggio,
+    tirata.frecce ?? 3,
     stato.config.chiusura,
-    bustForzato,
+    tirata.bust ?? false,
+    tirata.dardi,
   );
 
   if (res.chiuso) {

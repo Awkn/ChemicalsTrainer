@@ -1461,6 +1461,71 @@ textarea:focus {
   pointer-events: none;
 }
 
+/* ---------- Doppi nel recap ---------- */
+.recap-doppi {
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  margin-top: 1rem;
+}
+
+.recap-doppi h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.recap-doppi-tot {
+  font-size: 0.9rem;
+  color: var(--accento-2);
+  font-weight: 700;
+}
+
+.doppi-lista {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.doppi-lista li {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.doppi-nome {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.doppi-barra {
+  height: 0.55rem;
+  background: var(--bg-3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.doppi-riempi {
+  display: block;
+  height: 100%;
+  background: var(--accento);
+  border-radius: 999px;
+}
+
+.doppi-conto {
+  font-size: 0.78rem;
+  color: var(--testo-2);
+  text-align: right;
+}
+
 /* ---------- Punteggi compatti (accanto al bersaglio) ---------- */
 .tavolo-compatto {
   display: grid;

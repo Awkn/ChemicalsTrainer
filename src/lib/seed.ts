@@ -186,6 +186,7 @@ const ESERCIZI: DefEsercizio[] = [
       { id: "media", nome: "Media 3 dart", unita: "punti" },
       { id: "first9", nome: "First 9", unita: "punti" },
       { id: "checkout", nome: "Checkout %", unita: "percentuale", obiettivo: 35 },
+      { id: "doppi", nome: "Doppi %", unita: "percentuale", obiettivo: 40 },
     ],
   },
   {

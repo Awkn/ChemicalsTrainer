@@ -8,6 +8,11 @@ import {
   peggiorLeg,
   type StatoPartita,
 } from "./logica501";
+import {
+  classificaDoppi,
+  percentualeDoppi,
+  totaleDoppi,
+} from "../../lib/doppi";
 
 interface Props {
   stato: StatoPartita;
@@ -25,6 +30,10 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
   const titolo = `${config.formato === "bestof" ? "Al meglio di" : "Primo a"} ${
     config.numero
   } ${config.unita === "legs" ? "leg" : "set"} · ${config.puntiIniziali}`;
+
+  // Dettaglio sui doppi: esiste solo se si e' giocato con l'input a bersaglio.
+  const doppi = totaleDoppi(statsUmano.doppi);
+  const perBersaglio = classificaDoppi(statsUmano.doppi);
 
   const righe: { label: string; umano: string; bot: string }[] = [
     {
@@ -102,6 +111,37 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
           </div>
         ))}
       </div>
+
+      {doppi.tentativi > 0 && (
+        <div className="recap-doppi">
+          <h3>
+            I tuoi doppi{" "}
+            <span className="recap-doppi-tot">
+              {doppi.colpiti}/{doppi.tentativi} · {percentualeDoppi(doppi)}%
+            </span>
+          </h3>
+          <p className="mini">
+            Contati freccia per freccia: quante volte hai centrato il doppio
+            avendolo davvero davanti.
+          </p>
+          <ul className="doppi-lista">
+            {perBersaglio.map((d) => (
+              <li key={d.doppio}>
+                <span className="doppi-nome">{d.doppio}</span>
+                <span className="doppi-barra">
+                  <span
+                    className="doppi-riempi"
+                    style={{ width: `${d.percentuale}%` }}
+                  />
+                </span>
+                <span className="doppi-conto">
+                  {d.conto.colpiti}/{d.conto.tentativi}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {salvato && (
         <p className="mini recap-salvato">

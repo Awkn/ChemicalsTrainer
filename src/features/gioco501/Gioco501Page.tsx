@@ -8,6 +8,7 @@ import { suggerisciChiusura } from "../../lib/checkout";
 import { db } from "../../lib/db";
 import { registraRisultato } from "../../lib/repo";
 import { dataIso } from "../../lib/date";
+import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
 import {
   avanzaLeg,
   checkoutPerc,
@@ -37,8 +38,8 @@ export function Gioco501Page() {
     configPredefinita(LIVELLI[1]),
   );
   const [stato, setStato] = useState<StatoPartita | null>(null);
-  // Punteggio che chiude un leg, in attesa che l'utente indichi le frecce usate.
-  const [chiusura, setChiusura] = useState<number | null>(null);
+  // Tirata che chiude un leg, in attesa che l'utente indichi le frecce usate.
+  const [chiusura, setChiusura] = useState<Tirata | null>(null);
   // Le statistiche della partita finita sono state salvate nell'esercizio 501.
   const [salvato, setSalvato] = useState(false);
 
@@ -72,15 +73,17 @@ export function Gioco501Page() {
         .equals(NOME_ESERCIZIO_501)
         .first();
       if (es && !annullato) {
-        await registraRisultato({
-          esercizioId: es.id,
-          data: dataIso(),
-          valori: {
-            media: media3(stato.statsUmano),
-            first9: mediaFirst9(stato.statsUmano),
-            checkout: checkoutPerc(stato.statsUmano),
-          },
-        });
+        const valori: Record<string, number> = {
+          media: media3(stato.statsUmano),
+          first9: mediaFirst9(stato.statsUmano),
+          checkout: checkoutPerc(stato.statsUmano),
+        };
+        // La percentuale vera esiste solo se si e' giocato a bersaglio: senza
+        // tentativi registrati non si salva, per non sporcare lo storico con 0.
+        const doppi = totaleDoppi(stato.statsUmano.doppi);
+        if (doppi.tentativi > 0) valori.doppi = percentualeDoppi(doppi);
+
+        await registraRisultato({ esercizioId: es.id, data: dataIso(), valori });
       }
       if (!annullato) setSalvato(true);
     })();
@@ -112,9 +115,8 @@ export function Gioco501Page() {
   // applica direttamente senza domande.
   function inviaUmano(t: Tirata) {
     if (!stato) return;
-    const frecce = t.frecce ?? 3;
     if (t.bust) {
-      setStato(giocaUmano(stato, t.punteggio, frecce, true));
+      setStato(giocaUmano(stato, t));
       return;
     }
     const chiude = risultatoVisita(
@@ -123,15 +125,15 @@ export function Gioco501Page() {
       stato.config.chiusura,
     ).chiuso;
     if (chiude && t.frecce == null) {
-      setChiusura(t.punteggio);
+      setChiusura(t);
     } else {
-      setStato(giocaUmano(stato, t.punteggio, frecce));
+      setStato(giocaUmano(stato, t));
     }
   }
 
   function confermaChiusura(frecce: number) {
-    if (!stato || chiusura == null) return;
-    setStato(giocaUmano(stato, chiusura, frecce));
+    if (!stato || !chiusura) return;
+    setStato(giocaUmano(stato, { ...chiusura, frecce }));
     setChiusura(null);
   }
 
@@ -242,7 +244,7 @@ export function Gioco501Page() {
         </div>
       ) : chiusura != null ? (
         <div className="chiusura-frecce">
-          <h3>Chiuso con {chiusura}! Con quante frecce?</h3>
+          <h3>Chiuso con {chiusura.punteggio}! Con quante frecce?</h3>
           <div className="chiusura-scelte">
             {[1, 2, 3].map((n) => (
               <button
