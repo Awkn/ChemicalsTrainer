@@ -90,6 +90,48 @@ export interface VoceSquadra extends RiepilogoGiocatore {
   sonoIo: boolean;
 }
 
+/** Confronto tra nomi che ignora maiuscole e spazi in eccesso. */
+function chiaveNome(nome: string | undefined): string {
+  return (nome ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** A parita' di nome, quale voce tenere. */
+function prevaleSu(a: VoceSquadra, b: VoceSquadra): boolean {
+  // La propria voce non deve mai sparire: altrove "sonoIo" distingue i
+  // compagni da se stessi, e perderla farebbe comparire un finto compagno.
+  if (a.sonoIo !== b.sonoIo) return a.sonoIo;
+  return (a.aggiornatoIl ?? 0) > (b.aggiornatoIl ?? 0);
+}
+
+/**
+ * Riduce la bacheca a una voce per giocatore.
+ *
+ * L'identita' di un giocatore e' l'uid dell'accesso anonimo, che cambia se
+ * quella sessione si perde: browser diverso, app reinstallata, oppure iOS che
+ * libera lo spazio dell'app. La stessa persona si ritroverebbe cosi' con due
+ * righe uguali. Non potendo cancellare il documento altrui (lo vietano le
+ * regole), a parita' di nome si tiene la voce piu' aggiornata.
+ *
+ * Le voci senza nome non vengono accorpate: non avendo un nome da
+ * confrontare, accorparle unirebbe persone diverse.
+ */
+export function unificaPerNome(voci: VoceSquadra[]): VoceSquadra[] {
+  const migliore = new Map<string, VoceSquadra>();
+  const senzaNome: VoceSquadra[] = [];
+
+  for (const v of voci) {
+    const chiave = chiaveNome(v.nome);
+    if (!chiave) {
+      senzaNome.push(v);
+      continue;
+    }
+    const attuale = migliore.get(chiave);
+    if (!attuale || prevaleSu(v, attuale)) migliore.set(chiave, v);
+  }
+
+  return [...migliore.values(), ...senzaNome];
+}
+
 /**
  * Resta in ascolto della bacheca: la callback viene richiamata a ogni
  * cambiamento. Restituisce la funzione per interrompere l'ascolto.
@@ -115,7 +157,9 @@ export function ascoltaSquadra(
             id: d.id,
             sonoIo: d.id === u.uid,
           }));
-          onDati(voci);
+          // L'unificazione sta qui e non nelle pagine: cosi' vale per la
+          // bacheca, per il bot livello squadra e per quello che verra' dopo.
+          onDati(unificaPerNome(voci));
         },
         (e) => onErrore(e as Error),
       );
