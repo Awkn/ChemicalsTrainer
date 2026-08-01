@@ -107,24 +107,24 @@ export type Unita = "legs" | "sets";
 
 export const MODI_CHIUSURA: { id: ModoChiusura; nome: string; descr: string }[] =
   [
-    { id: "double", nome: "Uscita con doppio", descr: "Si chiude solo su un doppio." },
-    { id: "master", nome: "Uscita Master", descr: "Si chiude su doppio o triplo." },
-    { id: "single", nome: "Uscita diretta", descr: "Si chiude con qualsiasi bersaglio." },
+    { id: "double", nome: "Double out", descr: "Si chiude solo su un doppio." },
+    { id: "master", nome: "Master out", descr: "Si chiude su doppio o triplo." },
+    { id: "single", nome: "Single out", descr: "Si chiude con qualsiasi bersaglio." },
   ];
 
 export const MODI_INGRESSO: { id: ModoIngresso; nome: string; descr: string }[] =
   [
-    { id: "single", nome: "Ingresso diretto", descr: "Si entra con qualsiasi bersaglio." },
-    { id: "double", nome: "Ingresso con doppio", descr: "Il punteggio conta dopo un doppio." },
-    { id: "master", nome: "Ingresso Master", descr: "Si entra su doppio o triplo." },
+    { id: "single", nome: "Single in", descr: "Si entra con qualsiasi bersaglio." },
+    { id: "master", nome: "Master in", descr: "Si entra su doppio o triplo." },
+    { id: "double", nome: "Double in", descr: "Il punteggio conta dopo un doppio." },
   ];
 
 /** Etichette brevi per i badge del recap. */
 export function etichettaIngresso(m: ModoIngresso): string {
-  return m === "double" ? "Ingresso doppio" : m === "master" ? "Ingresso master" : "Ingresso diretto";
+  return m === "double" ? "Double in" : m === "master" ? "Master in" : "Single in";
 }
 export function etichettaChiusura(m: ModoChiusura): string {
-  return m === "double" ? "Uscita doppio" : m === "master" ? "Uscita master" : "Uscita diretta";
+  return m === "double" ? "Double out" : m === "master" ? "Master out" : "Single out";
 }
 
 export const PUNTEGGI_INIZIALI = [301, 501, 701];
