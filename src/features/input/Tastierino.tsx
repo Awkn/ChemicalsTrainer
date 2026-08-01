@@ -3,8 +3,6 @@ import { punteggioValido } from "../gioco501/logica501";
 import { tirataDaTotale, type Tirata } from "./tirata";
 
 interface Props {
-  /** Punteggio rimanente, per validazioni/hint. */
-  rimanente: number;
   /** Chiamato all'invio con un punteggio valido. */
   onInvia: (tirata: Tirata) => void;
   /** Passa all'input a bersaglio: il pulsante sta nel display, non in una riga a parte. */
@@ -18,7 +16,7 @@ const RAPIDI = [26, 41, 45, 60, 81, 85, 100, 140, 180];
  * Valida che sia un punteggio ottenibile; i "bust" invece sono ammessi e
  * gestiti dal motore di gioco.
  */
-export function Tastierino({ rimanente, onInvia, onCambiaModo }: Props) {
+export function Tastierino({ onInvia, onCambiaModo }: Props) {
   const [testo, setTesto] = useState("");
   const [errore, setErrore] = useState<string | null>(null);
 
@@ -101,8 +99,6 @@ export function Tastierino({ rimanente, onInvia, onCambiaModo }: Props) {
           OK
         </button>
       </div>
-
-      <p className="mini tast-hint">Rimanente: {rimanente}</p>
     </div>
   );
 }

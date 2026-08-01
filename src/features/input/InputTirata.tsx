@@ -38,10 +38,6 @@ export function InputTirata({ rimanente, chiusura, onInvia }: Props) {
   }
 
   return (
-    <Tastierino
-      rimanente={rimanente}
-      onInvia={onInvia}
-      onCambiaModo={() => setModoInput("bersaglio")}
-    />
+    <Tastierino onInvia={onInvia} onCambiaModo={() => setModoInput("bersaglio")} />
   );
 }

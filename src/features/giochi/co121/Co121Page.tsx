@@ -6,7 +6,6 @@ import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
 import { InputTirata } from "../../input/InputTirata";
-import { usaModoInput } from "../../input/preferenza";
 import type { Tirata } from "../../input/tirata";
 import Co121SfidaPage from "./Co121SfidaPage";
 import {
@@ -32,8 +31,6 @@ export default function Co121Page() {
 function Co121Oltranza() {
   const { esercizioId } = useParams<{ esercizioId: string }>();
   const navigate = useNavigate();
-  // Col bersaglio serve tutta l'altezza possibile: il contorno si stringe.
-  const compatto = usaModoInput() === "bersaglio";
 
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
@@ -122,7 +119,7 @@ function Co121Oltranza() {
   const chiusura = suggerisciChiusura(stato.rimanente);
 
   return (
-    <section className={`co121${compatto ? " compatto" : ""}`}>
+    <section className="co121 compatto">
       <div className="bob27-testa">
         <button
           className="icona-btn"

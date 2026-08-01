@@ -1142,18 +1142,19 @@ textarea:focus {
   letter-spacing: 0.05em;
 }
 
+/* Come il tastierino: su schermi bassi i pannelli si stringono da soli. */
 .tavolo {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: clamp(0.5rem, 2svh, 1.25rem);
 }
 
 .pannello {
   background: var(--bg-2);
   border: 2px solid var(--bordo);
   border-radius: var(--radius);
-  padding: 0.85rem 0.75rem;
+  padding: clamp(0.4rem, 1.3svh, 0.85rem) 0.75rem;
   text-align: center;
   transition: border-color 0.2s;
 }
@@ -1175,7 +1176,7 @@ textarea:focus {
 }
 
 .pannello-punti {
-  font-size: 2.75rem;
+  font-size: clamp(2rem, 6svh, 2.75rem);
   font-weight: 800;
   line-height: 1.1;
 }
@@ -1231,10 +1232,16 @@ textarea:focus {
 }
 
 /* tastierino */
+/*
+ * Il tastierino si adatta all'altezza dello schermo: su un telefono deve
+ * entrare senza far scorrere la pagina, su schermi ampi resta grande. Le
+ * clamp() con svh scalano da sole invece di inseguire misure fisse, e il
+ * minimo di ogni clamp tiene i tasti sopra la soglia comoda al dito.
+ */
 .tastierino {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: clamp(0.3rem, 1.1svh, 0.6rem);
 }
 
 .tast-display {
@@ -1245,10 +1252,10 @@ textarea:focus {
   background: var(--bg-2);
   border: 1px solid var(--bordo);
   border-radius: 12px;
-  padding: 0.75rem 1rem;
-  font-size: 1.75rem;
+  padding: clamp(0.4rem, 1.2svh, 0.75rem) 0.75rem;
+  font-size: clamp(1.4rem, 4svh, 1.75rem);
   font-weight: 800;
-  min-height: 3.5rem;
+  min-height: clamp(2.6rem, 7svh, 3.5rem);
 }
 
 /* Il valore prende lo spazio libero: il pulsante di scambio sta a sinistra
@@ -1264,20 +1271,32 @@ textarea:focus {
   font-weight: 400;
 }
 
+/*
+ * I punteggi rapidi restano sempre su una riga: se lo schermo e' troppo
+ * stretto si scorre di lato, invece di andare a capo rubando altezza ai tasti.
+ */
 .tast-rapidi {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: clamp(0.2rem, 0.7svh, 0.35rem);
+  scrollbar-width: none;
+}
+
+.tast-rapidi::-webkit-scrollbar {
+  display: none;
 }
 
 .chip-punteggio {
+  /* min-width basso apposta: cosi' i nove punteggi rapidi stanno su una riga
+     sola invece di due, e i tasti sotto restano grandi. */
   flex: 1 0 auto;
-  min-width: 3rem;
+  min-width: 2rem;
   background: var(--bg-3);
   border: none;
   color: var(--testo);
   border-radius: 8px;
-  padding: 0.5rem 0.4rem;
+  padding: clamp(0.3rem, 1svh, 0.5rem) 0.3rem;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -1290,7 +1309,7 @@ textarea:focus {
 .tast-griglia {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: clamp(0.3rem, 1svh, 0.5rem);
 }
 
 .tast-btn {
@@ -1298,8 +1317,9 @@ textarea:focus {
   border: 1px solid var(--bordo);
   color: var(--testo);
   border-radius: 10px;
-  padding: 1rem 0;
-  font-size: 1.3rem;
+  /* Il minimo tiene il tasto attorno ai 44px, la soglia comoda al dito. */
+  padding: clamp(0.55rem, 2svh, 1rem) 0;
+  font-size: clamp(1.1rem, 3svh, 1.3rem);
   font-weight: 700;
   cursor: pointer;
 }
@@ -1317,11 +1337,6 @@ textarea:focus {
 .tast-btn.invia:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.tast-hint {
-  text-align: center;
-  margin: 0;
 }
 
 /* ---------- Input a bersaglio ---------- */
@@ -1503,9 +1518,10 @@ textarea:focus {
 }
 
 /*
- * Variante compatta di 121 e 61-100, attiva solo con l'input a bersaglio:
+ * Variante compatta di 121 e 61-100 (le schermate che ospitano un input):
  * bersaglio da chiudere e statistiche passano da blocchi impilati a due righe
- * sole, cosi' il tabellone entra nello schermo senza far scorrere la pagina.
+ * sole, cosi' tastierino o tabellone entrano nello schermo senza scorrere.
+ * La sfida a scaletta non la usa: li' non c'e' input e lo spazio avanza.
  */
 .co121.compatto {
   gap: 0.5rem;
