@@ -6,6 +6,7 @@ import { registraRisultato } from "../../../lib/repo";
 import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
 import { InputTirata } from "../../input/InputTirata";
+import { usaModoInput } from "../../input/preferenza";
 import type { Tirata } from "../../input/tirata";
 import {
   bersaglioCasuale,
@@ -30,6 +31,8 @@ export default function Co61100Page() {
   const sfida = !!params.get("sfida");
   const tornaA = sfida ? "/esercizi" : "/";
   const navigate = useNavigate();
+  // Col bersaglio serve tutta l'altezza possibile: il contorno si stringe.
+  const compatto = usaModoInput() === "bersaglio";
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
     [esercizioId],
@@ -117,7 +120,7 @@ export default function Co61100Page() {
 
   const chiusura = suggerisciChiusura(stato.bersaglio);
   return (
-    <section className="co121">
+    <section className={`co121${compatto ? " compatto" : ""}`}>
       <div className="bob27-testa">
         <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => navigate(tornaA)}>✕</button>
         <h2>{sfida ? "Sfida 61-100" : "61-100 Checkouts"}</h2>

@@ -7,6 +7,8 @@ interface Props {
   rimanente: number;
   /** Chiamato all'invio con un punteggio valido. */
   onInvia: (tirata: Tirata) => void;
+  /** Passa all'input a bersaglio: il pulsante sta nel display, non in una riga a parte. */
+  onCambiaModo?: () => void;
 }
 
 const RAPIDI = [26, 41, 45, 60, 81, 85, 100, 140, 180];
@@ -16,7 +18,7 @@ const RAPIDI = [26, 41, 45, 60, 81, 85, 100, 140, 180];
  * Valida che sia un punteggio ottenibile; i "bust" invece sono ammessi e
  * gestiti dal motore di gioco.
  */
-export function Tastierino({ rimanente, onInvia }: Props) {
+export function Tastierino({ rimanente, onInvia, onCambiaModo }: Props) {
   const [testo, setTesto] = useState("");
   const [errore, setErrore] = useState<string | null>(null);
 
@@ -45,6 +47,16 @@ export function Tastierino({ rimanente, onInvia }: Props) {
   return (
     <div className="tastierino">
       <div className="tast-display">
+        {onCambiaModo && (
+          <button
+            className="brs-modo"
+            onClick={onCambiaModo}
+            aria-label="Passa all'input a bersaglio"
+            title="Passa all'input a bersaglio"
+          >
+            🎯
+          </button>
+        )}
         <span className={valore == null ? "placeholder" : ""}>
           {valore == null ? "punteggio tirata" : valore}
         </span>

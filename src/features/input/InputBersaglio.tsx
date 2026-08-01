@@ -11,6 +11,7 @@ import {
   posizioneNumero,
   puntiDardo,
   RAGGI,
+  RAGGIO_BORDO,
   SETTORI,
   type Dardo,
 } from "../../lib/bersaglio";
@@ -23,6 +24,8 @@ interface Props {
   /** Regola di chiusura in vigore (per decidere se uno zero e' valido). */
   chiusura?: ModoChiusura;
   onInvia: (tirata: Tirata) => void;
+  /** Torna al tastierino: il pulsante sta nella barra, non in una riga a parte. */
+  onCambiaModo?: () => void;
 }
 
 /** La freccia chiude, secondo la regola in vigore? */
@@ -37,8 +40,17 @@ function chiudeCon(d: Dardo, modo: ModoChiusura): boolean {
  * il totale a mente. La visita si chiude da sola quando le tre frecce sono
  * state inserite, quando il punteggio va a zero o quando si sballa: cosi' il
  * gioco sa quante frecce sono servite davvero e dove sono andate.
+ *
+ * Sta tutto in due elementi (una barra e il bersaglio) perche' su un telefono
+ * il bersaglio deve entrare nello schermo senza far scorrere la pagina: ogni
+ * riga in piu' gli toglierebbe spazio proprio dove serve la mira.
  */
-export function InputBersaglio({ rimanente, chiusura = "double", onInvia }: Props) {
+export function InputBersaglio({
+  rimanente,
+  chiusura = "double",
+  onInvia,
+  onCambiaModo,
+}: Props) {
   const [dardi, setDardi] = useState<Dardo[]>([]);
 
   const totale = dardi.reduce((s, d) => s + puntiDardo(d), 0);
@@ -78,6 +90,16 @@ export function InputBersaglio({ rimanente, chiusura = "double", onInvia }: Prop
   return (
     <div className="bersaglio-input">
       <div className="brs-display">
+        {onCambiaModo && (
+          <button
+            className="brs-modo"
+            onClick={onCambiaModo}
+            aria-label="Passa al tastierino"
+            title="Passa al tastierino"
+          >
+            🔢
+          </button>
+        )}
         <div className="brs-dardi">
           {[0, 1, 2].map((i) => (
             <span
@@ -92,15 +114,14 @@ export function InputBersaglio({ rimanente, chiusura = "double", onInvia }: Prop
           <span className="brs-totale">{totale}</span>
           <span className="mini">resta {Math.max(restante, 0)}</span>
         </div>
-        {dardi.length > 0 && (
-          <button
-            className="icona-btn mini-btn"
-            onClick={annullaUltimo}
-            aria-label="Cancella l'ultima freccia"
-          >
-            ⌫
-          </button>
-        )}
+        <button
+          className="icona-btn mini-btn"
+          onClick={annullaUltimo}
+          disabled={dardi.length === 0}
+          aria-label="Cancella l'ultima freccia"
+        >
+          ⌫
+        </button>
       </div>
 
       <svg
@@ -109,7 +130,16 @@ export function InputBersaglio({ rimanente, chiusura = "double", onInvia }: Prop
         role="group"
         aria-label="Bersaglio: tocca dove è finita la freccia"
       >
-        <circle cx={CENTRO} cy={CENTRO} r={RAGGI.doppio + 22} className="brs-bordo" />
+        {/* Anello nero esterno: e' anche il bersaglio "fuori" (0 punti). */}
+        <circle
+          cx={CENTRO}
+          cy={CENTRO}
+          r={RAGGIO_BORDO}
+          className="brs-zona brs-bordo"
+          onClick={() => aggiungi(DARDO_FUORI)}
+        >
+          <title>Fuori (0)</title>
+        </circle>
 
         {SETTORI.map((numero, i) =>
           BANDE.map((banda, b) => {
@@ -173,10 +203,6 @@ export function InputBersaglio({ rimanente, chiusura = "double", onInvia }: Prop
           );
         })}
       </svg>
-
-      <button className="bottone secondario brs-fuori" onClick={() => aggiungi(DARDO_FUORI)}>
-        Fuori (0)
-      </button>
     </div>
   );
 }

@@ -92,8 +92,14 @@ export const RAGGI = {
   doppio: 190,
 } as const;
 
-/** Raggio a cui compaiono i numeri, appena fuori dall'anello del doppio. */
-export const RAGGIO_NUMERI = 208;
+/**
+ * Anello nero esterno: porta i numeri ed e' anche la zona "fuori" (una freccia
+ * finita li' vale 0), cosi' non serve un pulsante a parte che ruberebbe altezza.
+ */
+export const RAGGIO_BORDO = 220;
+
+/** Raggio a cui compaiono i numeri, dentro l'anello nero esterno. */
+export const RAGGIO_NUMERI = 205;
 
 /** Ampiezza di un settore in gradi. */
 const AMPIEZZA = 360 / SETTORI.length;

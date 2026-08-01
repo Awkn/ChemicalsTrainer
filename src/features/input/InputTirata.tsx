@@ -15,42 +15,33 @@ interface Props {
 /**
  * Inserimento della tirata, nel modo scelto dall'utente: tastierino (totale
  * delle 3 frecce) oppure bersaglio (si tocca dove e' finita ogni freccia).
- * Il pulsante in alto scambia i due e la scelta viene ricordata per tutti i
- * giochi. I giochi consumano sempre la stessa `Tirata`, quindi non gli importa
- * quale dei due sia attivo.
+ * La scelta viene ricordata per tutti i giochi. I giochi consumano sempre la
+ * stessa `Tirata`, quindi non gli importa quale dei due sia attivo.
+ *
+ * Lo scambio e' un pulsantino dentro la barra dell'input attivo (🎯 nel
+ * tastierino, 🔢 nel bersaglio) invece di una riga di linguette a se': su un
+ * telefono quella riga sarebbe altezza tolta al gioco, che gia' fatica a
+ * entrare nello schermo.
  */
 export function InputTirata({ rimanente, chiusura, onInvia }: Props) {
   const modo = usaModoInput();
-  const bersaglio = modo === "bersaglio";
+
+  if (modo === "bersaglio") {
+    return (
+      <InputBersaglio
+        rimanente={rimanente}
+        chiusura={chiusura}
+        onInvia={onInvia}
+        onCambiaModo={() => setModoInput("tastierino")}
+      />
+    );
+  }
 
   return (
-    <div className="input-tirata">
-      <div className="input-scelta">
-        <button
-          className={`input-tab${!bersaglio ? " attivo" : ""}`}
-          onClick={() => setModoInput("tastierino")}
-          aria-pressed={!bersaglio}
-        >
-          🔢 Tastierino
-        </button>
-        <button
-          className={`input-tab${bersaglio ? " attivo" : ""}`}
-          onClick={() => setModoInput("bersaglio")}
-          aria-pressed={bersaglio}
-        >
-          🎯 Bersaglio
-        </button>
-      </div>
-
-      {bersaglio ? (
-        <InputBersaglio
-          rimanente={rimanente}
-          chiusura={chiusura}
-          onInvia={onInvia}
-        />
-      ) : (
-        <Tastierino rimanente={rimanente} onInvia={onInvia} />
-      )}
-    </div>
+    <Tastierino
+      rimanente={rimanente}
+      onInvia={onInvia}
+      onCambiaModo={() => setModoInput("bersaglio")}
+    />
   );
 }

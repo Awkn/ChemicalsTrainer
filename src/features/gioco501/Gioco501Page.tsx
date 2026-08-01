@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { InputTirata } from "../input/InputTirata";
+import { usaModoInput } from "../input/preferenza";
 import type { Tirata } from "../input/tirata";
 import { Impostazioni501 } from "./Impostazioni501";
 import { Recap501 } from "./Recap501";
@@ -20,6 +21,7 @@ import {
   mediaFirst9,
   risultatoVisita,
   type ConfigPartita,
+  type StatoLeg,
   type StatoPartita,
 } from "./logica501";
 
@@ -29,6 +31,7 @@ const NOME_ESERCIZIO_501 = "501 contro il computer";
 type Fase = "setup" | "moneta" | "gioco";
 
 export function Gioco501Page() {
+  const modoInput = usaModoInput();
   const [fase, setFase] = useState<Fase>("setup");
   const [config, setConfig] = useState<ConfigPartita>(() =>
     configPredefinita(LIVELLI[1]),
@@ -178,6 +181,9 @@ export function Gioco501Page() {
   // ---------- GIOCO ----------
   const leg = stato.leg;
   const legFinito = leg.vincitore != null;
+  // Col bersaglio i pannitelli diventano una riga sola: l'altezza risparmiata
+  // serve a far entrare tutto il tabellone nello schermo del telefono.
+  const compatto = modoInput === "bersaglio";
 
   return (
     <section className="gioco">
@@ -189,26 +195,38 @@ export function Gioco501Page() {
         <span className="mini">{formatoNome(stato.config)}</span>
       </div>
 
-      <div className="tavolo">
-        <PannelloGiocatore
-          nome="Tu"
-          punti={leg.puntiUmano}
-          ultimo={leg.ultimoUmano}
-          bust={leg.bustUmano}
-          media={media3(stato.statsUmano)}
-          attivo={leg.turno === "umano" && !legFinito}
-          vincitore={leg.vincitore === "umano"}
+      {compatto ? (
+        <TavoloCompatto
+          leg={leg}
+          legFinito={legFinito}
+          chiusura={
+            stato.config.mostraChiusura
+              ? suggerisciChiusura(leg.puntiUmano)
+              : null
+          }
         />
-        <PannelloGiocatore
-          nome="Bot"
-          punti={leg.puntiBot}
-          ultimo={leg.ultimoBot}
-          bust={leg.bustBot}
-          media={media3(stato.statsBot)}
-          attivo={leg.turno === "bot" && !legFinito}
-          vincitore={leg.vincitore === "bot"}
-        />
-      </div>
+      ) : (
+        <div className="tavolo">
+          <PannelloGiocatore
+            nome="Tu"
+            punti={leg.puntiUmano}
+            ultimo={leg.ultimoUmano}
+            bust={leg.bustUmano}
+            media={media3(stato.statsUmano)}
+            attivo={leg.turno === "umano" && !legFinito}
+            vincitore={leg.vincitore === "umano"}
+          />
+          <PannelloGiocatore
+            nome="Bot"
+            punti={leg.puntiBot}
+            ultimo={leg.ultimoBot}
+            bust={leg.bustBot}
+            media={media3(stato.statsBot)}
+            attivo={leg.turno === "bot" && !legFinito}
+            vincitore={leg.vincitore === "bot"}
+          />
+        </div>
+      )}
 
       {legFinito ? (
         <div className="fine-leg">
@@ -245,7 +263,7 @@ export function Gioco501Page() {
         </div>
       ) : leg.turno === "umano" ? (
         <>
-          {stato.config.mostraChiusura && (
+          {stato.config.mostraChiusura && !compatto && (
             <SuggerimentoChiusura rimanente={leg.puntiUmano} />
           )}
           <InputTirata
@@ -267,6 +285,50 @@ function formatoNome(config: ConfigPartita): string {
   const verbo = config.formato === "bestof" ? "Al meglio di" : "Primo a";
   const unita = config.unita === "legs" ? "leg" : "set";
   return `${verbo} ${config.numero} ${unita}`;
+}
+
+interface TavoloCompattoProps {
+  leg: StatoLeg;
+  legFinito: boolean;
+  /** Chiusura consigliata, mostrata qui dentro per non occupare un'altra riga. */
+  chiusura: string[] | null;
+}
+
+/**
+ * Punteggi su una riga sola, per l'input a bersaglio. Rispetto ai pannelli
+ * grandi si perde la media (resta comunque nel recap) e si guadagnano ~90px
+ * di altezza, che vanno tutti al tabellone.
+ */
+function TavoloCompatto({ leg, legFinito, chiusura }: TavoloCompattoProps) {
+  const sotto = (bust: boolean, ultimo: number | null) =>
+    bust ? "BUST" : ultimo != null ? `↩ ${ultimo}` : "—";
+
+  return (
+    <div className="tavolo-compatto">
+      <div
+        className={`tc-lato${leg.turno === "umano" && !legFinito ? " attivo" : ""}`}
+      >
+        <span className="tc-nome">TU</span>
+        <span className="tc-punti">{leg.puntiUmano}</span>
+        {chiusura ? (
+          <span className="tc-co">
+            {chiusura.map((c, i) => (
+              <span key={i}>{c}</span>
+            ))}
+          </span>
+        ) : (
+          <span className="tc-sotto">{sotto(leg.bustUmano, leg.ultimoUmano)}</span>
+        )}
+      </div>
+      <div
+        className={`tc-lato${leg.turno === "bot" && !legFinito ? " attivo" : ""}`}
+      >
+        <span className="tc-nome">BOT</span>
+        <span className="tc-punti">{leg.puntiBot}</span>
+        <span className="tc-sotto">{sotto(leg.bustBot, leg.ultimoBot)}</span>
+      </div>
+    </div>
+  );
 }
 
 /** Mostra la chiusura consigliata quando il rimanente e' un checkout. */

@@ -1251,6 +1251,13 @@ textarea:focus {
   min-height: 3.5rem;
 }
 
+/* Il valore prende lo spazio libero: il pulsante di scambio sta a sinistra
+   e il tasto cancella a destra, senza che il numero balli tra i due. */
+.tast-display > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .tast-display .placeholder {
   color: var(--testo-2);
   font-size: 1rem;
@@ -1317,39 +1324,6 @@ textarea:focus {
   margin: 0;
 }
 
-/* ---------- Scelta del modo di input ---------- */
-.input-tirata {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.input-scelta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-  background: var(--bg-2);
-  border: 1px solid var(--bordo);
-  border-radius: 12px;
-  padding: 0.25rem;
-}
-
-.input-tab {
-  background: none;
-  border: none;
-  color: var(--testo-2);
-  border-radius: 9px;
-  padding: 0.55rem 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.input-tab.attivo {
-  background: color-mix(in srgb, var(--accento) 22%, var(--bg-3));
-  color: var(--testo);
-}
-
 /* ---------- Input a bersaglio ---------- */
 .bersaglio-input {
   display: flex;
@@ -1360,27 +1334,40 @@ textarea:focus {
 .brs-display {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem;
   background: var(--bg-2);
   border: 1px solid var(--bordo);
   border-radius: 12px;
-  padding: 0.6rem 0.9rem;
-  min-height: 3.5rem;
+  padding: 0.4rem 0.5rem;
+}
+
+/* Torna al tastierino: sta qui dentro per non occupare una riga propria. */
+.brs-modo {
+  flex: 0 0 auto;
+  background: var(--bg-3);
+  border: 1px solid var(--bordo);
+  border-radius: 9px;
+  padding: 0.4rem 0.45rem;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .brs-dardi {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .brs-dardo {
-  min-width: 3.1rem;
+  flex: 1 1 0;
+  min-width: 0;
   text-align: center;
   background: var(--bg-3);
   border-radius: 8px;
-  padding: 0.35rem 0.4rem;
-  font-size: 1rem;
+  padding: 0.35rem 0.15rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--testo-2);
 }
@@ -1391,21 +1378,32 @@ textarea:focus {
 }
 
 .brs-conti {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .brs-totale {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 800;
 }
 
+/*
+ * Il bersaglio non deve mai costringere a scorrere: e' quadrato, quindi
+ * limitiamo la larghezza anche con l'altezza ancora libera sotto le barre
+ * (svh tiene conto della barra del browser sui telefoni). Ogni gioco ha un
+ * contorno diverso, percio' quanto spazio riservargli si regola con
+ * --brs-contorno; il valore predefinito e' quello del 501.
+ */
 .brs-svg {
-  width: 100%;
-  max-width: 380px;
-  margin: 0 auto;
+  /* Il max(240px, ...) e' un pavimento: su schermi molto bassi si preferisce
+     far scorrere un po' la pagina piuttosto che ridurre il bersaglio a una
+     dimensione in cui triplo e doppio diventano impossibili da centrare. */
+  width: min(100%, 380px, max(240px, calc(100svh - var(--brs-contorno, 290px))));
+  height: auto;
+  align-self: center;
   display: block;
   touch-action: manipulation;
 }
@@ -1443,13 +1441,123 @@ textarea:focus {
 
 .brs-numero {
   fill: #efeae0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   pointer-events: none;
 }
 
-.brs-fuori {
-  align-self: center;
+/* ---------- Punteggi compatti (accanto al bersaglio) ---------- */
+.tavolo-compatto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.tc-lato {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  padding: 0.35rem 0.55rem;
+  min-height: 2.6rem;
+}
+
+.tc-lato.attivo {
+  background: color-mix(in srgb, var(--accento) 16%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--accento) 45%, var(--bordo));
+}
+
+.tc-nome {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--testo-2);
+  letter-spacing: 0.04em;
+}
+
+.tc-punti {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.tc-sotto {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--testo-2);
+}
+
+.tc-co {
+  margin-left: auto;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.tc-co span {
+  background: var(--bg-3);
+  border-radius: 5px;
+  padding: 0.1rem 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accento-2);
+}
+
+/*
+ * Variante compatta di 121 e 61-100, attiva solo con l'input a bersaglio:
+ * bersaglio da chiudere e statistiche passano da blocchi impilati a due righe
+ * sole, cosi' il tabellone entra nello schermo senza far scorrere la pagina.
+ */
+.co121.compatto {
+  gap: 0.5rem;
+  /* Qui il contorno resta piu' alto che nel 501 (bersaglio, statistiche,
+     azioni), quindi al tabellone va riservato di conseguenza. */
+  --brs-contorno: 400px;
+}
+
+.co121.compatto .co121-rimanente {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.co121.compatto .bob27-numero {
+  font-size: 1.9rem;
+}
+
+.co121.compatto .co121-stat {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  padding: 0.3rem 0.5rem;
+}
+
+.co121.compatto .co121-stat > div {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.co121.compatto .co121-stat-num {
+  font-size: 1rem;
+}
+
+.co121.compatto .co121-esito {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.co121.compatto .co121-azioni .bottone {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
 }
 
 /* ---------- Impostazioni 501 ---------- */
