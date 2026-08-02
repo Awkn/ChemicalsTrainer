@@ -19,8 +19,12 @@ import type { ModoChiusura } from "../gioco501/logica501";
 import type { Tirata } from "./tirata";
 
 interface Props {
-  /** Punteggio da abbattere: serve a capire da solo chiusure e sballi. */
-  rimanente: number;
+  /**
+   * Punteggio da abbattere: serve a capire da solo chiusure e sballi.
+   * Assente nei giochi che non hanno un punteggio da azzerare (Cricket):
+   * li' la visita finisce semplicemente alla terza freccia.
+   */
+  rimanente?: number;
   /** Regola di chiusura in vigore (per decidere se uno zero e' valido). */
   chiusura?: ModoChiusura;
   onInvia: (tirata: Tirata) => void;
@@ -54,11 +58,19 @@ export function InputBersaglio({
   const [dardi, setDardi] = useState<Dardo[]>([]);
 
   const totale = dardi.reduce((s, d) => s + puntiDardo(d), 0);
-  const restante = rimanente - totale;
 
   function aggiungi(d: Dardo) {
     const nuovi = [...dardi, d];
     const somma = nuovi.reduce((s, x) => s + puntiDardo(x), 0);
+
+    // Senza un punteggio da azzerare non c'e' nulla da chiudere ne' da
+    // sballare: la visita e' semplicemente di tre frecce.
+    if (rimanente == null) {
+      if (nuovi.length === 3) concludi(nuovi, somma, false);
+      else setDardi(nuovi);
+      return;
+    }
+
     const dopo = rimanente - somma;
 
     // Zero: chiusura valida solo se l'ultima freccia rispetta la regola d'uscita.
@@ -112,7 +124,9 @@ export function InputBersaglio({
         </div>
         <div className="brs-conti">
           <span className="brs-totale">{totale}</span>
-          <span className="mini">resta {Math.max(restante, 0)}</span>
+          {rimanente != null && (
+            <span className="mini">resta {Math.max(rimanente - totale, 0)}</span>
+          )}
         </div>
         <button
           className="icona-btn mini-btn"

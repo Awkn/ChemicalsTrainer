@@ -57,6 +57,13 @@ const GIOCHI_HUB: VoceGioco[] = [
     gioco: "co61100",
   },
   {
+    chiave: "cricket",
+    titolo: "Cricket",
+    descrizione: "Contro un amico o contro il bot, classico o cut-throat.",
+    icona: "🏏",
+    percorsoFisso: "/cricket",
+  },
+  {
     chiave: "drilldoppio",
     titolo: "Doppio mirato",
     descrizione: "21 frecce su un solo doppio, per lavorare sul punto debole.",

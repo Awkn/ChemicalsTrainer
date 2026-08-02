@@ -23,6 +23,7 @@ const Co61100Page = lazy(() => import("./features/giochi/co61100/Co61100Page"));
 const DrillDoppioPage = lazy(
   () => import("./features/giochi/drilldoppio/DrillDoppioPage"),
 );
+const CricketPage = lazy(() => import("./features/giochi/cricket/CricketPage"));
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -103,6 +104,15 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <DrillDoppioPage />
+            </Suspense>
+          }
+        />
+        {/* Come il drill: partita a se', non nasce da un esercizio. */}
+        <Route
+          path="cricket"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <CricketPage />
             </Suspense>
           }
         />

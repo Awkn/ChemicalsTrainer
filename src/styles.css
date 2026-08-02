@@ -1540,6 +1540,89 @@ textarea:focus {
   border: 1px solid color-mix(in srgb, var(--ko) 35%, var(--bordo));
 }
 
+/* ---------- Cricket ---------- */
+.cricket-tabellone {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.2rem 0.5rem;
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem;
+}
+
+.ck-testa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0.3rem 0.4rem;
+}
+
+.ck-testa.attivo {
+  background: color-mix(in srgb, var(--accento) 20%, var(--bg-2));
+}
+
+.ck-nome {
+  font-size: 0.75rem;
+  color: var(--testo-2);
+  font-weight: 700;
+}
+
+.ck-punti {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.ck-testa-num {
+  font-size: 0.7rem;
+  color: var(--testo-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* La riga occupa tutte e tre le colonne: segni, numero, segni. */
+.ck-riga {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  border-top: 1px solid var(--bordo);
+  padding: 0.15rem 0;
+}
+
+/* Numero chiuso da entrambi: non fa piu' punti, si spegne. */
+.ck-riga.morto {
+  opacity: 0.45;
+}
+
+.ck-numero {
+  min-width: 2.4rem;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.ck-segni {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  color: var(--testo);
+}
+
+.ck-segni.chiuso {
+  color: var(--ok);
+}
+
+.ck-ultima {
+  text-align: center;
+  margin: 0;
+}
+
 /* ---------- Drill su un doppio ---------- */
 .drill-bersagli {
   display: flex;
