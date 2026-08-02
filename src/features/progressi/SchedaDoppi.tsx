@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { ListaDoppi } from "../../components/ListaDoppi";
 import { percentualeDoppi } from "../../lib/doppi";
 import { usaStoricoDoppi } from "../../lib/doppiStorico";
@@ -25,6 +26,9 @@ export function SchedaDoppi() {
           doppio avendolo davvero davanti, e ti dice su quale sei più debole.
           Attivalo col pulsante 🎯 durante una partita.
         </p>
+        <Link className="bottone secondario" to="/drill-doppio">
+          Allena un doppio
+        </Link>
       </div>
     );
   }
@@ -45,11 +49,19 @@ export function SchedaDoppi() {
       </p>
 
       {peggiore && (
-        <p className="doppio-debole">
-          Punto debole: <strong>{peggiore.doppio}</strong> ·{" "}
-          {peggiore.percentuale}% ({peggiore.conto.colpiti}/
-          {peggiore.conto.tentativi})
-        </p>
+        <div className="doppio-debole">
+          <span>
+            Punto debole: <strong>{peggiore.doppio}</strong> ·{" "}
+            {peggiore.percentuale}% ({peggiore.conto.colpiti}/
+            {peggiore.conto.tentativi})
+          </span>
+          <Link
+            className="bottone piccolo"
+            to={`/drill-doppio?doppio=${peggiore.doppio}`}
+          >
+            Allenalo
+          </Link>
+        </div>
       )}
 
       {classifica.length > 0 ? (

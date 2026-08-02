@@ -20,6 +20,9 @@ const PressureDoublesPage = lazy(
   () => import("./features/giochi/pressuredoubles/PressureDoublesPage"),
 );
 const Co61100Page = lazy(() => import("./features/giochi/co61100/Co61100Page"));
+const DrillDoppioPage = lazy(
+  () => import("./features/giochi/drilldoppio/DrillDoppioPage"),
+);
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -90,6 +93,16 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <Co61100Page />
+            </Suspense>
+          }
+        />
+        {/* Il drill non nasce da un esercizio: si sceglie il bersaglio, o lo
+            passa la scheda dei doppi col punto debole gia' selezionato. */}
+        <Route
+          path="drill-doppio"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <DrillDoppioPage />
             </Suspense>
           }
         />

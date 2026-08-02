@@ -56,6 +56,13 @@ const GIOCHI_HUB: VoceGioco[] = [
     icona: "🔟",
     gioco: "co61100",
   },
+  {
+    chiave: "drilldoppio",
+    titolo: "Doppio mirato",
+    descrizione: "21 frecce su un solo doppio, per lavorare sul punto debole.",
+    icona: "🔴",
+    percorsoFisso: "/drill-doppio",
+  },
 ];
 
 export function GiochiPage() {
