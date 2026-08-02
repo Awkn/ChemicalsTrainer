@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InputBersaglio } from "../../input/InputBersaglio";
 import type { Tirata } from "../../input/tirata";
+import { usaVerticale } from "../../../lib/orientamento";
 import {
   chiuso,
   creaPartita,
@@ -31,6 +32,10 @@ export default function CricketPage() {
     nomi: ["Tu", "Bot"],
   });
   const [stato, setStato] = useState<StatoCricket | null>(null);
+  const verticale = usaVerticale();
+  // Scelta di giocare comunque in verticale: serve a chi ha il blocco
+  // rotazione attivo, che altrimenti non potrebbe entrare in partita.
+  const [ignoraVerticale, setIgnoraVerticale] = useState(false);
 
   // Quando tocca al bot, gioca da solo dopo una pausa.
   useEffect(() => {
@@ -89,64 +94,94 @@ export default function CricketPage() {
   // ---------- PARTITA ----------
   const attesaBot = stato.config.bot != null && stato.turno === 1;
 
+  // In verticale tabellone e bersaglio si contendono l'altezza: si chiede di
+  // girare il telefono. La via d'uscita e' obbligatoria, non una cortesia:
+  // con il blocco rotazione attivo l'utente resterebbe fuori dal gioco.
+  if (verticale && !ignoraVerticale) {
+    return (
+      <div className="cricket-schermo ruota">
+        <div className="ck-ruota">
+          <span className="ck-ruota-icona">📱</span>
+          <h2>Gira il telefono</h2>
+          <p className="mini">
+            In orizzontale il tabellone sta di fianco al bersaglio: si segna
+            senza scorrere.
+          </p>
+          <div className="modale-azioni">
+            <button className="bottone secondario" onClick={() => navigate("/giochi")}>
+              Esci
+            </button>
+            <button className="bottone" onClick={() => setIgnoraVerticale(true)}>
+              Gioca in verticale
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <section className="co121 compatto">
-      <div className="bob27-testa">
-        <button
-          className="icona-btn"
-          aria-label="Esci dal gioco"
-          onClick={() => navigate("/giochi")}
-        >
-          ✕
-        </button>
-        <h2>Cricket</h2>
-        <span className="mini">
-          {stato.config.punteggio === "cutthroat" ? "cut-throat" : "classico"}
-        </span>
+    <div className="cricket-schermo">
+      <div className="ck-colonna-punteggi">
+        <div className="bob27-testa">
+          <button
+            className="icona-btn"
+            aria-label="Esci dal gioco"
+            onClick={() => navigate("/giochi")}
+          >
+            ✕
+          </button>
+          <h2>Cricket</h2>
+          <span className="mini">
+            {stato.config.punteggio === "cutthroat" ? "cut-throat" : "classico"}
+          </span>
+        </div>
+
+        <div className="cricket-tabellone">
+          <div className={`ck-testa${stato.turno === 0 ? " attivo" : ""}`}>
+            <span className="ck-nome">{g0.nome}</span>
+            <span className="ck-punti">{g0.punti}</span>
+          </div>
+          <div className="ck-testa-num">Cricket</div>
+          <div className={`ck-testa${stato.turno === 1 ? " attivo" : ""}`}>
+            <span className="ck-nome">{g1.nome}</span>
+            <span className="ck-punti">{g1.punti}</span>
+          </div>
+
+          {NUMERI_CRICKET.map((n) => {
+            // Numero morto: chiuso da entrambi, non fa piu' punti a nessuno.
+            const morto = chiuso(g0, n) && chiuso(g1, n);
+            return (
+              <div className={`ck-riga${morto ? " morto" : ""}`} key={n}>
+                <Segni valore={g0.segni[n] ?? 0} />
+                <span className="ck-numero">{etichettaNumero(n)}</span>
+                <Segni valore={g1.segni[n] ?? 0} />
+              </div>
+            );
+          })}
+        </div>
+
+        {stato.ultima && (
+          <p className="mini ck-ultima">
+            {stato.giocatori[stato.ultima.di].nome}:{" "}
+            {stato.ultima.segni.length > 0
+              ? riassumiSegni(stato.ultima.segni)
+              : "nessun segno"}
+            {stato.ultima.punti > 0 && ` · ${stato.ultima.punti} punti`}
+          </p>
+        )}
       </div>
 
-      <div className="cricket-tabellone">
-        <div className={`ck-testa${stato.turno === 0 ? " attivo" : ""}`}>
-          <span className="ck-nome">{g0.nome}</span>
-          <span className="ck-punti">{g0.punti}</span>
-        </div>
-        <div className="ck-testa-num">Cricket</div>
-        <div className={`ck-testa${stato.turno === 1 ? " attivo" : ""}`}>
-          <span className="ck-nome">{g1.nome}</span>
-          <span className="ck-punti">{g1.punti}</span>
-        </div>
-
-        {NUMERI_CRICKET.map((n) => {
-          // Numero morto: chiuso da entrambi, non fa piu' punti a nessuno.
-          const morto = chiuso(g0, n) && chiuso(g1, n);
-          return (
-            <div className={`ck-riga${morto ? " morto" : ""}`} key={n}>
-              <Segni valore={g0.segni[n] ?? 0} />
-              <span className="ck-numero">{etichettaNumero(n)}</span>
-              <Segni valore={g1.segni[n] ?? 0} />
-            </div>
-          );
-        })}
+      <div className="ck-colonna-input">
+        {attesaBot ? (
+          <div className="attesa-bot">
+            <span className="spinner" /> Il bot sta tirando…
+          </div>
+        ) : (
+          <InputBersaglio onInvia={invia} />
+        )}
       </div>
-
-      {stato.ultima && (
-        <p className="mini ck-ultima">
-          {stato.giocatori[stato.ultima.di].nome}:{" "}
-          {stato.ultima.segni.length > 0
-            ? riassumiSegni(stato.ultima.segni)
-            : "nessun segno"}
-          {stato.ultima.punti > 0 && ` · ${stato.ultima.punti} punti`}
-        </p>
-      )}
-
-      {attesaBot ? (
-        <div className="attesa-bot">
-          <span className="spinner" /> Il bot sta tirando…
-        </div>
-      ) : (
-        <InputBersaglio onInvia={invia} />
-      )}
-    </section>
+    </div>
   );
 }
 

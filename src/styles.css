@@ -1541,6 +1541,111 @@ textarea:focus {
 }
 
 /* ---------- Cricket ---------- */
+
+/*
+ * La partita copre tutto lo schermo: in orizzontale il tabellone sta a
+ * fianco del bersaglio e non serve scorrere per segnare. Sopra la barra in
+ * alto e quella in basso, che qui ruberebbero solo altezza.
+ */
+.cricket-schermo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: auto;
+  /* In verticale (la via d'uscita) sopra al bersaglio c'e' il tabellone:
+     va riservata la sua altezza, o si torna a dover scorrere. */
+  --brs-contorno: 402px;
+}
+
+.cricket-schermo.ruota {
+  align-items: center;
+  justify-content: center;
+}
+
+.ck-ruota {
+  text-align: center;
+  max-width: 22rem;
+}
+
+.ck-ruota-icona {
+  display: block;
+  font-size: 3.5rem;
+  /* il telefono che gira: l'icona da sola non lo direbbe */
+  animation: ck-gira 2.2s ease-in-out infinite;
+}
+
+@keyframes ck-gira {
+  0%,
+  40% {
+    transform: rotate(0deg);
+  }
+  60%,
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+.ck-colonna-punteggi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ck-colonna-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ck-colonna-input .bersaglio-input {
+  width: 100%;
+}
+
+/* In verticale il tabellone si stringe: sotto ci va ancora il bersaglio. */
+@media (orientation: portrait) {
+  .cricket-schermo .ck-segni {
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  .cricket-schermo .ck-riga {
+    padding: 0.05rem 0;
+  }
+
+  .cricket-schermo .ck-punti {
+    font-size: 1.2rem;
+  }
+}
+
+@media (orientation: landscape) {
+  .cricket-schermo {
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .ck-colonna-punteggi {
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  .ck-colonna-input {
+    flex: 0 0 auto;
+  }
+
+  /* Qui il bersaglio e' limitato dall'altezza, non dalla larghezza. */
+  .cricket-schermo .brs-svg {
+    width: min(46vw, calc(100svh - 5.5rem));
+  }
+}
+
 .cricket-tabellone {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
