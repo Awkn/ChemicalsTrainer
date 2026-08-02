@@ -7,6 +7,8 @@ import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
 import { InputTirata } from "../../input/InputTirata";
 import type { Tirata } from "../../input/tirata";
+import { contaDoppiVisita, unisciConti, type ContiDoppi } from "../../../lib/doppi";
+import { registraDoppi } from "../../../lib/doppiStorico";
 import {
   bersaglioCasuale,
   creaCo61100,
@@ -39,6 +41,9 @@ export default function Co61100Page() {
     creaCo61100(bersaglioCasuale()),
   ]);
   const stato = storia[storia.length - 1];
+  // I doppi seguono lo stesso storico, cosi' l'annulla li riporta indietro.
+  const [storiaDoppi, setStoriaDoppi] = useState<ContiDoppi[]>([{}]);
+  const doppi = storiaDoppi[storiaDoppi.length - 1];
   const [fine, setFine] = useState(false);
   const [salvato, setSalvato] = useState(false);
 
@@ -55,18 +60,31 @@ export default function Co61100Page() {
         data: dataIso(),
         valori: { successo: percentualeSuccesso(stato) },
       });
+      registraDoppi(doppi, "61-100");
     }
     setSalvato(true);
   }, [fine, salvato, esercizio]);
 
-  const invia = (t: Tirata) =>
+  const invia = (t: Tirata) => {
+    const bersaglioPrima = stato.bersaglio;
     setStoria((s) => [
       ...s,
       inviaPunteggio(s[s.length - 1], t.punteggio, bersaglioCasuale(), t.bust),
     ]);
-  const annulla = () => setStoria((s) => (s.length > 1 ? s.slice(0, -1) : s));
+    setStoriaDoppi((d) => [
+      ...d,
+      t.dardi
+        ? unisciConti(d[d.length - 1], contaDoppiVisita(bersaglioPrima, t.dardi))
+        : d[d.length - 1],
+    ]);
+  };
+  const annulla = () => {
+    setStoria((s) => (s.length > 1 ? s.slice(0, -1) : s));
+    setStoriaDoppi((d) => (d.length > 1 ? d.slice(0, -1) : d));
+  };
   const nuovaSessione = () => {
     setStoria([creaCo61100(bersaglioCasuale())]);
+    setStoriaDoppi([{}]);
     setFine(false);
     setSalvato(false);
   };

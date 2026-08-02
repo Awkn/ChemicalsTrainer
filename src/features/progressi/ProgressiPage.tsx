@@ -5,6 +5,7 @@ import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
 import { Grafico, formattaValore } from "../../components/Grafico";
 import { dataIso } from "../../lib/date";
 import { eMiglioramento, type MetricaDef } from "../../types";
+import { SchedaDoppi } from "./SchedaDoppi";
 
 export function ProgressiPage() {
   // Solo esercizi che hanno almeno un risultato registrato.
@@ -61,6 +62,10 @@ export function ProgressiPage() {
           <h2>Progressi</h2>
         </div>
       </div>
+
+      {/* I doppi non appartengono a un esercizio: arrivano da piu' giochi,
+          quindi stanno sopra al selettore e non dentro. */}
+      <SchedaDoppi />
 
       <label className="campo">
         <span>Esercizio</span>

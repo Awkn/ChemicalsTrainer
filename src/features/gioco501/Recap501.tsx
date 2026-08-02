@@ -13,6 +13,7 @@ import {
   percentualeDoppi,
   totaleDoppi,
 } from "../../lib/doppi";
+import { ListaDoppi } from "../../components/ListaDoppi";
 
 interface Props {
   stato: StatoPartita;
@@ -124,22 +125,7 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
             Contati freccia per freccia: quante volte hai centrato il doppio
             avendolo davvero davanti.
           </p>
-          <ul className="doppi-lista">
-            {perBersaglio.map((d) => (
-              <li key={d.doppio}>
-                <span className="doppi-nome">{d.doppio}</span>
-                <span className="doppi-barra">
-                  <span
-                    className="doppi-riempi"
-                    style={{ width: `${d.percentuale}%` }}
-                  />
-                </span>
-                <span className="doppi-conto">
-                  {d.conto.colpiti}/{d.conto.tentativi}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <ListaDoppi righe={perBersaglio} />
         </div>
       )}
 

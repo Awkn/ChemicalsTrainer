@@ -13,20 +13,23 @@ import type {
  * Serve per passare programmi ai compagni (un file .json da importare).
  */
 export async function esportaTutto(): Promise<ExportBundle> {
-  const [programmi, esercizi, assegnazioni, risultati] = await Promise.all([
-    db.programmi.toArray(),
-    db.esercizi.toArray(),
-    db.assegnazioni.toArray(),
-    db.risultati.toArray(),
-  ]);
+  const [programmi, esercizi, assegnazioni, risultati, doppi] =
+    await Promise.all([
+      db.programmi.toArray(),
+      db.esercizi.toArray(),
+      db.assegnazioni.toArray(),
+      db.risultati.toArray(),
+      db.doppi.toArray(),
+    ]);
   return {
     formato: "darts-trainer",
-    versione: 2,
+    versione: 3,
     esportatoIl: Date.now(),
     programmi,
     esercizi,
     assegnazioni,
     risultati,
+    doppi,
   };
 }
 
@@ -81,23 +84,27 @@ export async function ripristinaBundle(
   bundle: ExportBundle,
 ): Promise<ConteggiRipristino> {
   const risultati = bundle.risultati ?? [];
+  const doppi = bundle.doppi ?? [];
   await db.transaction(
     "rw",
     db.esercizi,
     db.programmi,
     db.assegnazioni,
     db.risultati,
+    db.doppi,
     async () => {
       await Promise.all([
         db.esercizi.clear(),
         db.programmi.clear(),
         db.assegnazioni.clear(),
         db.risultati.clear(),
+        db.doppi.clear(),
       ]);
       await db.esercizi.bulkAdd(bundle.esercizi);
       await db.programmi.bulkAdd(bundle.programmi);
       await db.assegnazioni.bulkAdd(bundle.assegnazioni);
       await db.risultati.bulkAdd(risultati);
+      await db.doppi.bulkAdd(doppi);
     },
   );
   return {
@@ -112,6 +119,10 @@ export async function ripristinaBundle(
  * Importa un bundle. Per evitare collisioni di id con i dati gia' presenti,
  * rigenera gli id di programmi/esercizi e rimappa le assegnazioni.
  * I dati esistenti NON vengono cancellati: l'import e' additivo.
+ *
+ * I tentativi al doppio restano fuori di proposito: un file importato arriva
+ * da un compagno, e la sua resa sui bersagli non e' la propria. Nel backup
+ * personale invece ci sono (vedi ripristinaBundle).
  */
 export async function importaBundle(testoJson: string): Promise<{
   programmiImportati: number;

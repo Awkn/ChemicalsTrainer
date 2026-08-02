@@ -1,5 +1,11 @@
 import Dexie, { type Table } from "dexie";
-import type { Assegnazione, Esercizio, Programma, Risultato } from "../types";
+import type {
+  Assegnazione,
+  Esercizio,
+  Programma,
+  Risultato,
+  SessioneDoppi,
+} from "../types";
 
 /**
  * Database locale (IndexedDB) gestito con Dexie.
@@ -11,6 +17,7 @@ class DartsDB extends Dexie {
   programmi!: Table<Programma, string>;
   assegnazioni!: Table<Assegnazione, string>;
   risultati!: Table<Risultato, string>;
+  doppi!: Table<SessioneDoppi, string>;
 
   constructor() {
     super("darts-trainer");
@@ -23,6 +30,12 @@ class DartsDB extends Dexie {
     // v2: aggiunge lo storico dei risultati per il tracking dei progressi.
     this.version(2).stores({
       risultati: "id, esercizioId, data, [esercizioId+data]",
+    });
+    // v3: tentativi al doppio, contati freccia per freccia dall'input a
+    // bersaglio. Tabella a parte perche' non appartengono a un esercizio:
+    // arrivano da piu' giochi e servono a misurare la resa su ogni bersaglio.
+    this.version(3).stores({
+      doppi: "id, data, gioco",
     });
   }
 }

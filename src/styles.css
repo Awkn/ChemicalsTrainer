@@ -1526,6 +1526,15 @@ textarea:focus {
   text-align: right;
 }
 
+.doppio-debole {
+  margin: 0.6rem 0 0;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--ko) 14%, var(--bg-2));
+  border: 1px solid color-mix(in srgb, var(--ko) 35%, var(--bordo));
+}
+
 /* ---------- Punteggi compatti (accanto al bersaglio) ---------- */
 .tavolo-compatto {
   display: grid;

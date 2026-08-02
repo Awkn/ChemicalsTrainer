@@ -7,6 +7,8 @@ import { dataIso } from "../../../lib/date";
 import { suggerisciChiusura } from "../../../lib/checkout";
 import { InputTirata } from "../../input/InputTirata";
 import type { Tirata } from "../../input/tirata";
+import { contaDoppiVisita, unisciConti, type ContiDoppi } from "../../../lib/doppi";
+import { registraDoppi } from "../../../lib/doppiStorico";
 import Co121SfidaPage from "./Co121SfidaPage";
 import {
   crea121,
@@ -40,6 +42,10 @@ function Co121Oltranza() {
   // Storico degli stati: l'ultimo e' quello corrente, i precedenti per l'annulla.
   const [storia, setStoria] = useState<Stato121[]>([crea121()]);
   const stato = storia[storia.length - 1];
+  // I doppi seguono lo stesso storico: cosi' annullare una visita annulla
+  // anche i tentativi che aveva contato.
+  const [storiaDoppi, setStoriaDoppi] = useState<ContiDoppi[]>([{}]);
+  const doppi = storiaDoppi[storiaDoppi.length - 1];
   const [fine, setFine] = useState(false);
   const [salvato, setSalvato] = useState(false);
 
@@ -52,20 +58,30 @@ function Co121Oltranza() {
         data: dataIso(),
         valori: { successo: percentualeSuccesso(stato) },
       });
+      registraDoppi(doppi, "121");
     }
     setSalvato(true);
   }, [fine, salvato, esercizio]);
 
   function invia(t: Tirata) {
+    const rimanentePrima = stato.rimanente;
     setStoria((s) => [...s, inviaPunteggio(s[s.length - 1], t.punteggio, t.bust)]);
+    setStoriaDoppi((d) => [
+      ...d,
+      t.dardi
+        ? unisciConti(d[d.length - 1], contaDoppiVisita(rimanentePrima, t.dardi))
+        : d[d.length - 1],
+    ]);
   }
 
   function annulla() {
     setStoria((s) => (s.length > 1 ? s.slice(0, -1) : s));
+    setStoriaDoppi((d) => (d.length > 1 ? d.slice(0, -1) : d));
   }
 
   function nuovaSessione() {
     setStoria([crea121()]);
+    setStoriaDoppi([{}]);
     setFine(false);
     setSalvato(false);
   }

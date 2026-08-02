@@ -143,14 +143,33 @@ export interface Assegnazione {
   ordine: number;
 }
 
+/**
+ * Tentativi al doppio di una sessione di gioco, contati freccia per freccia.
+ * Una riga per partita/sessione: sommandole si ottiene la resa su ogni
+ * bersaglio nel tempo, che una singola partita non puo' dire (con tre
+ * tentativi un errore basterebbe a eleggere un punto debole).
+ */
+export interface SessioneDoppi {
+  id: string;
+  /** Giorno della sessione, "YYYY-MM-DD". */
+  data: string;
+  createdAt: number;
+  /** Gioco di provenienza, per capire da dove arrivano i numeri. */
+  gioco: string;
+  /** Conteggi per bersaglio: { "D20": { tentativi, colpiti }, ... }. */
+  conti: Record<string, { tentativi: number; colpiti: number }>;
+}
+
 /** Struttura del file di import/export (per condividere programmi coi compagni). */
 export interface ExportBundle {
   formato: "darts-trainer";
-  versione: 1 | 2;
+  versione: 1 | 2 | 3;
   esportatoIl: number;
   programmi: Programma[];
   esercizi: Esercizio[];
   assegnazioni: Assegnazione[];
   /** Presente dalla versione 2. Assente nei file piu' vecchi. */
   risultati?: Risultato[];
+  /** Presente dalla versione 3. Assente nei file piu' vecchi. */
+  doppi?: SessioneDoppi[];
 }

@@ -9,6 +9,7 @@ import { db } from "../../lib/db";
 import { registraRisultato } from "../../lib/repo";
 import { dataIso } from "../../lib/date";
 import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
+import { registraDoppi } from "../../lib/doppiStorico";
 import {
   avanzaLeg,
   checkoutPerc,
@@ -84,6 +85,9 @@ export function Gioco501Page() {
         if (doppi.tentativi > 0) valori.doppi = percentualeDoppi(doppi);
 
         await registraRisultato({ esercizioId: es.id, data: dataIso(), valori });
+        // Lo storico per bersaglio vive a parte: serve a capire nel tempo su
+        // quale doppio si sbaglia, cosa che una sola partita non puo' dire.
+        await registraDoppi(stato.statsUmano.doppi, "501");
       }
       if (!annullato) setSalvato(true);
     })();
