@@ -6,6 +6,7 @@ import {
   usaStatoBackupCloud,
 } from "../../lib/squadra/backupStato";
 import { squadraConfigurata } from "../../lib/squadra/config";
+import { setTema, usaTema } from "../../lib/tema";
 
 function dataOra(ms: number): string {
   return new Date(ms).toLocaleString("it-IT", {
@@ -22,6 +23,7 @@ export function ImpostazioniPage() {
   const [esito, setEsito] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
   const stato = usaStatoBackup();
+  const temaAttuale = usaTema();
 
   // ---------- Backup nel cloud ----------
   const cloud = usaStatoBackupCloud();
@@ -112,9 +114,28 @@ export function ImpostazioniPage() {
     <section>
       <div className="pagina-testa">
         <div>
-          <p className="occhiello">Dati</p>
-          <h2>Condividi e salva</h2>
+          <p className="occhiello">Impostazioni</p>
+          <h2>Preferenze e dati</h2>
         </div>
+      </div>
+
+      {/* ---------- Aspetto ---------- */}
+      <div className="scheda">
+        <h3>🎨 Aspetto</h3>
+        <label className="imp-switch">
+          <span>Modalità notte</span>
+          <input
+            type="checkbox"
+            checked={temaAttuale === "notte"}
+            onChange={(e) => setTema(e.target.checked ? "notte" : "giorno")}
+          />
+          <span className="imp-slider" />
+        </label>
+        <p className="mini">
+          {temaAttuale === "notte"
+            ? "Fondo scuro coi colori della squadra: comodo la sera e in sala."
+            : "Fondo chiaro: si legge meglio con molta luce."}
+        </p>
       </div>
 
       {/* ---------- Backup nel cloud ---------- */}

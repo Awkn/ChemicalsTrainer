@@ -18,6 +18,24 @@
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+/*
+ * Tema giorno. Cambiano solo le variabili: il resto del foglio di stile non
+ * sa che esiste. Gli accenti sono piu' scuri di quelli notturni perche' qui
+ * stanno SOPRA un fondo chiaro, e con il viola chiaro il testo sparirebbe.
+ */
+:root[data-tema="giorno"] {
+  --bg: #f5f4fa;
+  --bg-2: #ffffff;
+  --bg-3: #eceaf4;
+  --testo: #1b1626;
+  --testo-2: #605977;
+  --accento: #7e22ce;
+  --accento-2: #6d28d9;
+  --ok: #16a34a;
+  --ko: #be123c;
+  --bordo: #ddd8ea;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -191,8 +209,10 @@ a {
   background: color-mix(in srgb, var(--accento) 85%, white);
 }
 
+/* Sta su --bg-3, che col tema giorno e' chiaro: il testo segue il tema. */
 .bottone.secondario {
   background: var(--bg-3);
+  color: var(--testo);
 }
 
 .bottone.piccolo {
@@ -407,6 +427,7 @@ a {
 
 .bob27-btn.mancato {
   background: var(--bg-3);
+  color: var(--testo);
 }
 
 .bob27-btn.mancato:hover {
@@ -562,6 +583,21 @@ textarea:focus {
   background: var(--bg-3);
   color: var(--testo);
   white-space: nowrap;
+}
+
+/*
+ * Le categorie hanno fondi scuri e saturi uguali nei due temi, quindi il loro
+ * testo non puo' seguire --testo: col tema giorno diventerebbe illeggibile.
+ */
+.tag-scoring,
+.tag-doppi,
+.tag-checkout,
+.tag-tripli,
+.tag-aroundtheclock,
+.tag-partita,
+.tag-riscaldamento,
+.tag-altro {
+  color: #fff;
 }
 
 .tag-scoring {
@@ -2120,10 +2156,11 @@ textarea:focus {
   margin-bottom: 1rem;
 }
 
+/* Resta scura in entrambi i temi: il testo sopra e' bianco fisso. */
 .recap-testa.perso {
   background: linear-gradient(
     135deg,
-    var(--bg-3),
+    #3f3a4d,
     color-mix(in srgb, var(--accento) 25%, #000)
   );
 }

@@ -15,7 +15,7 @@ const principali = [
 /** Voci secondarie, raccolte nel menu in alto. */
 const secondarie = [
   { to: "/esercizi", label: "Esercizi", icona: "📋" },
-  { to: "/impostazioni", label: "Dati", icona: "⚙️" },
+  { to: "/impostazioni", label: "Impostazioni", icona: "⚙️" },
 ];
 
 export function Layout() {
