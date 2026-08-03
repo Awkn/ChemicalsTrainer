@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { importaBundle } from "../../lib/exportImport";
 import { esportaConBackup, usaStatoBackup } from "../../lib/backup";
 import {
@@ -6,6 +7,7 @@ import {
   usaStatoBackupCloud,
 } from "../../lib/squadra/backupStato";
 import { squadraConfigurata } from "../../lib/squadra/config";
+import { impostaNomeGiocatore, usaNomeGiocatore } from "../../lib/giocatore";
 import { setTema, usaTema } from "../../lib/tema";
 import { setModoInput, usaModoInput } from "../input/preferenza";
 
@@ -26,6 +28,22 @@ export function ImpostazioniPage() {
   const stato = usaStatoBackup();
   const temaAttuale = usaTema();
   const modoInput = usaModoInput();
+
+  // ---------- Profilo ----------
+  const nome = usaNomeGiocatore();
+  // `null` = non ancora modificato, quindi si mostra il nome vero. Cosi' il
+  // campo segue il nome anche se cambia altrove, senza doverlo risincronizzare.
+  const [bozzaNome, setBozzaNome] = useState<string | null>(null);
+  const [nomeCambiato, setNomeCambiato] = useState(false);
+  const nomeInCampo = bozzaNome ?? nome ?? "";
+  const puoSalvareNome =
+    nomeInCampo.trim().length > 0 && nomeInCampo.trim() !== nome;
+
+  function salvaNome() {
+    impostaNomeGiocatore(nomeInCampo);
+    setBozzaNome(null);
+    setNomeCambiato(true);
+  }
 
   // ---------- Backup nel cloud ----------
   const cloud = usaStatoBackupCloud();
@@ -120,6 +138,51 @@ export function ImpostazioniPage() {
           <h2>Preferenze e dati</h2>
         </div>
       </div>
+
+      {/* ---------- Profilo ---------- */}
+      {squadraConfigurata() && (
+        <div className="scheda">
+          <h3>👤 Profilo</h3>
+          {nome ? (
+            <>
+              <p className="mini">
+                Il nome con cui ti vedono i compagni sulla bacheca. Cambiandolo
+                si aggiorna la tua riga esistente: i risultati e la posizione in
+                classifica restano quelli, non riparti da zero.
+              </p>
+              <label className="campo">
+                <span>Nome</span>
+                <input
+                  value={nomeInCampo}
+                  maxLength={24}
+                  placeholder="Es. Andrea"
+                  onChange={(e) => {
+                    setBozzaNome(e.target.value);
+                    setNomeCambiato(false);
+                  }}
+                />
+              </label>
+              <button
+                className="bottone"
+                disabled={!puoSalvareNome}
+                onClick={salvaNome}
+              >
+                Cambia nome
+              </button>
+              {nomeCambiato && (
+                <p className="esito-ok">
+                  ✅ Per i compagni ora sei <strong>{nome}</strong>.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mini">
+              Non sei ancora in squadra. Il nome si sceglie la prima volta dalla{" "}
+              <Link to="/squadra">bacheca</Link>, poi lo cambi da qui.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* ---------- Aspetto ---------- */}
       <div className="scheda">

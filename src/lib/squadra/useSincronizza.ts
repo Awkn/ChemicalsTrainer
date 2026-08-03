@@ -27,7 +27,9 @@ export function useSincronizzaSquadra(): void {
   const nome = usaNomeGiocatore();
 
   const ultimaInviata = useRef<string | null>(null);
-  const nomeAllAvvio = useRef(nome);
+  // Nome con cui si e' gia' sulla bacheca. All'avvio si presume sia quello
+  // salvato: se non lo fosse, la pubblicazione lo rimettera' a posto.
+  const nomeInBacheca = useRef(nome);
 
   useEffect(() => {
     if (!squadraConfigurata() || firma === undefined) return;
@@ -35,6 +37,7 @@ export function useSincronizzaSquadra(): void {
       // Uscito dalla squadra: dimenticando cosa e' stato pubblicato, un
       // eventuale rientro ripubblica anche senza nuovi risultati.
       ultimaInviata.current = null;
+      nomeInBacheca.current = null;
       return;
     }
 
@@ -43,10 +46,11 @@ export function useSincronizzaSquadra(): void {
     const chiave = `${nome}|${firma}`;
     if (ultimaInviata.current === chiave) return;
 
-    // Se il nome e' diverso da quello con cui l'app e' partita vuol dire che
-    // si e' appena entrati in squadra: si pubblica subito, perche' si sta
-    // guardando la bacheca aspettando di comparire.
-    const attesa = nome === nomeAllAvvio.current ? 3000 : 0;
+    // Se sulla bacheca c'e' un altro nome (o non ci si e' ancora) si pubblica
+    // subito: si e' appena entrati in squadra o ci si e' rinominati, e in
+    // entrambi i casi si sta guardando il risultato. L'attesa serve solo a
+    // non pubblicare a ogni tocco mentre si registrano piu' risultati.
+    const attesa = nome === nomeInBacheca.current ? 3000 : 0;
 
     const timer = setTimeout(async () => {
       try {
@@ -55,6 +59,7 @@ export function useSincronizzaSquadra(): void {
         const riepilogo = await calcolaRiepilogo(nome);
         await pubblicaRiepilogo(riepilogo);
         ultimaInviata.current = chiave;
+        nomeInBacheca.current = nome;
       } catch (e) {
         // offline o permessi: si riprovera' al prossimo cambiamento
         console.warn("Pubblicazione riepilogo non riuscita:", e);

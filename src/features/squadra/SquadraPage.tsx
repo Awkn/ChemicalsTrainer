@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { squadraConfigurata } from "../../lib/squadra/config";
 import {
   ascoltaSquadra,
@@ -257,7 +258,8 @@ export function SquadraPage() {
       <div className="scheda">
         <h3>La tua identità</h3>
         <p className="mini">
-          Sei in squadra come <strong>{nome}</strong>.
+          Sei in squadra come <strong>{nome}</strong>. Lo cambi da{" "}
+          <Link to="/impostazioni">Impostazioni → Profilo</Link>.
         </p>
         <button
           className="bottone secondario"
