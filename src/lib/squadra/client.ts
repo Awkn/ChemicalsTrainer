@@ -9,12 +9,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   getFirestore,
   onSnapshot,
   setDoc,
   type Firestore,
 } from "firebase/firestore";
 import { firebaseConfig, squadraConfigurata } from "./config";
+import { chiaveNome } from "./nomeUnico";
 import type { RiepilogoGiocatore } from "./riepilogo";
 
 /**
@@ -76,6 +78,20 @@ export async function pubblicaRiepilogo(
   await setDoc(doc(fb.db, COLLEZIONE, u.uid), riepilogo);
 }
 
+/**
+ * Nomi dei compagni gia' sulla bacheca, escluso il proprio. Lettura secca,
+ * non un ascolto: serve solo nel momento in cui si sceglie un nome.
+ */
+export async function nomiAltrui(): Promise<string[]> {
+  const c = await connessione();
+  if (!c) return [];
+  const snap = await getDocs(collection(c.db, COLLEZIONE));
+  return snap.docs
+    .filter((d) => d.id !== c.uid)
+    .map((d) => (d.data() as RiepilogoGiocatore).nome)
+    .filter((n): n is string => Boolean(n));
+}
+
 /** Rimuove il proprio riepilogo dalla bacheca. */
 export async function rimuoviRiepilogo(): Promise<void> {
   const fb = inizializza();
@@ -88,11 +104,6 @@ export interface VoceSquadra extends RiepilogoGiocatore {
   id: string;
   /** True se questa voce e' la propria. */
   sonoIo: boolean;
-}
-
-/** Confronto tra nomi che ignora maiuscole e spazi in eccesso. */
-function chiaveNome(nome: string | undefined): string {
-  return (nome ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 /** A parita' di nome, quale voce tenere. */

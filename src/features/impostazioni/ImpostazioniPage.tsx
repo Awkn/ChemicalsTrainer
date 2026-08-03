@@ -8,6 +8,7 @@ import {
 } from "../../lib/squadra/backupStato";
 import { squadraConfigurata } from "../../lib/squadra/config";
 import { impostaNomeGiocatore, usaNomeGiocatore } from "../../lib/giocatore";
+import { confermaNomeDuplicato, nomeInUso } from "../../lib/squadra/nomeUnico";
 import { setTema, usaTema } from "../../lib/tema";
 import { setModoInput, usaModoInput } from "../input/preferenza";
 
@@ -35,12 +36,30 @@ export function ImpostazioniPage() {
   // campo segue il nome anche se cambia altrove, senza doverlo risincronizzare.
   const [bozzaNome, setBozzaNome] = useState<string | null>(null);
   const [nomeCambiato, setNomeCambiato] = useState(false);
+  const [controlloNome, setControlloNome] = useState(false);
   const nomeInCampo = bozzaNome ?? nome ?? "";
   const puoSalvareNome =
     nomeInCampo.trim().length > 0 && nomeInCampo.trim() !== nome;
 
-  function salvaNome() {
-    impostaNomeGiocatore(nomeInCampo);
+  /**
+   * Rinomina il profilo. A differenza della bacheca qui l'elenco dei compagni
+   * non c'e', quindi lo si legge al momento: una lettura sola, solo quando si
+   * rinomina davvero, cosi' Firebase non pesa sull'apertura di questa pagina.
+   */
+  async function salvaNome() {
+    const scelto = nomeInCampo.trim();
+    setControlloNome(true);
+    try {
+      const { nomiAltrui } = await import("../../lib/squadra/client");
+      const gia = nomeInUso(scelto, await nomiAltrui());
+      if (gia && !confermaNomeDuplicato(gia)) return;
+    } catch {
+      // bacheca non raggiungibile: l'avviso e' una cortesia, non un requisito,
+      // e non deve impedire di rinominarsi da offline
+    } finally {
+      setControlloNome(false);
+    }
+    impostaNomeGiocatore(scelto);
     setBozzaNome(null);
     setNomeCambiato(true);
   }
@@ -164,10 +183,10 @@ export function ImpostazioniPage() {
               </label>
               <button
                 className="bottone"
-                disabled={!puoSalvareNome}
+                disabled={!puoSalvareNome || controlloNome}
                 onClick={salvaNome}
               >
-                Cambia nome
+                {controlloNome ? "Attendi…" : "Cambia nome"}
               </button>
               {nomeCambiato && (
                 <p className="esito-ok">

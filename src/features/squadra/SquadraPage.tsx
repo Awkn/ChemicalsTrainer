@@ -7,6 +7,7 @@ import {
   type VoceSquadra,
 } from "../../lib/squadra/client";
 import { impostaNomeGiocatore, usaNomeGiocatore } from "../../lib/giocatore";
+import { confermaNomeDuplicato, nomeInUso } from "../../lib/squadra/nomeUnico";
 import { formattaValore } from "../../components/Grafico";
 import type { UnitaMetrica } from "../../types";
 
@@ -84,6 +85,19 @@ export function SquadraPage() {
   }, [voci, chiaveAttiva, statistiche]);
 
   /**
+   * Entra in squadra col nome scelto. Se un compagno lo usa gia' lo si dice
+   * prima, ma la scelta resta all'utente: gli omonimi veri esistono.
+   */
+  function entraInSquadra() {
+    // Se la bacheca non e' ancora arrivata non c'e' nulla con cui confrontare:
+    // si va avanti, l'avviso e' un aiuto, non un lasciapassare.
+    const altrui = (voci ?? []).filter((v) => !v.sonoIo).map((v) => v.nome);
+    const gia = nomeInUso(bozzaNome, altrui);
+    if (gia && !confermaNomeDuplicato(gia)) return;
+    impostaNomeGiocatore(bozzaNome);
+  }
+
+  /**
    * Toglie la propria voce dalla bacheca. Il nome va cancellato subito dopo:
    * e' quello che tiene accesa la pubblicazione automatica, e senza di lui il
    * documento non verrebbe ricreato al prossimo allenamento. Se la rimozione
@@ -150,9 +164,7 @@ export function SquadraPage() {
           <button
             className="bottone"
             disabled={!bozzaNome.trim()}
-            onClick={() => {
-              impostaNomeGiocatore(bozzaNome);
-            }}
+            onClick={entraInSquadra}
           >
             Entra nella squadra
           </button>
