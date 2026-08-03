@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { usaUscitaGioco } from "../../../lib/uscitaGioco";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
@@ -32,6 +33,7 @@ export default function Co61100Page() {
   const sfida = !!params.get("sfida");
   const tornaA = sfida ? "/esercizi" : "/";
   const navigate = useNavigate();
+  const esci = usaUscitaGioco();
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
     [esercizioId],
@@ -137,7 +139,7 @@ export default function Co61100Page() {
   return (
     <section className="co121 compatto">
       <div className="bob27-testa">
-        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => navigate(tornaA)}>✕</button>
+        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => esci(tornaA, storia.length > 1)}>✕</button>
         <h2>{sfida ? "Sfida 61-100" : "61-100 Checkouts"}</h2>
         <span className="mini">
           Tentativo {Math.min(stato.tentativi + 1, TENTATIVI_SFIDA)}

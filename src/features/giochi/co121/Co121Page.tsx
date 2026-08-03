@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { usaUscitaGioco } from "../../../lib/uscitaGioco";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
@@ -33,6 +34,7 @@ export default function Co121Page() {
 function Co121Oltranza() {
   const { esercizioId } = useParams<{ esercizioId: string }>();
   const navigate = useNavigate();
+  const esci = usaUscitaGioco();
 
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
@@ -140,7 +142,7 @@ function Co121Oltranza() {
         <button
           className="icona-btn"
           aria-label="Esci dal gioco"
-          onClick={() => navigate("/")}
+          onClick={() => esci("/", storia.length > 1)}
         >
           ✕
         </button>

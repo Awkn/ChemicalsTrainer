@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { InputBersaglio } from "../../input/InputBersaglio";
 import type { Tirata } from "../../input/tirata";
 import { usaVerticale } from "../../../lib/orientamento";
+import { usaUscitaGioco } from "../../../lib/uscitaGioco";
 import {
   chiuso,
   creaPartita,
@@ -26,6 +27,7 @@ import {
  */
 export default function CricketPage() {
   const navigate = useNavigate();
+  const esci = usaUscitaGioco();
   const [config, setConfig] = useState<ConfigCricket>({
     punteggio: "classico",
     bot: LIVELLI_CRICKET[1],
@@ -127,7 +129,7 @@ export default function CricketPage() {
           <button
             className="icona-btn"
             aria-label="Esci dal gioco"
-            onClick={() => navigate("/giochi")}
+            onClick={() => esci("/giochi", stato.ultima != null)}
           >
             ✕
           </button>

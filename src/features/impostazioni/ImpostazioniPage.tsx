@@ -7,6 +7,7 @@ import {
 } from "../../lib/squadra/backupStato";
 import { squadraConfigurata } from "../../lib/squadra/config";
 import { setTema, usaTema } from "../../lib/tema";
+import { setModoInput, usaModoInput } from "../input/preferenza";
 
 function dataOra(ms: number): string {
   return new Date(ms).toLocaleString("it-IT", {
@@ -24,6 +25,7 @@ export function ImpostazioniPage() {
   const [errore, setErrore] = useState<string | null>(null);
   const stato = usaStatoBackup();
   const temaAttuale = usaTema();
+  const modoInput = usaModoInput();
 
   // ---------- Backup nel cloud ----------
   const cloud = usaStatoBackupCloud();
@@ -135,6 +137,32 @@ export function ImpostazioniPage() {
           {temaAttuale === "notte"
             ? "Fondo scuro coi colori della squadra: comodo la sera e in sala."
             : "Fondo chiaro: si legge meglio con molta luce."}
+        </p>
+      </div>
+
+      {/* ---------- Inserimento dei punteggi ---------- */}
+      <div className="scheda">
+        <h3>🎯 Come segni i punteggi</h3>
+        <div className="imp-segmento verticale">
+          <button
+            className={modoInput === "tastierino" ? "attivo" : ""}
+            onClick={() => setModoInput("tastierino")}
+          >
+            🔢 Tastierino
+          </button>
+          <button
+            className={modoInput === "bersaglio" ? "attivo" : ""}
+            onClick={() => setModoInput("bersaglio")}
+          >
+            🎯 Bersaglio
+          </button>
+        </div>
+        <p className="mini">
+          {modoInput === "bersaglio"
+            ? "Tocchi dove è finita ogni freccia: l'app riconosce da sola gli sballi e conta i doppi centrati."
+            : "Scrivi il totale della tirata. Più rapido, ma senza statistiche sui doppi."}{" "}
+          Puoi cambiarlo anche durante una partita, col pulsante nella barra
+          dell'input. Cricket usa sempre il bersaglio.
         </p>
       </div>
 

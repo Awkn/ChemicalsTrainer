@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { usaUscitaGioco } from "../../../lib/uscitaGioco";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../../lib/db";
 import { registraRisultato } from "../../../lib/repo";
@@ -19,6 +20,7 @@ import {
 export default function PressureDoublesPage() {
   const { esercizioId } = useParams<{ esercizioId: string }>();
   const navigate = useNavigate();
+  const esci = usaUscitaGioco();
   const esercizio = useLiveQuery(
     () => (esercizioId ? db.esercizi.get(esercizioId) : undefined),
     [esercizioId],
@@ -84,7 +86,7 @@ export default function PressureDoublesPage() {
   return (
     <section className="bob27">
       <div className="bob27-testa">
-        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => navigate("/")}>✕</button>
+        <button className="icona-btn" aria-label="Esci dal gioco" onClick={() => esci("/", storia.length > 1)}>✕</button>
         <h2>Pressure Doubles</h2>
         <span className="mini">{stato.indice + 1}/{DOPPI.length}</span>
       </div>

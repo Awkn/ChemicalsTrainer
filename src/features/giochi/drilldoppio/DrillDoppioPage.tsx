@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { registraDoppi } from "../../../lib/doppiStorico";
+import { usaUscitaGioco } from "../../../lib/uscitaGioco";
 import {
   annullaTiro,
   BERSAGLI,
@@ -25,6 +26,7 @@ import {
 export default function DrillDoppioPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const esci = usaUscitaGioco();
 
   // Arrivando dalla scheda dei doppi il bersaglio e' gia' deciso: si parte
   // subito, senza far ripetere una scelta gia' fatta.
@@ -116,7 +118,7 @@ export default function DrillDoppioPage() {
         <button
           className="icona-btn"
           aria-label="Esci dall'allenamento"
-          onClick={() => navigate("/progressi")}
+          onClick={() => esci("/progressi", tirate > 0)}
         >
           ✕
         </button>
