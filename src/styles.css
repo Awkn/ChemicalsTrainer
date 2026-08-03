@@ -2559,3 +2559,79 @@ textarea:focus {
   font-size: 0.82rem;
   color: var(--testo-2);
 }
+
+.obi-modifica {
+  display: inline-block;
+  margin-top: 0.15rem;
+}
+
+/* ---------- pagina delle soglie ---------- */
+
+.soglie-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.soglia-riga {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.5rem 0.7rem;
+}
+
+.soglia-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.soglia-nome > span:first-child {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.soglia-campo {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+}
+
+.soglia-segno {
+  color: var(--testo-2);
+  font-weight: 700;
+}
+
+/* Largo quanto basta a tre cifre: piu' spazio inviterebbe a scrivere altro. */
+.soglia-campo input {
+  width: 4.5rem;
+  text-align: right;
+  padding: 0.4rem 0.5rem;
+  font-weight: 700;
+}
+
+.soglia-unita {
+  color: var(--testo-2);
+  font-size: 0.85rem;
+}
+
+/* Occupa il posto anche da spento: acceso non deve spostare la riga. */
+.soglia-ok {
+  width: 1rem;
+  color: var(--ok);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.soglia-ok.visibile {
+  opacity: 1;
+}

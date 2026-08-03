@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
 import { formattaValore } from "../../components/Grafico";
@@ -39,8 +40,22 @@ export function CruscottoObiettivi() {
 
   if (!dati) return null;
 
-  // Nessuna metrica con una soglia: non c'e' cruscotto da mostrare.
-  if (dati.length === 0) return null;
+  // Nessuna metrica ha una soglia: niente da giudicare, ma la porta per
+  // impostarne una deve restare aperta, o non ci si arriverebbe piu'.
+  if (dati.length === 0) {
+    return (
+      <div className="scheda">
+        <h3>🏁 Obiettivi</h3>
+        <p className="mini">
+          Non hai soglie impostate. Dandoti un traguardo su una metrica, qui
+          vedrai a colpo d'occhio se lo stai rispettando.
+        </p>
+        <Link className="bottone secondario" to="/obiettivi">
+          Imposta le soglie
+        </Link>
+      </div>
+    );
+  }
 
   const misurate = dati.filter((r) => r.media != null);
   const mai = dati.filter((r) => r.media == null);
@@ -58,6 +73,12 @@ export function CruscottoObiettivi() {
           </div>
         )}
       </div>
+
+      {/* La voglia di ritoccare una soglia viene guardando il cruscotto:
+          la scorciatoia sta qui, non sepolta nelle impostazioni. */}
+      <Link className="mini obi-modifica" to="/obiettivi">
+        ⚙️ Modifica le soglie
+      </Link>
 
       <div className="imp-segmento obi-periodo">
         {PERIODI.map((p) => (

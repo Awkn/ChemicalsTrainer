@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
 import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
@@ -45,6 +46,10 @@ export function ProgressiPage() {
             Non hai ancora registrato risultati. Vai su <strong>Oggi</strong> e
             tocca <em>Registra</em> sotto un esercizio per iniziare a tracciare i
             tuoi progressi. 📈
+          </p>
+          <p className="mini">
+            Nel frattempo puoi già decidere i tuoi{" "}
+            <Link to="/obiettivi">traguardi</Link>.
           </p>
         </div>
       </section>

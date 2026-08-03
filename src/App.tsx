@@ -27,6 +27,7 @@ const CricketPage = lazy(() => import("./features/giochi/cricket/CricketPage"));
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
+import { SogliePage } from "./features/obiettivi/SogliePage";
 
 export function App() {
   // tiene aggiornata la bacheca di squadra quando cambiano i risultati
@@ -41,6 +42,7 @@ export function App() {
         <Route path="giochi" element={<GiochiPage />} />
         <Route path="501" element={<Gioco501Page />} />
         <Route path="progressi" element={<ProgressiPage />} />
+        <Route path="obiettivi" element={<SogliePage />} />
         <Route
           path="squadra"
           element={

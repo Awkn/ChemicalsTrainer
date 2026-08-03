@@ -34,6 +34,36 @@ export function aggiornaEsercizio(
   return db.esercizi.update(id, modifiche);
 }
 
+/**
+ * Cambia la soglia di una metrica. `null` la toglie: la metrica resta
+ * tracciata nei grafici ma esce dal cruscotto, dove senza traguardo non
+ * ci sarebbe niente da giudicare.
+ *
+ * Riscrive l'intero array delle metriche perche' Dexie non sa aggiornare un
+ * elemento dentro un campo annidato; il resto della definizione resta com'e'.
+ */
+export async function impostaObiettivo(
+  esercizioId: string,
+  metricaId: string,
+  obiettivo: number | null,
+): Promise<void> {
+  const esercizio = await db.esercizi.get(esercizioId);
+  if (!esercizio?.metriche) return;
+
+  const metriche = esercizio.metriche.map((m) => {
+    if (m.id !== metricaId) return m;
+    if (obiettivo == null) {
+      // Va tolta la chiave, non messa a undefined: finirebbe nel backup e
+      // nei confronti come un valore presente ma vuoto.
+      const { obiettivo: _, ...senzaSoglia } = m;
+      return senzaSoglia;
+    }
+    return { ...m, obiettivo };
+  });
+
+  await db.esercizi.update(esercizioId, { metriche });
+}
+
 /** Elimina un esercizio, le assegnazioni che lo usano e i suoi risultati. */
 export async function eliminaEsercizio(id: string): Promise<void> {
   await db.transaction(
