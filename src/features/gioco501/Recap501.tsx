@@ -1,10 +1,12 @@
 import {
+  aSet,
   checkoutPerc,
   etichettaChiusura,
   etichettaIngresso,
   media3,
   mediaFirst9,
   migliorLeg,
+  nomeFormato,
   nomiVisualizzati,
   peggiorLeg,
   type StatoPartita,
@@ -32,9 +34,8 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
   const controBot = config.avversario === "bot";
   const nomi = nomiVisualizzati(config);
 
-  const titolo = `${config.formato === "bestof" ? "Al meglio di" : "Primo a"} ${
-    config.numero
-  } ${config.unita === "legs" ? "leg" : "set"} · ${config.puntiIniziali}`;
+  const conSet = aSet(config);
+  const titolo = `${nomeFormato(config)} · ${config.puntiIniziali}`;
 
   const righe: { label: string; uno: string; due: string }[] = [
     {
@@ -93,8 +94,19 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
             <span>{nomi[0]}</span>
             <span className="recap-trofeo">{vintoUno ? "🏆" : ""}</span>
           </div>
+          {/* A set il punteggio grosso e' quello dei set: i leg totali stanno
+              sotto, piccoli, perche' non decidono la partita. */}
           <div className="recap-punteggio">
-            {stato.legUno} — {stato.legDue}
+            {conSet ? (
+              <>
+                {stato.setUno} — {stato.setDue}
+                <span className="mini recap-leg-totali">
+                  leg {stato.legTotaliUno} — {stato.legTotaliDue}
+                </span>
+              </>
+            ) : (
+              `${stato.legUno} — ${stato.legDue}`
+            )}
           </div>
           <div className="recap-giocatore">
             <span>{controBot ? `Bot · ${config.livello.nome}` : nomi[1]}</span>

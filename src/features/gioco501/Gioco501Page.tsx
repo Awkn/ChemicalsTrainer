@@ -8,9 +8,11 @@ import { suggerisciChiusura } from "../../lib/checkout";
 import { db } from "../../lib/db";
 import { registraRisultato } from "../../lib/repo";
 import { dataIso } from "../../lib/date";
+import { nomeGiocatore } from "../../lib/giocatore";
 import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
 import { registraDoppi } from "../../lib/doppiStorico";
 import {
+  aSet,
   avanzaLeg,
   checkoutPerc,
   configPredefinita,
@@ -21,6 +23,7 @@ import {
   LIVELLI,
   media3,
   mediaFirst9,
+  nomeFormato,
   nomiVisualizzati,
   rimanenteDi,
   risultatoVisita,
@@ -38,9 +41,12 @@ type Fase = "setup" | "moneta" | "gioco";
 export function Gioco501Page() {
   const modoInput = usaModoInput();
   const [fase, setFase] = useState<Fase>("setup");
-  const [config, setConfig] = useState<ConfigPartita>(() =>
-    configPredefinita(LIVELLI[1]),
-  );
+  const [config, setConfig] = useState<ConfigPartita>(() => {
+    const base = configPredefinita(LIVELLI[1]);
+    // Chi ha gia' un nome sulla bacheca non deve riscriverlo per giocare in due.
+    const mio = nomeGiocatore();
+    return mio ? { ...base, nomi: [mio, base.nomi[1]] } : base;
+  });
   const [stato, setStato] = useState<StatoPartita | null>(null);
   // Tirata che chiude un leg, in attesa che l'utente indichi le frecce usate.
   const [chiusura, setChiusura] = useState<Tirata | null>(null);
@@ -178,7 +184,7 @@ export function Gioco501Page() {
         </h2>
         <p className="mini">
           {controBot ? `${stato.config.livello.nome} · ` : ""}
-          {stato.config.puntiIniziali} · {formatoNome(stato.config)}
+          {stato.config.puntiIniziali} · {nomeFormato(stato.config)}
         </p>
         <button
           className="bottone bottone-largo"
@@ -207,6 +213,10 @@ export function Gioco501Page() {
   const legFinito = leg.vincitore != null;
   const attesaBot = controBot && leg.turno === "due";
   const rimanente = rimanenteDi(leg, leg.turno);
+  const conSet = aSet(stato.config);
+  // A set il punteggio grosso e' quello dei set: sono loro a decidere la
+  // partita, i leg dicono solo a che punto e' il set in corso.
+  const setChiuso = stato.setChiuso;
   // Col bersaglio i pannelli diventano una riga sola: l'altezza risparmiata
   // serve a far entrare tutto il tabellone nello schermo del telefono.
   const compatto = modoInput === "bersaglio";
@@ -214,11 +224,21 @@ export function Gioco501Page() {
   return (
     <section className="gioco">
       <div className="gioco-testa">
-        <span className="mini">Leg {stato.numeroLeg}</span>
-        <span className="leg-score">
-          {stato.legUno} — {stato.legDue}
+        <span className="mini">
+          {conSet ? `Set ${stato.numeroSet} · Leg ${stato.numeroLeg}` : `Leg ${stato.numeroLeg}`}
         </span>
-        <span className="mini">{formatoNome(stato.config)}</span>
+        <span className="gioco-punteggio">
+          <span className="leg-score">
+            {conSet ? stato.setUno : stato.legUno} —{" "}
+            {conSet ? stato.setDue : stato.legDue}
+          </span>
+          {conSet && (
+            <span className="mini">
+              leg {stato.legUno} — {stato.legDue}
+            </span>
+          )}
+        </span>
+        <span className="mini">{nomeFormato(stato.config)}</span>
       </div>
 
       {compatto ? (
@@ -263,17 +283,24 @@ export function Gioco501Page() {
       {legFinito ? (
         <div className="fine-leg">
           <h3>
-            {controBot
-              ? leg.vincitore === "uno"
-                ? "Leg tuo! 🎯"
-                : "Leg al bot 🤖"
-              : `Leg di ${nomeDi(leg.vincitore!)} 🎯`}
+            {esitoParziale(
+              setChiuso ? "Set" : "Leg",
+              leg.vincitore!,
+              controBot,
+              nomeDi,
+            )}
           </h3>
+          {setChiuso && (
+            <p className="mini">
+              Set chiuso {stato.legUno} — {stato.legDue} · ora {stato.setUno} —{" "}
+              {stato.setDue}
+            </p>
+          )}
           <button
             className="bottone bottone-largo"
             onClick={() => setStato(avanzaLeg(stato))}
           >
-            Prossimo leg
+            {setChiuso ? "Prossimo set" : "Prossimo leg"}
           </button>
         </div>
       ) : chiusura != null ? (
@@ -324,10 +351,15 @@ export function Gioco501Page() {
   );
 }
 
-function formatoNome(config: ConfigPartita): string {
-  const verbo = config.formato === "bestof" ? "Al meglio di" : "Primo a";
-  const unita = config.unita === "legs" ? "leg" : "set";
-  return `${verbo} ${config.numero} ${unita}`;
+/** "Leg tuo!" / "Set al bot" / "Leg di Lorenzo", secondo chi sta giocando. */
+function esitoParziale(
+  cosa: "Leg" | "Set",
+  vincitore: Giocatore,
+  controBot: boolean,
+  nomeDi: (g: Giocatore) => string,
+): string {
+  if (!controBot) return `${cosa} di ${nomeDi(vincitore)} 🎯`;
+  return vincitore === "uno" ? `${cosa} tuo! 🎯` : `${cosa} al bot 🤖`;
 }
 
 interface TavoloCompattoProps {

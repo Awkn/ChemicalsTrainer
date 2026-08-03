@@ -150,31 +150,41 @@ export interface ConfigPartita {
   livello: Livello;
   puntiIniziali: number;
   formato: Formato;
-  /** Numero di leg per "il meglio di" / "il primo a". */
+  /** Quante unita' (leg o set, vedi `unita`) per "il meglio di" / "il primo a". */
   numero: number;
   unita: Unita;
+  /** Leg che compongono un set. Ignorato quando si gioca a leg. */
+  legNumero: number;
   ingresso: ModoIngresso;
   chiusura: ModoChiusura;
   /** Mostra la chiusura consigliata durante la partita. */
   mostraChiusura: boolean;
-  /** Vittoria solo con due leg di scarto. */
+  /** Vittoria solo con due di scarto (leg o set: cio' che decide la partita). */
   dueLegDiff: boolean;
 }
 
 export function configPredefinita(livello: Livello): ConfigPartita {
   return {
     avversario: "bot",
-    nomi: ["Tu", "Amico"],
+    // Nomi neutri: finiscono dentro frasi ("Leg di ...") dove "Tu" stonerebbe.
+    // La pagina sostituisce il primo col nome del profilo, se c'e'.
+    nomi: ["Giocatore 1", "Giocatore 2"],
     livello,
     puntiIniziali: 501,
     formato: "bestof",
     numero: 5,
     unita: "legs",
+    legNumero: 5,
     ingresso: "single",
     chiusura: "double",
     mostraChiusura: true,
     dueLegDiff: false,
   };
+}
+
+/** True se la partita si conta a set. */
+export function aSet(cfg: ConfigPartita): boolean {
+  return cfg.unita === "sets";
 }
 
 /**
@@ -186,9 +196,31 @@ export function nomiVisualizzati(config: ConfigPartita): [string, string] {
   return [config.nomi[0] || "Giocatore 1", config.nomi[1] || "Giocatore 2"];
 }
 
-/** Leg necessari per vincere la partita (senza contare la regola dei 2 di scarto). */
-export function legPerVincere(cfg: ConfigPartita): number {
-  return cfg.formato === "bestof" ? Math.floor(cfg.numero / 2) + 1 : cfg.numero;
+/** Da "il meglio di N" a "quanti ne servono per vincere". */
+function quantiPerVincere(formato: Formato, numero: number): number {
+  return formato === "bestof" ? Math.floor(numero / 2) + 1 : numero;
+}
+
+/**
+ * Unita' necessarie a vincere la partita: set se si gioca a set, altrimenti
+ * leg (senza contare la regola dei due di scarto).
+ */
+export function perVincere(cfg: ConfigPartita): number {
+  return quantiPerVincere(cfg.formato, cfg.numero);
+}
+
+/** Leg necessari a vincere un set. Senza set vale il conto della partita. */
+export function legPerSet(cfg: ConfigPartita): number {
+  return aSet(cfg)
+    ? quantiPerVincere(cfg.formato, cfg.legNumero)
+    : perVincere(cfg);
+}
+
+/** Descrizione del formato, uguale ovunque venga mostrato. */
+export function nomeFormato(cfg: ConfigPartita): string {
+  const verbo = cfg.formato === "bestof" ? "Al meglio di" : "Primo a";
+  if (!aSet(cfg)) return `${verbo} ${cfg.numero} leg`;
+  return `${verbo} ${cfg.numero} set da ${cfg.legNumero} leg`;
 }
 
 /** Totali NON ottenibili con 3 freccette. */
@@ -276,9 +308,29 @@ export interface StatoLeg {
 export interface StatoPartita {
   config: ConfigPartita;
   primo: Giocatore;
+  /** Leg corrente DENTRO il set. Senza set e' il leg della partita. */
   numeroLeg: number;
+  /** Leg vinti nel set corrente. Senza set sono quelli della partita. */
   legUno: number;
   legDue: number;
+  /** Set corrente (1 se non si gioca a set). */
+  numeroSet: number;
+  /** Set vinti. Restano a zero se non si gioca a set. */
+  setUno: number;
+  setDue: number;
+  /**
+   * Vincitore del set appena concluso, finche' non si passa al successivo:
+   * serve a mostrare il punteggio finale del set prima di azzerare i leg.
+   */
+  setChiuso: Giocatore | null;
+  /**
+   * Leg conclusi in tutta la partita. Da qui esce chi inizia il leg dopo:
+   * il primo tiro si alterna senza interruzioni, anche a cavallo dei set.
+   */
+  legGiocati: number;
+  /** Leg vinti in tutta la partita, per il recap. */
+  legTotaliUno: number;
+  legTotaliDue: number;
   leg: StatoLeg;
   statsUno: StatsGiocatore;
   statsDue: StatsGiocatore;
@@ -340,6 +392,13 @@ export function creaPartita(
     numeroLeg: 1,
     legUno: 0,
     legDue: 0,
+    numeroSet: 1,
+    setUno: 0,
+    setDue: 0,
+    setChiuso: null,
+    legGiocati: 0,
+    legTotaliUno: 0,
+    legTotaliDue: 0,
     leg: creaLeg(primo, config.puntiIniziali),
     statsUno: statsVuote(),
     statsDue: statsVuote(),
@@ -517,19 +576,59 @@ function applicaVisita(
   return { leg: nuovoLeg, stats: nuoveStats, chiuso: r.chiuso };
 }
 
-function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
-  const legUno = stato.legUno + (vincitore === "uno" ? 1 : 0);
-  const legDue = stato.legDue + (vincitore === "due" ? 1 : 0);
-  const bersaglio = legPerVincere(stato.config);
-  let vincitorePartita: Giocatore | null = null;
-  if (stato.config.dueLegDiff) {
-    if (legUno >= bersaglio && legUno - legDue >= 2) vincitorePartita = "uno";
-    else if (legDue >= bersaglio && legDue - legUno >= 2) vincitorePartita = "due";
-  } else {
-    if (legUno >= bersaglio) vincitorePartita = "uno";
-    else if (legDue >= bersaglio) vincitorePartita = "due";
+/**
+ * Chi ha vinto la partita, dati i punteggi nell'unita' che la decide: i leg
+ * se si gioca a leg, i set se si gioca a set.
+ */
+function chiVincePartita(
+  cfg: ConfigPartita,
+  uno: number,
+  due: number,
+): Giocatore | null {
+  const bersaglio = perVincere(cfg);
+  if (cfg.dueLegDiff) {
+    if (uno >= bersaglio && uno - due >= 2) return "uno";
+    if (due >= bersaglio && due - uno >= 2) return "due";
+    return null;
   }
-  return { ...stato, legUno, legDue, vincitore: vincitorePartita };
+  if (uno >= bersaglio) return "uno";
+  if (due >= bersaglio) return "due";
+  return null;
+}
+
+function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
+  const uno = vincitore === "uno";
+  const legUno = stato.legUno + (uno ? 1 : 0);
+  const legDue = stato.legDue + (uno ? 0 : 1);
+
+  const base: StatoPartita = {
+    ...stato,
+    legUno,
+    legDue,
+    legGiocati: stato.legGiocati + 1,
+    legTotaliUno: stato.legTotaliUno + (uno ? 1 : 0),
+    legTotaliDue: stato.legTotaliDue + (uno ? 0 : 1),
+  };
+
+  // Senza set sono i leg a decidere la partita.
+  if (!aSet(stato.config)) {
+    return { ...base, vincitore: chiVincePartita(stato.config, legUno, legDue) };
+  }
+
+  // Il set va a chi arriva per primo ai leg richiesti; i due di scarto, se
+  // attivi, valgono sui set, che sono cio' che decide la partita.
+  const perSet = legPerSet(stato.config);
+  if (legUno < perSet && legDue < perSet) return base;
+
+  const setUno = stato.setUno + (uno ? 1 : 0);
+  const setDue = stato.setDue + (uno ? 0 : 1);
+  return {
+    ...base,
+    setUno,
+    setDue,
+    setChiuso: vincitore,
+    vincitore: chiVincePartita(stato.config, setUno, setDue),
+  };
 }
 
 /**
@@ -597,18 +696,30 @@ export function giocaBot(stato: StatoPartita): StatoPartita {
   return giocaVisita(stato, "due", { punteggio, frecce: 3 });
 }
 
-/** Passa al leg successivo alternando chi inizia. */
+/**
+ * Passa al leg successivo, o al set successivo se quello appena finito ha
+ * chiuso un set. Il primo tiro si alterna leg dopo leg senza ripartire a
+ * ogni set: chi ha iniziato l'ultimo leg non inizia anche il primo del set
+ * nuovo, che sarebbe un vantaggio doppio.
+ */
 export function avanzaLeg(stato: StatoPartita): StatoPartita {
   if (stato.vincitore) return stato;
-  const numeroLeg = stato.numeroLeg + 1;
-  // leg dispari: inizia chi ha vinto la moneta; leg pari: l'avversario
   const iniziato =
-    numeroLeg % 2 === 1 ? stato.primo : altroGiocatore(stato.primo);
-  return {
-    ...stato,
-    numeroLeg,
-    leg: creaLeg(iniziato, stato.config.puntiIniziali),
-  };
+    stato.legGiocati % 2 === 0 ? stato.primo : altroGiocatore(stato.primo);
+  const leg = creaLeg(iniziato, stato.config.puntiIniziali);
+
+  if (stato.setChiuso) {
+    return {
+      ...stato,
+      numeroSet: stato.numeroSet + 1,
+      numeroLeg: 1,
+      legUno: 0,
+      legDue: 0,
+      setChiuso: null,
+      leg,
+    };
+  }
+  return { ...stato, numeroLeg: stato.numeroLeg + 1, leg };
 }
 
 function arrotonda2(x: number): number {

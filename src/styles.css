@@ -1217,6 +1217,15 @@ textarea:focus {
   letter-spacing: 0.05em;
 }
 
+/* A set nell'intestazione ci sono due punteggi: i set grossi, i leg del set
+   in corso sotto e piccoli. Impilati per non allargare la riga. */
+.gioco-punteggio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+
 /* Come il tastierino: su schermi bassi i pannelli si stringono da soli. */
 .tavolo {
   display: grid;
@@ -2032,6 +2041,36 @@ textarea:focus {
   cursor: pointer;
 }
 
+/* Variante in linea, per il numero di leg dentro un set: qui il numero sta
+   dentro una frase e uno stepper alto due righe la spezzerebbe. */
+.imp-stepper.orizzontale {
+  grid-template-rows: none;
+  grid-template-columns: auto auto auto;
+  min-width: 0;
+}
+
+.imp-stepper.orizzontale span {
+  font-size: 1.1rem;
+  min-width: 1.3rem;
+  text-align: center;
+}
+
+.imp-stepper.orizzontale button {
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+}
+
+.imp-legset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--testo-2);
+}
+
 .imp-stepper span {
   font-size: 1.5rem;
   font-weight: 800;
@@ -2285,6 +2324,15 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   padding: 0.2rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.recap-leg-totali {
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .recap-tabella {

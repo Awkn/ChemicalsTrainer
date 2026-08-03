@@ -30,6 +30,11 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
     patch({ numero: n });
   };
 
+  const passoLegSet = (d: number) => {
+    const n = Math.min(15, Math.max(1, config.legNumero + d));
+    patch({ legNumero: n });
+  };
+
   const botSquadra = config.livello.id === "squadra";
   const [mostraSquadra, setMostraSquadra] = useState(botSquadra);
   const controBot = config.avversario === "bot";
@@ -127,14 +132,31 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
             Legs
           </button>
           <button
-            className="disabilitato"
-            disabled
-            title="Presto: partite a set"
+            className={config.unita === "sets" ? "attivo" : ""}
+            onClick={() => patch({ unita: "sets" })}
           >
             Sets
           </button>
         </div>
       </div>
+
+      {/* A set servono due conti: quanti set fanno la partita (sopra) e
+          quanti leg fanno un set. */}
+      {config.unita === "sets" && (
+        <div className="imp-legset">
+          <span>Ogni set:</span>
+          <div className="imp-stepper orizzontale">
+            <button aria-label="Meno leg per set" onClick={() => passoLegSet(-1)}>
+              −
+            </button>
+            <span>{config.legNumero}</span>
+            <button aria-label="Più leg per set" onClick={() => passoLegSet(1)}>
+              +
+            </button>
+          </div>
+          <span>{config.formato === "bestof" ? "leg (al meglio di)" : "leg"}</span>
+        </div>
+      )}
 
       {/* Punteggio iniziale */}
       <div className="imp-punti">
@@ -213,7 +235,15 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
       </label>
 
       <label className="imp-switch">
-        <span>Due leg di scarto</span>
+        <span>
+          Due {config.unita === "sets" ? "set" : "leg"} di scarto{" "}
+          <span
+            className="imp-info"
+            title="Per vincere non basta arrivare al traguardo: bisogna staccare l'avversario di due."
+          >
+            ?
+          </span>
+        </span>
         <input
           type="checkbox"
           checked={config.dueLegDiff}
