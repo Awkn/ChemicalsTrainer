@@ -690,30 +690,69 @@ textarea:focus {
   gap: 0.6rem;
 }
 
+/*
+ * Scheda su tre livelli: titolo con le icone, poi categoria e obiettivo,
+ * infine il pulsante per giocare. Prima erano tutti in fila: su un telefono
+ * il nome finiva schiacciato in una colonna stretta e il tag restava appeso
+ * a mezz'aria accanto a un titolo di due righe.
+ */
 .esercizio-riga {
   background: var(--bg-2);
   border: 1px solid var(--bordo);
   border-radius: var(--radius);
   padding: 0.85rem 1rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.esercizio-info {
+.es-testa {
   display: flex;
-  gap: 0.75rem;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
 }
 
-.esercizio-info h3 {
+.es-testa h3 {
   font-size: 1rem;
+  /* min-width:0 perche' un nome lungo possa andare a capo invece di
+     allargare la riga e spingere fuori le icone. */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.azioni {
+.es-icone {
   display: flex;
   gap: 0.35rem;
+  flex: none;
+}
+
+/* L'emoji del cestino e' chiara di suo e col tema giorno sparirebbe sul
+   grigio: un fondo appena rosato la stacca e dice che l'azione cancella. */
+.icona-btn.elimina {
+  background: color-mix(in srgb, var(--ko) 16%, var(--bg-3));
+}
+
+.icona-btn.elimina:hover {
+  background: color-mix(in srgb, var(--ko) 30%, var(--bg-3));
+}
+
+.es-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  min-width: 0;
+}
+
+.es-obiettivo {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.es-gioca {
+  align-self: flex-start;
 }
 
 /* ---------- pagina Programma ---------- */

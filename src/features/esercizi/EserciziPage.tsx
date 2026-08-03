@@ -98,31 +98,45 @@ export function EserciziPage() {
       <ul className="lista-esercizi">
         {esercizi?.map((e) => (
           <li key={e.id} className="esercizio-riga">
-            <div className="esercizio-info">
+            {/* Titolo e icone sulla stessa riga: il nome ha tutta la larghezza
+                che resta, cosi' va a capo il meno possibile. */}
+            <div className="es-testa">
+              <h3>{e.nome}</h3>
+              <div className="es-icone">
+                <button
+                  className="icona-btn"
+                  aria-label={`Modifica ${e.nome}`}
+                  onClick={() => apriModifica(e)}
+                >
+                  ✏️
+                </button>
+                <button
+                  className="icona-btn elimina"
+                  aria-label={`Elimina ${e.nome}`}
+                  onClick={() => elimina(e)}
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            <div className="es-meta">
               <span className={`tag tag-${slug(e.categoria)}`}>
                 {e.categoria}
               </span>
-              <div>
-                <h3>{e.nome}</h3>
-                {e.obiettivo && <p className="mini">🎯 {e.obiettivo}</p>}
-              </div>
-            </div>
-            <div className="azioni">
-              {e.gioco && giocabileDaEsercizi(e.gioco) && (
-                <Link
-                  className="bottone piccolo"
-                  to={percorsoDaEsercizi(e.gioco, e.id)}
-                >
-                  ▶ Gioca
-                </Link>
+              {e.obiettivo && (
+                <span className="mini es-obiettivo">🎯 {e.obiettivo}</span>
               )}
-              <button className="icona-btn" onClick={() => apriModifica(e)}>
-                ✏️
-              </button>
-              <button className="icona-btn" onClick={() => elimina(e)}>
-                🗑️
-              </button>
             </div>
+
+            {e.gioco && giocabileDaEsercizi(e.gioco) && (
+              <Link
+                className="bottone piccolo es-gioca"
+                to={percorsoDaEsercizi(e.gioco, e.id)}
+              >
+                ▶ Gioca
+              </Link>
+            )}
           </li>
         ))}
       </ul>
