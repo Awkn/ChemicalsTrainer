@@ -2440,3 +2440,122 @@ textarea:focus {
   border-color: var(--ko);
   color: var(--ko);
 }
+
+/* ---------- cruscotto obiettivi ---------- */
+
+.obi-periodo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.75rem;
+}
+
+.obi-periodo button {
+  padding: 0.4rem 0.3rem;
+  font-size: 0.85rem;
+}
+
+.obi-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.obi-riga {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--bg);
+  border: 1px solid var(--bordo);
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+}
+
+/* Il bordo colorato dice l'esito senza aggiungere altro testo. */
+.obi-riga.ok {
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--bordo));
+}
+
+.obi-riga.ko {
+  border-color: color-mix(in srgb, var(--ko) 40%, var(--bordo));
+}
+
+.obi-intestazione {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.obi-nome {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* 1.2rem non e' solo estetica: in grassetto supera la soglia oltre la quale
+   il verde su fondo chiaro resta leggibile (WCAG "testo grande"). */
+.obi-valore {
+  font-weight: 800;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.obi-riga.ok .obi-valore {
+  color: var(--ok);
+}
+
+.obi-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.obi-barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ko);
+}
+
+.obi-riga.ok .obi-barra span {
+  background: var(--ok);
+}
+
+.obi-piede {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+/* Il nome dell'esercizio cede spazio: e' il contorno, non il dato. */
+.obi-esercizio {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.obi-piede > span:last-child {
+  white-space: nowrap;
+  flex: none;
+}
+
+.obi-riga.vuota {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.obi-mancanti {
+  margin-top: 0.9rem;
+}
+
+.obi-mancanti summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--testo-2);
+}

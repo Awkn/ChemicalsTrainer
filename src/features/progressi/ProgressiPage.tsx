@@ -5,6 +5,7 @@ import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
 import { Grafico, formattaValore } from "../../components/Grafico";
 import { dataIso } from "../../lib/date";
 import { eMiglioramento, type MetricaDef } from "../../types";
+import { CruscottoObiettivi } from "./CruscottoObiettivi";
 import { SchedaDoppi } from "./SchedaDoppi";
 
 export function ProgressiPage() {
@@ -63,8 +64,10 @@ export function ProgressiPage() {
         </div>
       </div>
 
-      {/* I doppi non appartengono a un esercizio: arrivano da piu' giochi,
-          quindi stanno sopra al selettore e non dentro. */}
+      {/* Cruscotto e doppi non appartengono a un esercizio: il primo li
+          attraversa tutti, i secondi arrivano da piu' giochi. Stanno quindi
+          sopra al selettore, non dentro. */}
+      <CruscottoObiettivi />
       <SchedaDoppi />
 
       <label className="campo">

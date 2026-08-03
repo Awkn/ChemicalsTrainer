@@ -158,6 +158,45 @@ async function collegaGioco61100(): Promise<void> {
   }
 }
 
+/**
+ * Soglie degli esercizi di libreria: nome esercizio -> id metrica -> obiettivo.
+ * Sono quelle del seed: chi ha installato l'app prima che venissero aggiunte
+ * ha le stesse metriche ma senza traguardo, e nel cruscotto non comparirebbe.
+ */
+const OBIETTIVI_PER_NOME: Record<string, Record<string, number>> = {
+  "T20 Precision": { punti: 45 },
+  "Bob's 27": { punteggio: 250 },
+  "61-100 Checkouts": { successo: 40 },
+  "100+ Scoring": { v100: 10, v140: 4 },
+  "501 contro il computer": { checkout: 35, doppi: 40 },
+  "Pressure Doubles": { d16: 45, d20: 40, d10: 40, d8: 50 },
+  "121 Challenge": { successo: 50, record: 124 },
+  "Doubles Pressure Game": { punti: 20 },
+  "Game Shot": { chiuse: 5 },
+};
+
+/**
+ * Riempie gli obiettivi mancanti. Una soglia gia' presente non si tocca:
+ * potrebbe essere stata scelta dall'utente, e il suo valore vale piu' del
+ * nostro.
+ */
+async function completaObiettivi(): Promise<void> {
+  const esercizi = await db.esercizi.toArray();
+  for (const e of esercizi) {
+    const soglie = OBIETTIVI_PER_NOME[e.nome];
+    if (!soglie || !e.metriche?.length) continue;
+
+    let cambiato = false;
+    const metriche = e.metriche.map((m) => {
+      if (m.obiettivo != null || soglie[m.id] == null) return m;
+      cambiato = true;
+      return { ...m, obiettivo: soglie[m.id] };
+    });
+
+    if (cambiato) await db.esercizi.update(e.id, { metriche });
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
@@ -167,6 +206,7 @@ const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 6, esegui: collegaGioco61100 },
   { versione: 7, esegui: aggiungiRecord121 },
   { versione: 8, esegui: aggiungiDoppi501 },
+  { versione: 9, esegui: completaObiettivi },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {
