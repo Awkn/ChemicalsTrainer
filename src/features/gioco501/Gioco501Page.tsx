@@ -16,18 +16,21 @@ import {
   configPredefinita,
   creaPartita,
   giocaBot,
-  giocaUmano,
+  giocaVisita,
   lancioMoneta,
   LIVELLI,
   media3,
   mediaFirst9,
+  nomiVisualizzati,
+  rimanenteDi,
   risultatoVisita,
   type ConfigPartita,
+  type Giocatore,
   type StatoLeg,
   type StatoPartita,
 } from "./logica501";
 
-/** Esercizio di libreria su cui salvare le statistiche del 501 vs bot. */
+/** Esercizio di libreria su cui salvare le statistiche del 501. */
 const NOME_ESERCIZIO_501 = "501 contro il computer";
 
 type Fase = "setup" | "moneta" | "gioco";
@@ -44,14 +47,16 @@ export function Gioco501Page() {
   // Le statistiche della partita finita sono state salvate nell'esercizio 501.
   const [salvato, setSalvato] = useState(false);
 
-  // Il bot gioca da solo quando e' il suo turno.
+  // Il bot gioca da solo quando e' il suo turno. Giocando in due non tocca a
+  // nessuno tirare al posto di qualcun altro.
   useEffect(() => {
     if (
       fase !== "gioco" ||
       !stato ||
+      stato.config.avversario !== "bot" ||
       stato.vincitore ||
       stato.leg.vincitore ||
-      stato.leg.turno !== "bot"
+      stato.leg.turno !== "due"
     ) {
       return;
     }
@@ -59,11 +64,13 @@ export function Gioco501Page() {
     return () => clearTimeout(t);
   }, [fase, stato]);
 
-  // A partita finita salva le mie statistiche nell'esercizio 501 (una volta):
-  // finiscono nei Progressi e, tramite la sincronizzazione, sulla bacheca.
+  // A partita finita salva le statistiche del GIOCATORE 1 nell'esercizio 501
+  // (una volta): finiscono nei Progressi e, tramite la sincronizzazione, sulla
+  // bacheca. Quelle del secondo posto restano nel recap: sono di chi ha in mano
+  // il telefono solo quando gioca da primo, e non vanno nel suo storico.
   useEffect(() => {
     if (!stato || !stato.vincitore || salvato) return;
-    if (stato.statsUmano.frecce === 0) {
+    if (stato.statsUno.frecce === 0) {
       setSalvato(true);
       return;
     }
@@ -75,19 +82,19 @@ export function Gioco501Page() {
         .first();
       if (es && !annullato) {
         const valori: Record<string, number> = {
-          media: media3(stato.statsUmano),
-          first9: mediaFirst9(stato.statsUmano),
-          checkout: checkoutPerc(stato.statsUmano),
+          media: media3(stato.statsUno),
+          first9: mediaFirst9(stato.statsUno),
+          checkout: checkoutPerc(stato.statsUno),
         };
         // La percentuale vera esiste solo se si e' giocato a bersaglio: senza
         // tentativi registrati non si salva, per non sporcare lo storico con 0.
-        const doppi = totaleDoppi(stato.statsUmano.doppi);
+        const doppi = totaleDoppi(stato.statsUno.doppi);
         if (doppi.tentativi > 0) valori.doppi = percentualeDoppi(doppi);
 
         await registraRisultato({ esercizioId: es.id, data: dataIso(), valori });
         // Lo storico per bersaglio vive a parte: serve a capire nel tempo su
         // quale doppio si sbaglia, cosa che una sola partita non puo' dire.
-        await registraDoppi(stato.statsUmano.doppi, "501");
+        await registraDoppi(stato.statsUno.doppi, "501");
       }
       if (!annullato) setSalvato(true);
     })();
@@ -113,31 +120,32 @@ export function Gioco501Page() {
     setFase("moneta");
   }
 
-  // L'umano invia la tirata. Col tastierino si conosce solo il totale: se
-  // chiude, chiedo con quante frecce. Col bersaglio le frecce sono gia' note
-  // (e cosi' pure gli sballi che dal totale non si vedrebbero), quindi si
-  // applica direttamente senza domande.
-  function inviaUmano(t: Tirata) {
+  // Arriva la tirata di chi ha il turno. Col tastierino si conosce solo il
+  // totale: se chiude, chiedo con quante frecce. Col bersaglio le frecce sono
+  // gia' note (e cosi' pure gli sballi che dal totale non si vedrebbero),
+  // quindi si applica direttamente senza domande.
+  function inviaTirata(t: Tirata) {
     if (!stato) return;
+    const di = stato.leg.turno;
     if (t.bust) {
-      setStato(giocaUmano(stato, t));
+      setStato(giocaVisita(stato, di, t));
       return;
     }
     const chiude = risultatoVisita(
-      stato.leg.puntiUmano,
+      rimanenteDi(stato.leg, di),
       t.punteggio,
       stato.config.chiusura,
     ).chiuso;
     if (chiude && t.frecce == null) {
       setChiusura(t);
     } else {
-      setStato(giocaUmano(stato, t));
+      setStato(giocaVisita(stato, di, t));
     }
   }
 
   function confermaChiusura(frecce: number) {
     if (!stato || !chiusura) return;
-    setStato(giocaUmano(stato, { ...chiusura, frecce }));
+    setStato(giocaVisita(stato, stato.leg.turno, { ...chiusura, frecce }));
     setChiusura(null);
   }
 
@@ -150,17 +158,27 @@ export function Gioco501Page() {
 
   if (!stato) return null;
 
+  const nomi = nomiVisualizzati(stato.config);
+  const controBot = stato.config.avversario === "bot";
+  const nomeDi = (g: Giocatore) => (g === "uno" ? nomi[0] : nomi[1]);
+
   // ---------- LANCIO MONETA ----------
   if (fase === "moneta") {
-    const inizioUmano = stato.primo === "umano";
+    const inizioUno = stato.primo === "uno";
     return (
       <section className="centro-schermo">
         <div className="moneta">🪙</div>
         <p className="occhiello">Lancio della moneta</p>
-        <h2>{inizioUmano ? "Inizi tu!" : "Inizia il bot"}</h2>
+        <h2>
+          {controBot
+            ? inizioUno
+              ? "Inizi tu!"
+              : "Inizia il bot"
+            : `Inizia ${nomeDi(stato.primo)}`}
+        </h2>
         <p className="mini">
-          {stato.config.livello.nome} · {stato.config.puntiIniziali} ·{" "}
-          {formatoNome(stato.config)}
+          {controBot ? `${stato.config.livello.nome} · ` : ""}
+          {stato.config.puntiIniziali} · {formatoNome(stato.config)}
         </p>
         <button
           className="bottone bottone-largo"
@@ -187,7 +205,9 @@ export function Gioco501Page() {
   // ---------- GIOCO ----------
   const leg = stato.leg;
   const legFinito = leg.vincitore != null;
-  // Col bersaglio i pannitelli diventano una riga sola: l'altezza risparmiata
+  const attesaBot = controBot && leg.turno === "due";
+  const rimanente = rimanenteDi(leg, leg.turno);
+  // Col bersaglio i pannelli diventano una riga sola: l'altezza risparmiata
   // serve a far entrare tutto il tabellone nello schermo del telefono.
   const compatto = modoInput === "bersaglio";
 
@@ -196,7 +216,7 @@ export function Gioco501Page() {
       <div className="gioco-testa">
         <span className="mini">Leg {stato.numeroLeg}</span>
         <span className="leg-score">
-          {stato.legUmano} — {stato.legBot}
+          {stato.legUno} — {stato.legDue}
         </span>
         <span className="mini">{formatoNome(stato.config)}</span>
       </div>
@@ -204,32 +224,38 @@ export function Gioco501Page() {
       {compatto ? (
         <TavoloCompatto
           leg={leg}
+          nomi={nomi}
           legFinito={legFinito}
           chiusura={
             stato.config.mostraChiusura
-              ? suggerisciChiusura(leg.puntiUmano)
+              ? suggerisciChiusura(rimanenteDi(leg, "uno"))
+              : null
+          }
+          chiusuraDue={
+            stato.config.mostraChiusura && !controBot
+              ? suggerisciChiusura(rimanenteDi(leg, "due"))
               : null
           }
         />
       ) : (
         <div className="tavolo">
           <PannelloGiocatore
-            nome="Tu"
-            punti={leg.puntiUmano}
-            ultimo={leg.ultimoUmano}
-            bust={leg.bustUmano}
-            media={media3(stato.statsUmano)}
-            attivo={leg.turno === "umano" && !legFinito}
-            vincitore={leg.vincitore === "umano"}
+            nome={nomi[0]}
+            punti={leg.puntiUno}
+            ultimo={leg.ultimoUno}
+            bust={leg.bustUno}
+            media={media3(stato.statsUno)}
+            attivo={leg.turno === "uno" && !legFinito}
+            vincitore={leg.vincitore === "uno"}
           />
           <PannelloGiocatore
-            nome="Bot"
-            punti={leg.puntiBot}
-            ultimo={leg.ultimoBot}
-            bust={leg.bustBot}
-            media={media3(stato.statsBot)}
-            attivo={leg.turno === "bot" && !legFinito}
-            vincitore={leg.vincitore === "bot"}
+            nome={nomi[1]}
+            punti={leg.puntiDue}
+            ultimo={leg.ultimoDue}
+            bust={leg.bustDue}
+            media={media3(stato.statsDue)}
+            attivo={leg.turno === "due" && !legFinito}
+            vincitore={leg.vincitore === "due"}
           />
         </div>
       )}
@@ -237,7 +263,11 @@ export function Gioco501Page() {
       {legFinito ? (
         <div className="fine-leg">
           <h3>
-            {leg.vincitore === "umano" ? "Leg tuo! 🎯" : "Leg al bot 🤖"}
+            {controBot
+              ? leg.vincitore === "uno"
+                ? "Leg tuo! 🎯"
+                : "Leg al bot 🤖"
+              : `Leg di ${nomeDi(leg.vincitore!)} 🎯`}
           </h3>
           <button
             className="bottone bottone-largo"
@@ -267,21 +297,28 @@ export function Gioco501Page() {
             ↶ Annulla
           </button>
         </div>
-      ) : leg.turno === "umano" ? (
-        <>
-          {stato.config.mostraChiusura && !compatto && (
-            <SuggerimentoChiusura rimanente={leg.puntiUmano} />
-          )}
-          <InputTirata
-            rimanente={leg.puntiUmano}
-            chiusura={stato.config.chiusura}
-            onInvia={inviaUmano}
-          />
-        </>
-      ) : (
+      ) : attesaBot ? (
         <div className="attesa-bot">
           <span className="spinner" /> Il bot sta tirando…
         </div>
+      ) : (
+        <>
+          {/* Giocando in due il telefono passa di mano: dire di chi e' il
+              turno evita che segni la visita la persona sbagliata. */}
+          {!controBot && (
+            <p className="turno-di">
+              Tocca a <strong>{nomeDi(leg.turno)}</strong>
+            </p>
+          )}
+          {stato.config.mostraChiusura && !compatto && (
+            <SuggerimentoChiusura rimanente={rimanente} />
+          )}
+          <InputTirata
+            rimanente={rimanente}
+            chiusura={stato.config.chiusura}
+            onInvia={inviaTirata}
+          />
+        </>
       )}
     </section>
   );
@@ -295,9 +332,12 @@ function formatoNome(config: ConfigPartita): string {
 
 interface TavoloCompattoProps {
   leg: StatoLeg;
+  nomi: [string, string];
   legFinito: boolean;
   /** Chiusura consigliata, mostrata qui dentro per non occupare un'altra riga. */
   chiusura: string[] | null;
+  /** Come sopra per il secondo giocatore: al bot non serve un suggerimento. */
+  chiusuraDue: string[] | null;
 }
 
 /**
@@ -305,17 +345,23 @@ interface TavoloCompattoProps {
  * grandi si perde la media (resta comunque nel recap) e si guadagnano ~90px
  * di altezza, che vanno tutti al tabellone.
  */
-function TavoloCompatto({ leg, legFinito, chiusura }: TavoloCompattoProps) {
+function TavoloCompatto({
+  leg,
+  nomi,
+  legFinito,
+  chiusura,
+  chiusuraDue,
+}: TavoloCompattoProps) {
   const sotto = (bust: boolean, ultimo: number | null) =>
     bust ? "BUST" : ultimo != null ? `↩ ${ultimo}` : "—";
 
   return (
     <div className="tavolo-compatto">
       <div
-        className={`tc-lato${leg.turno === "umano" && !legFinito ? " attivo" : ""}`}
+        className={`tc-lato${leg.turno === "uno" && !legFinito ? " attivo" : ""}`}
       >
-        <span className="tc-nome">TU</span>
-        <span className="tc-punti">{leg.puntiUmano}</span>
+        <span className="tc-nome">{nomi[0].toUpperCase()}</span>
+        <span className="tc-punti">{leg.puntiUno}</span>
         {chiusura ? (
           <span className="tc-co">
             {chiusura.map((c, i) => (
@@ -323,15 +369,23 @@ function TavoloCompatto({ leg, legFinito, chiusura }: TavoloCompattoProps) {
             ))}
           </span>
         ) : (
-          <span className="tc-sotto">{sotto(leg.bustUmano, leg.ultimoUmano)}</span>
+          <span className="tc-sotto">{sotto(leg.bustUno, leg.ultimoUno)}</span>
         )}
       </div>
       <div
-        className={`tc-lato${leg.turno === "bot" && !legFinito ? " attivo" : ""}`}
+        className={`tc-lato${leg.turno === "due" && !legFinito ? " attivo" : ""}`}
       >
-        <span className="tc-nome">BOT</span>
-        <span className="tc-punti">{leg.puntiBot}</span>
-        <span className="tc-sotto">{sotto(leg.bustBot, leg.ultimoBot)}</span>
+        <span className="tc-nome">{nomi[1].toUpperCase()}</span>
+        <span className="tc-punti">{leg.puntiDue}</span>
+        {chiusuraDue ? (
+          <span className="tc-co">
+            {chiusuraDue.map((c, i) => (
+              <span key={i}>{c}</span>
+            ))}
+          </span>
+        ) : (
+          <span className="tc-sotto">{sotto(leg.bustDue, leg.ultimoDue)}</span>
+        )}
       </div>
     </div>
   );

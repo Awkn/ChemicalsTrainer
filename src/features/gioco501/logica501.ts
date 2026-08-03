@@ -1,6 +1,11 @@
 /**
- * Motore di gioco del 501 contro il bot. Tutto puro (nessun React): riceve uno
- * stato e restituisce il nuovo stato. Cosi' la logica e' isolata e testabile.
+ * Motore di gioco del 501. Tutto puro (nessun React): riceve uno stato e
+ * restituisce il nuovo stato. Cosi' la logica e' isolata e testabile.
+ *
+ * I due posti si chiamano "uno" e "due" e non "umano" e "bot": il secondo puo'
+ * essere il computer oppure una persona in carne e ossa sullo stesso telefono,
+ * e le regole del gioco sono le stesse per entrambi. Chi sia lo dice
+ * `config.avversario`; solo il bot ha bisogno che qualcuno tiri per lui.
  *
  * Modello di input umano: si gioca su un bersaglio vero e si inserisce il
  * TOTALE segnato nella tirata (3 frecce). Alla chiusura si indica con quante
@@ -12,7 +17,11 @@
 import type { Dardo } from "../../lib/bersaglio";
 import { contaDoppiVisita, unisciConti, type ContiDoppi } from "../../lib/doppi";
 
-export type Giocatore = "umano" | "bot";
+/** I due posti al tavolo. Chi li occupa lo dice la configurazione. */
+export type Giocatore = "uno" | "due";
+
+/** Chi siede nel secondo posto. */
+export type Avversario = "bot" | "umano";
 
 export type LivelloId =
   | "base"
@@ -134,6 +143,10 @@ export const PUNTEGGI_INIZIALI = [301, 501, 701];
 
 /** Configurazione scelta prima di iniziare la partita. */
 export interface ConfigPartita {
+  /** Chi occupa il secondo posto: il computer o una persona. */
+  avversario: Avversario;
+  /** Nomi dei due giocatori, usati solo quando si gioca in due. */
+  nomi: [string, string];
   livello: Livello;
   puntiIniziali: number;
   formato: Formato;
@@ -150,6 +163,8 @@ export interface ConfigPartita {
 
 export function configPredefinita(livello: Livello): ConfigPartita {
   return {
+    avversario: "bot",
+    nomi: ["Tu", "Amico"],
     livello,
     puntiIniziali: 501,
     formato: "bestof",
@@ -160,6 +175,15 @@ export function configPredefinita(livello: Livello): ConfigPartita {
     mostraChiusura: true,
     dueLegDiff: false,
   };
+}
+
+/**
+ * Nomi da mostrare ai due posti. Contro il bot restano quelli di sempre:
+ * "Tu" e "Bot" dicono gia' tutto e non c'e' niente da personalizzare.
+ */
+export function nomiVisualizzati(config: ConfigPartita): [string, string] {
+  if (config.avversario === "bot") return ["Tu", "Bot"];
+  return [config.nomi[0] || "Giocatore 1", config.nomi[1] || "Giocatore 2"];
 }
 
 /** Leg necessari per vincere la partita (senza contare la regola dei 2 di scarto). */
@@ -176,8 +200,8 @@ const TOTALI_IMPOSSIBILI = new Set([
 const BOGEY = new Set([159, 162, 163, 165, 166, 168, 169]);
 
 /**
- * Tirata dell'umano: il totale, piu' tutto quello che l'input riesce a dire.
- * Il tastierino conosce solo il punteggio; l'input a bersaglio sa anche
+ * Tirata di una persona: il totale, piu' tutto quello che l'input riesce a
+ * dire. Il tastierino conosce solo il punteggio; l'input a bersaglio sa anche
  * quante frecce sono servite, dove sono finite e se la visita e' sballata.
  */
 export interface TirataUmana {
@@ -233,60 +257,76 @@ function statsVuote(): StatsGiocatore {
 }
 
 export interface StatoLeg {
-  puntiUmano: number;
-  puntiBot: number;
+  puntiUno: number;
+  puntiDue: number;
   turno: Giocatore;
   iniziato: Giocatore;
-  ultimoUmano: number | null;
-  ultimoBot: number | null;
-  bustUmano: boolean;
-  bustBot: boolean;
+  ultimoUno: number | null;
+  ultimoDue: number | null;
+  bustUno: boolean;
+  bustDue: boolean;
   vincitore: Giocatore | null;
   /** Visite e frecce del leg corrente (per First 9 e conteggio frecce). */
-  visiteUmano: number;
-  visiteBot: number;
-  frecceUmano: number;
-  frecceBot: number;
+  visiteUno: number;
+  visiteDue: number;
+  frecceUno: number;
+  frecceDue: number;
 }
 
 export interface StatoPartita {
   config: ConfigPartita;
   primo: Giocatore;
   numeroLeg: number;
-  legUmano: number;
-  legBot: number;
+  legUno: number;
+  legDue: number;
   leg: StatoLeg;
-  statsUmano: StatsGiocatore;
-  statsBot: StatsGiocatore;
+  statsUno: StatsGiocatore;
+  statsDue: StatsGiocatore;
   vincitore: Giocatore | null;
   /** Istante di inizio, mostrato nel recap. */
   creato: number;
 }
 
-export function avversario(g: Giocatore): Giocatore {
-  return g === "umano" ? "bot" : "umano";
+/** L'altro posto al tavolo. */
+export function altroGiocatore(g: Giocatore): Giocatore {
+  return g === "uno" ? "due" : "uno";
+}
+
+/** True se quel posto e' occupato dal computer. */
+export function eBot(config: ConfigPartita, g: Giocatore): boolean {
+  return g === "due" && config.avversario === "bot";
+}
+
+/** Punteggio rimanente di un giocatore nel leg. */
+export function rimanenteDi(leg: StatoLeg, g: Giocatore): number {
+  return g === "uno" ? leg.puntiUno : leg.puntiDue;
+}
+
+/** Statistiche di un giocatore. */
+export function statsDi(stato: StatoPartita, g: Giocatore): StatsGiocatore {
+  return g === "uno" ? stato.statsUno : stato.statsDue;
 }
 
 /** Lancio della moneta: chi inizia la partita. */
 export function lancioMoneta(): Giocatore {
-  return Math.random() < 0.5 ? "umano" : "bot";
+  return Math.random() < 0.5 ? "uno" : "due";
 }
 
 function creaLeg(iniziato: Giocatore, punti: number): StatoLeg {
   return {
-    puntiUmano: punti,
-    puntiBot: punti,
+    puntiUno: punti,
+    puntiDue: punti,
     turno: iniziato,
     iniziato,
-    ultimoUmano: null,
-    ultimoBot: null,
-    bustUmano: false,
-    bustBot: false,
+    ultimoUno: null,
+    ultimoDue: null,
+    bustUno: false,
+    bustDue: false,
     vincitore: null,
-    visiteUmano: 0,
-    visiteBot: 0,
-    frecceUmano: 0,
-    frecceBot: 0,
+    visiteUno: 0,
+    visiteDue: 0,
+    frecceUno: 0,
+    frecceDue: 0,
   };
 }
 
@@ -298,11 +338,11 @@ export function creaPartita(
     config,
     primo,
     numeroLeg: 1,
-    legUmano: 0,
-    legBot: 0,
+    legUno: 0,
+    legDue: 0,
     leg: creaLeg(primo, config.puntiIniziali),
-    statsUmano: statsVuote(),
-    statsBot: statsVuote(),
+    statsUno: statsVuote(),
+    statsDue: statsVuote(),
     vincitore: null,
     creato: Date.now(),
   };
@@ -427,15 +467,15 @@ function applicaVisita(
   bustForzato = false,
   dardi?: Dardo[],
 ): EsitoApplica {
-  const umano = giocatore === "umano";
-  const rimanentePrima = umano ? leg.puntiUmano : leg.puntiBot;
+  const primo = giocatore === "uno";
+  const rimanentePrima = rimanenteDi(leg, giocatore);
   const r: EsitoVisita = bustForzato
     ? { nuovoRimanente: rimanentePrima, chiuso: false, bust: true }
     : risultatoVisita(rimanentePrima, punteggio, modo);
   const tentativoChk = finibile(rimanentePrima, modo);
 
-  const visiteLeg = (umano ? leg.visiteUmano : leg.visiteBot) + 1;
-  const frecceLeg = (umano ? leg.frecceUmano : leg.frecceBot) + frecce;
+  const visiteLeg = (primo ? leg.visiteUno : leg.visiteDue) + 1;
+  const frecceLeg = (primo ? leg.frecceUno : leg.frecceDue) + frecce;
   const inFirst9 = visiteLeg <= 3;
 
   const nuoveStats: StatsGiocatore = {
@@ -456,58 +496,63 @@ function applicaVisita(
         : stats.doppi,
   };
 
-  const nuovoLeg: StatoLeg = umano
+  const nuovoLeg: StatoLeg = primo
     ? {
         ...leg,
-        puntiUmano: r.nuovoRimanente,
-        ultimoUmano: punteggio,
-        bustUmano: r.bust,
-        visiteUmano: visiteLeg,
-        frecceUmano: frecceLeg,
+        puntiUno: r.nuovoRimanente,
+        ultimoUno: punteggio,
+        bustUno: r.bust,
+        visiteUno: visiteLeg,
+        frecceUno: frecceLeg,
       }
     : {
         ...leg,
-        puntiBot: r.nuovoRimanente,
-        ultimoBot: punteggio,
-        bustBot: r.bust,
-        visiteBot: visiteLeg,
-        frecceBot: frecceLeg,
+        puntiDue: r.nuovoRimanente,
+        ultimoDue: punteggio,
+        bustDue: r.bust,
+        visiteDue: visiteLeg,
+        frecceDue: frecceLeg,
       };
 
   return { leg: nuovoLeg, stats: nuoveStats, chiuso: r.chiuso };
 }
 
 function risolviLeg(stato: StatoPartita, vincitore: Giocatore): StatoPartita {
-  const legUmano = stato.legUmano + (vincitore === "umano" ? 1 : 0);
-  const legBot = stato.legBot + (vincitore === "bot" ? 1 : 0);
+  const legUno = stato.legUno + (vincitore === "uno" ? 1 : 0);
+  const legDue = stato.legDue + (vincitore === "due" ? 1 : 0);
   const bersaglio = legPerVincere(stato.config);
   let vincitorePartita: Giocatore | null = null;
   if (stato.config.dueLegDiff) {
-    if (legUmano >= bersaglio && legUmano - legBot >= 2) vincitorePartita = "umano";
-    else if (legBot >= bersaglio && legBot - legUmano >= 2) vincitorePartita = "bot";
+    if (legUno >= bersaglio && legUno - legDue >= 2) vincitorePartita = "uno";
+    else if (legDue >= bersaglio && legDue - legUno >= 2) vincitorePartita = "due";
   } else {
-    if (legUmano >= bersaglio) vincitorePartita = "umano";
-    else if (legBot >= bersaglio) vincitorePartita = "bot";
+    if (legUno >= bersaglio) vincitorePartita = "uno";
+    else if (legDue >= bersaglio) vincitorePartita = "due";
   }
-  return { ...stato, legUmano, legBot, vincitore: vincitorePartita };
+  return { ...stato, legUno, legDue, vincitore: vincitorePartita };
 }
 
 /**
- * Applica la tirata dell'umano (punteggio gia' validato). Quello che l'input
- * non sa ha un valore di ripiego: 3 frecce, nessuno sballo dichiarato e
- * nessun dettaglio per freccia.
+ * Applica la visita di un giocatore (punteggio gia' validato). Quello che
+ * l'input non sa ha un valore di ripiego: 3 frecce, nessuno sballo dichiarato
+ * e nessun dettaglio per freccia.
+ *
+ * Vale per entrambi i posti: al bot serve solo qualcuno che gli calcoli il
+ * punteggio prima (vedi `giocaBot`), le regole poi sono le stesse.
  */
-export function giocaUmano(
+export function giocaVisita(
   stato: StatoPartita,
+  giocatore: Giocatore,
   tirata: TirataUmana,
 ): StatoPartita {
   const leg = stato.leg;
-  if (leg.turno !== "umano" || leg.vincitore || stato.vincitore) return stato;
+  if (leg.turno !== giocatore || leg.vincitore || stato.vincitore) return stato;
 
+  const primo = giocatore === "uno";
   const res = applicaVisita(
     leg,
-    stato.statsUmano,
-    "umano",
+    primo ? stato.statsUno : stato.statsDue,
+    giocatore,
     tirata.punteggio,
     tirata.frecce ?? 3,
     stato.config.chiusura,
@@ -516,40 +561,40 @@ export function giocaUmano(
   );
 
   if (res.chiuso) {
-    const statsUmano: StatsGiocatore = {
+    const stats: StatsGiocatore = {
       ...res.stats,
-      frecceLegVinti: [...res.stats.frecceLegVinti, res.leg.frecceUmano],
+      frecceLegVinti: [
+        ...res.stats.frecceLegVinti,
+        primo ? res.leg.frecceUno : res.leg.frecceDue,
+      ],
     };
-    const nuovoLeg = { ...res.leg, vincitore: "umano" as const };
-    return risolviLeg({ ...stato, leg: nuovoLeg, statsUmano }, "umano");
+    const conStats = primo
+      ? { ...stato, statsUno: stats }
+      : { ...stato, statsDue: stats };
+    return risolviLeg(
+      { ...conStats, leg: { ...res.leg, vincitore: giocatore } },
+      giocatore,
+    );
   }
-  const nuovoLeg = { ...res.leg, turno: "bot" as const };
-  return { ...stato, leg: nuovoLeg, statsUmano: res.stats };
+
+  const nuovoLeg = { ...res.leg, turno: altroGiocatore(giocatore) };
+  return primo
+    ? { ...stato, leg: nuovoLeg, statsUno: res.stats }
+    : { ...stato, leg: nuovoLeg, statsDue: res.stats };
 }
 
 /** Simula e applica la tirata del bot (chiude convenzionalmente con 3 frecce). */
 export function giocaBot(stato: StatoPartita): StatoPartita {
-  const leg = stato.leg;
-  if (leg.turno !== "bot" || leg.vincitore || stato.vincitore) return stato;
-
+  if (stato.leg.turno !== "due" || stato.config.avversario !== "bot") {
+    return stato;
+  }
   const punteggio = mossaBot(
-    leg.puntiBot,
+    stato.leg.puntiDue,
     stato.config.livello,
     stato.config.chiusura,
     stato.config.puntiIniziali,
   );
-  const res = applicaVisita(leg, stato.statsBot, "bot", punteggio, 3, stato.config.chiusura);
-
-  if (res.chiuso) {
-    const statsBot: StatsGiocatore = {
-      ...res.stats,
-      frecceLegVinti: [...res.stats.frecceLegVinti, res.leg.frecceBot],
-    };
-    const nuovoLeg = { ...res.leg, vincitore: "bot" as const };
-    return risolviLeg({ ...stato, leg: nuovoLeg, statsBot }, "bot");
-  }
-  const nuovoLeg = { ...res.leg, turno: "umano" as const };
-  return { ...stato, leg: nuovoLeg, statsBot: res.stats };
+  return giocaVisita(stato, "due", { punteggio, frecce: 3 });
 }
 
 /** Passa al leg successivo alternando chi inizia. */
@@ -558,7 +603,7 @@ export function avanzaLeg(stato: StatoPartita): StatoPartita {
   const numeroLeg = stato.numeroLeg + 1;
   // leg dispari: inizia chi ha vinto la moneta; leg pari: l'avversario
   const iniziato =
-    numeroLeg % 2 === 1 ? stato.primo : avversario(stato.primo);
+    numeroLeg % 2 === 1 ? stato.primo : altroGiocatore(stato.primo);
   return {
     ...stato,
     numeroLeg,

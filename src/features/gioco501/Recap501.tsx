@@ -5,8 +5,10 @@ import {
   media3,
   mediaFirst9,
   migliorLeg,
+  nomiVisualizzati,
   peggiorLeg,
   type StatoPartita,
+  type StatsGiocatore,
 } from "./logica501";
 import {
   classificaDoppi,
@@ -25,63 +27,61 @@ interface Props {
 
 /** Recap statistico a fine partita, in stile scheda risultato. */
 export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props) {
-  const { config, statsUmano, statsBot } = stato;
-  const vintoUmano = stato.vincitore === "umano";
+  const { config, statsUno, statsDue } = stato;
+  const vintoUno = stato.vincitore === "uno";
+  const controBot = config.avversario === "bot";
+  const nomi = nomiVisualizzati(config);
 
   const titolo = `${config.formato === "bestof" ? "Al meglio di" : "Primo a"} ${
     config.numero
   } ${config.unita === "legs" ? "leg" : "set"} · ${config.puntiIniziali}`;
 
-  // Dettaglio sui doppi: esiste solo se si e' giocato con l'input a bersaglio.
-  const doppi = totaleDoppi(statsUmano.doppi);
-  const perBersaglio = classificaDoppi(statsUmano.doppi);
-
-  const righe: { label: string; umano: string; bot: string }[] = [
+  const righe: { label: string; uno: string; due: string }[] = [
     {
       label: "Media 3 dart",
-      umano: fmt(media3(statsUmano)),
-      bot: fmt(media3(statsBot)),
+      uno: fmt(media3(statsUno)),
+      due: fmt(media3(statsDue)),
     },
     {
       label: "First 9 avg.",
-      umano: fmt(mediaFirst9(statsUmano)),
-      bot: fmt(mediaFirst9(statsBot)),
+      uno: fmt(mediaFirst9(statsUno)),
+      due: fmt(mediaFirst9(statsDue)),
     },
     {
       label: "Checkout %",
-      umano: `${fmt(checkoutPerc(statsUmano))}%`,
-      bot: `${fmt(checkoutPerc(statsBot))}%`,
+      uno: `${fmt(checkoutPerc(statsUno))}%`,
+      due: `${fmt(checkoutPerc(statsDue))}%`,
     },
     {
       label: "Checkout",
-      umano: `${statsUmano.chkRiusciti}/${statsUmano.chkTentativi}`,
-      bot: `${statsBot.chkRiusciti}/${statsBot.chkTentativi}`,
+      uno: `${statsUno.chkRiusciti}/${statsUno.chkTentativi}`,
+      due: `${statsDue.chkRiusciti}/${statsDue.chkTentativi}`,
     },
     {
       label: "Chiusura più alta",
-      umano: opz(statsUmano.highFinish),
-      bot: opz(statsBot.highFinish),
+      uno: opz(statsUno.highFinish),
+      due: opz(statsDue.highFinish),
     },
     {
       label: "Punteggio più alto",
-      umano: opz(statsUmano.highScore),
-      bot: opz(statsBot.highScore),
+      uno: opz(statsUno.highScore),
+      due: opz(statsDue.highScore),
     },
     {
       label: "Miglior leg",
-      umano: frecce(migliorLeg(statsUmano)),
-      bot: frecce(migliorLeg(statsBot)),
+      uno: frecce(migliorLeg(statsUno)),
+      due: frecce(migliorLeg(statsDue)),
     },
     {
       label: "Peggior leg",
-      umano: frecce(peggiorLeg(statsUmano)),
-      bot: frecce(peggiorLeg(statsBot)),
+      uno: frecce(peggiorLeg(statsUno)),
+      due: frecce(peggiorLeg(statsDue)),
     },
   ];
 
   return (
     <section className="recap">
-      <header className={`recap-testa ${vintoUmano ? "vinto" : "perso"}`}>
+      <header className={`recap-testa ${vintoUno ? "vinto" : "perso"}`}>
         <h2>{titolo}</h2>
         <p className="recap-data">{dataOra(stato.creato)}</p>
         <div className="recap-badge">
@@ -90,15 +90,15 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
         </div>
         <div className="recap-score">
           <div className="recap-giocatore">
-            <span>Tu</span>
-            <span className="recap-trofeo">{vintoUmano ? "🏆" : ""}</span>
+            <span>{nomi[0]}</span>
+            <span className="recap-trofeo">{vintoUno ? "🏆" : ""}</span>
           </div>
           <div className="recap-punteggio">
-            {stato.legUmano} — {stato.legBot}
+            {stato.legUno} — {stato.legDue}
           </div>
           <div className="recap-giocatore">
-            <span>Bot · {config.livello.nome}</span>
-            <span className="recap-trofeo">{!vintoUmano ? "🏆" : ""}</span>
+            <span>{controBot ? `Bot · ${config.livello.nome}` : nomi[1]}</span>
+            <span className="recap-trofeo">{!vintoUno ? "🏆" : ""}</span>
           </div>
         </div>
       </header>
@@ -106,32 +106,27 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
       <div className="recap-tabella">
         {righe.map((r) => (
           <div className="recap-riga" key={r.label}>
-            <span className="recap-val">{r.umano}</span>
+            <span className="recap-val">{r.uno}</span>
             <span className="recap-label">{r.label}</span>
-            <span className="recap-val">{r.bot}</span>
+            <span className="recap-val">{r.due}</span>
           </div>
         ))}
       </div>
 
-      {doppi.tentativi > 0 && (
-        <div className="recap-doppi">
-          <h3>
-            I tuoi doppi{" "}
-            <span className="recap-doppi-tot">
-              {doppi.colpiti}/{doppi.tentativi} · {percentualeDoppi(doppi)}%
-            </span>
-          </h3>
-          <p className="mini">
-            Contati freccia per freccia: quante volte hai centrato il doppio
-            avendolo davvero davanti.
-          </p>
-          <ListaDoppi righe={perBersaglio} />
-        </div>
+      {/* Il dettaglio sui doppi esiste solo giocando con l'input a bersaglio.
+          In due lo si mostra per entrambi: hanno tirato tutti e due. */}
+      <SchedaDoppiPartita
+        titolo={controBot ? "I tuoi doppi" : `I doppi di ${nomi[0]}`}
+        stats={statsUno}
+      />
+      {!controBot && (
+        <SchedaDoppiPartita titolo={`I doppi di ${nomi[1]}`} stats={statsDue} />
       )}
 
       {salvato && (
         <p className="mini recap-salvato">
           💾 Statistiche salvate nei Progressi e condivise in squadra.
+          {!controBot && ` Sono quelle di ${nomi[0]}.`}
         </p>
       )}
 
@@ -144,6 +139,34 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
         </button>
       </div>
     </section>
+  );
+}
+
+/** Resa sui doppi di un giocatore. Non compare se non ci sono tentativi. */
+function SchedaDoppiPartita({
+  titolo,
+  stats,
+}: {
+  titolo: string;
+  stats: StatsGiocatore;
+}) {
+  const doppi = totaleDoppi(stats.doppi);
+  if (doppi.tentativi === 0) return null;
+
+  return (
+    <div className="recap-doppi">
+      <h3>
+        {titolo}{" "}
+        <span className="recap-doppi-tot">
+          {doppi.colpiti}/{doppi.tentativi} · {percentualeDoppi(doppi)}%
+        </span>
+      </h3>
+      <p className="mini">
+        Contati freccia per freccia: quante volte il doppio è stato centrato
+        avendolo davvero davanti.
+      </p>
+      <ListaDoppi righe={classificaDoppi(stats.doppi)} />
+    </div>
   );
 }
 

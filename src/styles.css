@@ -1248,6 +1248,22 @@ textarea:focus {
   color: var(--testo-2);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Giocando in due il telefono passa di mano: chi tira va detto a chiare
+   lettere, o si rischia di segnare la visita sotto il nome sbagliato. */
+.turno-di {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--testo-2);
+  margin: 0.5rem 0 0.1rem;
+}
+
+.turno-di strong {
+  color: var(--accento-2);
 }
 
 .pannello-punti {
@@ -1860,11 +1876,18 @@ textarea:focus {
   border-color: color-mix(in srgb, var(--accento) 45%, var(--bordo));
 }
 
+/* Con i nomi veri (giocando in due) la riga si stringe: il nome cede spazio
+   al punteggio, che e' il dato che si guarda. */
 .tc-nome {
   font-size: 0.68rem;
   font-weight: 700;
   color: var(--testo-2);
   letter-spacing: 0.04em;
+  min-width: 0;
+  max-width: 5.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tc-punti {

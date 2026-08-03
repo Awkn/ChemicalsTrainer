@@ -32,14 +32,64 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
 
   const botSquadra = config.livello.id === "squadra";
   const [mostraSquadra, setMostraSquadra] = useState(botSquadra);
+  const controBot = config.avversario === "bot";
 
   return (
     <section>
       <div className="pagina-testa">
         <div>
           <p className="occhiello">Partita</p>
-          <h2>501 contro il bot</h2>
+          <h2>{controBot ? "501 contro il bot" : "501 in due"}</h2>
         </div>
+      </div>
+
+      {/* Avversario */}
+      <div className="scheda">
+        <h3>Contro chi giochi?</h3>
+        <div className="imp-segmento verticale">
+          <button
+            className={controBot ? "attivo" : ""}
+            onClick={() => patch({ avversario: "bot" })}
+          >
+            🤖 Il bot
+          </button>
+          <button
+            className={!controBot ? "attivo" : ""}
+            onClick={() => patch({ avversario: "umano" })}
+          >
+            👥 Un amico
+          </button>
+        </div>
+        <p className="mini">
+          {controBot
+            ? "Il bot tira da solo al suo turno."
+            : "Stesso telefono, a turno: passatelo dopo ogni visita. Nei Progressi finiscono le statistiche del giocatore 1."}
+        </p>
+
+        {!controBot && (
+          <>
+            <label className="campo">
+              <span>Giocatore 1</span>
+              <input
+                value={config.nomi[0]}
+                maxLength={12}
+                onChange={(e) =>
+                  patch({ nomi: [e.target.value, config.nomi[1]] })
+                }
+              />
+            </label>
+            <label className="campo">
+              <span>Giocatore 2</span>
+              <input
+                value={config.nomi[1]}
+                maxLength={12}
+                onChange={(e) =>
+                  patch({ nomi: [config.nomi[0], e.target.value] })
+                }
+              />
+            </label>
+          </>
+        )}
       </div>
 
       {/* Formato: meglio di / primo a · numero · legs/sets */}
@@ -172,7 +222,8 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
         <span className="imp-slider" />
       </label>
 
-      {/* Livello del bot */}
+      {/* Livello del bot: giocando in due non serve a niente. */}
+      {controBot && (
       <div className="scheda">
         <h3>Livello del bot</h3>
         <div className="opzioni-lista">
@@ -211,6 +262,7 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
           )}
         </div>
       </div>
+      )}
 
       <button className="bottone bottone-largo" onClick={onAvvia}>
         🎲 Lancia la moneta e inizia
