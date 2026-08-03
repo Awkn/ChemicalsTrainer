@@ -2,6 +2,20 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { PromemoriaBackup } from "../features/backup/PromemoriaBackup";
+import { usaSchermoAcceso } from "../lib/schermoAcceso";
+
+/**
+ * Rotte durante le quali lo schermo non deve spegnersi. Sta qui, e non nelle
+ * singole pagine, perche' cosi' vale anche per i giochi che arriveranno.
+ */
+function inPartita(percorso: string): boolean {
+  return (
+    percorso === "/501" ||
+    percorso === "/cricket" ||
+    percorso === "/drill-doppio" ||
+    percorso.startsWith("/gioco/")
+  );
+}
 
 /** Voci principali, sempre visibili nella barra in basso. */
 const principali = [
@@ -24,6 +38,8 @@ export function Layout() {
 
   // Cambiando pagina il menu si richiude da solo.
   useEffect(() => setMenuAperto(false), [posizione.pathname]);
+
+  usaSchermoAcceso(inPartita(posizione.pathname));
 
   return (
     <div className="app">
