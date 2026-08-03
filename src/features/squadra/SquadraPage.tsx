@@ -5,18 +5,32 @@ import {
   rimuoviRiepilogo,
   type VoceSquadra,
 } from "../../lib/squadra/client";
-import { impostaNomeGiocatore, nomeGiocatore } from "../../lib/giocatore";
+import { impostaNomeGiocatore, usaNomeGiocatore } from "../../lib/giocatore";
 import { formattaValore } from "../../components/Grafico";
 import type { UnitaMetrica } from "../../types";
 
 export function SquadraPage() {
-  const [nome, setNome] = useState(() => nomeGiocatore());
+  // Il nome arriva dallo stato condiviso: sceglierlo qui avvia la
+  // pubblicazione sulla bacheca (vedi useSincronizzaSquadra) senza riavvii.
+  const nome = usaNomeGiocatore();
   const [bozzaNome, setBozzaNome] = useState("");
   const [voci, setVoci] = useState<VoceSquadra[] | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
   const [statSelezionata, setStatSelezionata] = useState<string>("");
   const [erroreUscita, setErroreUscita] = useState<string | null>(null);
   const [uscendo, setUscendo] = useState(false);
+  const [giro, setGiro] = useState(0);
+
+  // Riaprendo la PWA dopo che il sistema l'ha messa a riposo la connessione
+  // puo' essere caduta senza che nessuno se ne accorga: si riparte in ascolto,
+  // cosi' i dati sono freschi senza dover ricaricare l'app.
+  useEffect(() => {
+    const alRitorno = () => {
+      if (document.visibilityState === "visible") setGiro((g) => g + 1);
+    };
+    document.addEventListener("visibilitychange", alRitorno);
+    return () => document.removeEventListener("visibilitychange", alRitorno);
+  }, []);
 
   useEffect(() => {
     if (!squadraConfigurata()) return;
@@ -27,7 +41,7 @@ export function SquadraPage() {
       },
       (e) => setErrore(e.message),
     );
-  }, []);
+  }, [giro]);
 
   // Elenco delle statistiche disponibili, unendo quelle di tutti i giocatori.
   const statistiche = useMemo(() => {
@@ -87,7 +101,6 @@ export function SquadraPage() {
     try {
       await rimuoviRiepilogo();
       impostaNomeGiocatore("");
-      setNome(null);
       setBozzaNome("");
     } catch (e) {
       setErroreUscita(
@@ -138,7 +151,6 @@ export function SquadraPage() {
             disabled={!bozzaNome.trim()}
             onClick={() => {
               impostaNomeGiocatore(bozzaNome);
-              setNome(nomeGiocatore());
             }}
           >
             Entra nella squadra
@@ -149,6 +161,11 @@ export function SquadraPage() {
   }
 
   // ---------- bacheca ----------
+  // Tra "entra in squadra" e la comparsa della propria riga passa il tempo di
+  // scrivere su Firestore: dirlo evita di sembrare fermi (o peggio, di far
+  // leggere "ancora nessuno ha pubblicato" a chi si e' appena iscritto).
+  const inArrivo = voci !== null && !voci.some((v) => v.sonoIo);
+
   return (
     <section>
       <Testa />
@@ -161,7 +178,13 @@ export function SquadraPage() {
 
       {voci === null && !errore && <p className="mini">Carico…</p>}
 
-      {voci && voci.length === 0 && (
+      {inArrivo && (
+        <p className="mini">
+          <span className="spinner" /> Ti sto pubblicando sulla bacheca…
+        </p>
+      )}
+
+      {voci && voci.length === 0 && !inArrivo && (
         <div className="vuoto">
           <p>
             Ancora nessuno ha pubblicato. Registra un risultato e comparirai
