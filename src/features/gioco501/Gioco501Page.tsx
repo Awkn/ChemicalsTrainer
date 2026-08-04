@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { usaTieniSchermoPieno } from "../../lib/schermoPieno";
 import { AvvioProgramma } from "./AvvioProgramma";
 import { InputTirata } from "../input/InputTirata";
-import { usaModoInput } from "../input/preferenza";
 import type { Tirata } from "../input/tirata";
 import { Impostazioni501 } from "./Impostazioni501";
 import { Recap501 } from "./Recap501";
@@ -43,7 +42,6 @@ import {
   risultatoVisita,
   type ConfigPartita,
   type Giocatore,
-  type StatoLeg,
   type StatoPartita,
 } from "./logica501";
 
@@ -84,7 +82,6 @@ interface DatiRipresa501 {
 type Fase = "setup" | "moneta" | "gioco";
 
 export function Gioco501Page() {
-  const modoInput = usaModoInput();
   // Presente solo quando si arriva da un esercizio: dice anche su quale
   // esercizio scrivere il risultato, senza doverlo cercare per nome.
   const { esercizioId } = useParams<{ esercizioId?: string }>();
@@ -416,9 +413,6 @@ export function Gioco501Page() {
   // A set il punteggio grosso e' quello dei set: sono loro a decidere la
   // partita, i leg dicono solo a che punto e' il set in corso.
   const setChiuso = stato.setChiuso;
-  // Col bersaglio i pannelli diventano una riga sola: l'altezza risparmiata
-  // serve a far entrare tutto il tabellone nello schermo del telefono.
-  const compatto = modoInput === "bersaglio";
   // Con una sola visita nello storico non c'e' ancora niente da annullare.
   const puoAnnullare =
     chiusura != null || doppioMancato != null || storia.length > 1;
@@ -475,44 +469,41 @@ export function Gioco501Page() {
         </span>
       </div>
 
-      {compatto ? (
-        <TavoloCompatto
-          leg={leg}
-          nomi={nomi}
-          legFinito={legFinito}
+      {/* Gli stessi pannelli in entrambe le viste: da quando la partita ha
+          tutto lo schermo, l'altezza per tenerli grandi c'e' anche col
+          tabellone. La chiusura consigliata sta dentro al pannello e non su
+          una riga sua, cosi' non costa niente. */}
+      <div className="tavolo">
+        <PannelloGiocatore
+          nome={nomi[0]}
+          punti={leg.puntiUno}
+          ultimo={leg.ultimoUno}
+          bust={leg.bustUno}
+          media={media3(stato.statsUno)}
+          attivo={leg.turno === "uno" && !legFinito}
+          vincitore={leg.vincitore === "uno"}
           chiusura={
             stato.config.mostraChiusura
               ? suggerisciChiusura(rimanenteDi(leg, "uno"))
               : null
           }
-          chiusuraDue={
+        />
+        <PannelloGiocatore
+          nome={nomi[1]}
+          punti={leg.puntiDue}
+          ultimo={leg.ultimoDue}
+          bust={leg.bustDue}
+          media={media3(stato.statsDue)}
+          attivo={leg.turno === "due" && !legFinito}
+          vincitore={leg.vincitore === "due"}
+          // Al bot il suggerimento non serve: sa gia' cosa fare.
+          chiusura={
             stato.config.mostraChiusura && !controBot
               ? suggerisciChiusura(rimanenteDi(leg, "due"))
               : null
           }
         />
-      ) : (
-        <div className="tavolo">
-          <PannelloGiocatore
-            nome={nomi[0]}
-            punti={leg.puntiUno}
-            ultimo={leg.ultimoUno}
-            bust={leg.bustUno}
-            media={media3(stato.statsUno)}
-            attivo={leg.turno === "uno" && !legFinito}
-            vincitore={leg.vincitore === "uno"}
-          />
-          <PannelloGiocatore
-            nome={nomi[1]}
-            punti={leg.puntiDue}
-            ultimo={leg.ultimoDue}
-            bust={leg.bustDue}
-            media={media3(stato.statsDue)}
-            attivo={leg.turno === "due" && !legFinito}
-            vincitore={leg.vincitore === "due"}
-          />
-        </div>
-      )}
+      </div>
 
       {legFinito ? (
         <div className="fine-leg">
@@ -600,9 +591,6 @@ export function Gioco501Page() {
               Tocca a <strong>{nomeDi(leg.turno)}</strong>
             </p>
           )}
-          {stato.config.mostraChiusura && !compatto && (
-            <SuggerimentoChiusura rimanente={rimanente} />
-          )}
           <InputTirata
             rimanente={rimanente}
             chiusura={stato.config.chiusura}
@@ -625,85 +613,6 @@ function esitoParziale(
   return vincitore === "uno" ? `${cosa} tuo! 🎯` : `${cosa} al bot 🤖`;
 }
 
-interface TavoloCompattoProps {
-  leg: StatoLeg;
-  nomi: [string, string];
-  legFinito: boolean;
-  /** Chiusura consigliata, mostrata qui dentro per non occupare un'altra riga. */
-  chiusura: string[] | null;
-  /** Come sopra per il secondo giocatore: al bot non serve un suggerimento. */
-  chiusuraDue: string[] | null;
-}
-
-/**
- * Punteggi su una riga sola, per l'input a bersaglio. Rispetto ai pannelli
- * grandi si perde la media (resta comunque nel recap) e si guadagnano ~90px
- * di altezza, che vanno tutti al tabellone.
- */
-function TavoloCompatto({
-  leg,
-  nomi,
-  legFinito,
-  chiusura,
-  chiusuraDue,
-}: TavoloCompattoProps) {
-  const sotto = (bust: boolean, ultimo: number | null) =>
-    bust ? "BUST" : ultimo != null ? `↩ ${ultimo}` : "—";
-
-  return (
-    <div className="tavolo-compatto">
-      <div
-        className={`tc-lato${leg.turno === "uno" && !legFinito ? " attivo" : ""}`}
-      >
-        <span className="tc-nome">{nomi[0].toUpperCase()}</span>
-        <span className="tc-punti">{leg.puntiUno}</span>
-        {chiusura ? (
-          <span className="tc-co">
-            {chiusura.map((c, i) => (
-              <span key={i}>{c}</span>
-            ))}
-          </span>
-        ) : (
-          <span className="tc-sotto">{sotto(leg.bustUno, leg.ultimoUno)}</span>
-        )}
-      </div>
-      <div
-        className={`tc-lato${leg.turno === "due" && !legFinito ? " attivo" : ""}`}
-      >
-        <span className="tc-nome">{nomi[1].toUpperCase()}</span>
-        <span className="tc-punti">{leg.puntiDue}</span>
-        {chiusuraDue ? (
-          <span className="tc-co">
-            {chiusuraDue.map((c, i) => (
-              <span key={i}>{c}</span>
-            ))}
-          </span>
-        ) : (
-          <span className="tc-sotto">{sotto(leg.bustDue, leg.ultimoDue)}</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** Mostra la chiusura consigliata quando il rimanente e' un checkout. */
-function SuggerimentoChiusura({ rimanente }: { rimanente: number }) {
-  const chiusura = suggerisciChiusura(rimanente);
-  if (!chiusura) return null;
-  return (
-    <div className="suggerimento-chiusura">
-      <span className="mini">Chiusura</span>
-      <div className="co121-chiusura">
-        {chiusura.map((c, i) => (
-          <span key={i} className="co121-freccia">
-            {c}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 interface PannelloProps {
   nome: string;
   punti: number;
@@ -712,6 +621,8 @@ interface PannelloProps {
   media: number;
   attivo: boolean;
   vincitore: boolean;
+  /** Chiusura consigliata: prende il posto dell'ultimo punteggio, quando c'e'. */
+  chiusura?: string[] | null;
 }
 
 function PannelloGiocatore({
@@ -722,6 +633,7 @@ function PannelloGiocatore({
   media,
   attivo,
   vincitore,
+  chiusura,
 }: PannelloProps) {
   return (
     <div
@@ -732,7 +644,15 @@ function PannelloGiocatore({
       <div className="pannello-nome">{nome}</div>
       <div className="pannello-punti">{punti}</div>
       <div className="pannello-sotto">
-        {bust ? (
+        {/* La chiusura vince sull'ultimo punteggio: e' quella che serve
+            adesso, l'altro e' gia' passato. */}
+        {chiusura ? (
+          <span className="pannello-co">
+            {chiusura.map((c, i) => (
+              <span key={i}>{c}</span>
+            ))}
+          </span>
+        ) : bust ? (
           <span className="bust">BUST</span>
         ) : ultimo != null ? (
           <span>ultima: {ultimo}</span>

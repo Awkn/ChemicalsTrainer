@@ -540,14 +540,6 @@ a {
   gap: 0.75rem;
 }
 
-.suggerimento-chiusura {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
-}
-
 /* ---------- campi form ---------- */
 
 .campo {
@@ -1482,6 +1474,14 @@ textarea:focus {
   margin: 0.25rem 0;
 }
 
+/* Quanto spazio si porta via tutto cio' che non e' il bersaglio: intestazione,
+   pannelli, riga del turno e comandi dell'input. Misurato a schermo pieno coi
+   pannelli grandi, nel caso peggiore (in due, che ha una riga in piu'): da qui
+   il tabellone ricava quanto puo' crescere senza far scorrere la pagina. */
+.gioco {
+  --brs-contorno: 290px;
+}
+
 .gioco-testa {
   display: flex;
   justify-content: space-between;
@@ -1593,6 +1593,24 @@ textarea:focus {
   min-height: 1.2rem;
   font-size: 0.85rem;
   color: var(--testo-2);
+}
+
+/* Chiusura consigliata dentro al pannello: le tre frecce in fila, piccole,
+   al posto dell'ultimo punteggio. */
+.pannello-co {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.pannello-co span {
+  background: var(--bg-3);
+  border-radius: 5px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accento-2);
 }
 
 .pannello-media {
@@ -2176,69 +2194,6 @@ textarea:focus {
 
 .drill-tacca.errore {
   background: color-mix(in srgb, var(--ko) 70%, var(--bg-3));
-}
-
-/* ---------- Punteggi compatti (accanto al bersaglio) ---------- */
-.tavolo-compatto {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
-}
-
-.tc-lato {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-2);
-  border: 1px solid var(--bordo);
-  border-radius: 10px;
-  padding: 0.35rem 0.55rem;
-  min-height: 2.6rem;
-}
-
-.tc-lato.attivo {
-  background: color-mix(in srgb, var(--accento) 16%, var(--bg-2));
-  border-color: color-mix(in srgb, var(--accento) 45%, var(--bordo));
-}
-
-/* Con i nomi veri (giocando in due) la riga si stringe: il nome cede spazio
-   al punteggio, che e' il dato che si guarda. */
-.tc-nome {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--testo-2);
-  letter-spacing: 0.04em;
-  min-width: 0;
-  max-width: 5.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tc-punti {
-  font-size: 1.35rem;
-  font-weight: 800;
-}
-
-.tc-sotto {
-  margin-left: auto;
-  font-size: 0.75rem;
-  color: var(--testo-2);
-}
-
-.tc-co {
-  margin-left: auto;
-  display: flex;
-  gap: 0.15rem;
-}
-
-.tc-co span {
-  background: var(--bg-3);
-  border-radius: 5px;
-  padding: 0.1rem 0.25rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--accento-2);
 }
 
 /*
