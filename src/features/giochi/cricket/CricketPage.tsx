@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SelettoreLivello } from "../../../components/SelettoreLivello";
 import { InputBersaglio } from "../../input/InputBersaglio";
 import type { Tirata } from "../../input/tirata";
 import { usaVerticale } from "../../../lib/orientamento";
@@ -258,19 +259,17 @@ function Setup({ config, onChange, onAvvia }: SetupProps) {
 
       {controBot && (
         <div className="scheda">
-          <h3>Livello del bot</h3>
-          <div className="opzioni-lista">
-            {LIVELLI_CRICKET.map((l) => (
-              <button
-                key={l.id}
-                className={config.bot?.id === l.id ? "opzione attiva" : "opzione"}
-                onClick={() => onChange({ ...config, bot: l })}
-              >
-                <strong>{l.nome}</strong>
-                <span className="mini">{l.segniPerFreccia} segni a freccia</span>
-              </button>
-            ))}
-          </div>
+          <SelettoreLivello
+            livelli={LIVELLI_CRICKET.map((l) => ({
+              nome: l.nome,
+              nota: `${l.segniPerFreccia} segni a freccia`,
+            }))}
+            indice={Math.max(
+              0,
+              LIVELLI_CRICKET.findIndex((l) => l.id === config.bot?.id),
+            )}
+            onCambia={(i) => onChange({ ...config, bot: LIVELLI_CRICKET[i] })}
+          />
         </div>
       )}
 

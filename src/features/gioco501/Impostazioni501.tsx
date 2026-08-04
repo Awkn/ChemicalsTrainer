@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SelettoreLivello } from "../../components/SelettoreLivello";
 import { SelettoreSquadraBot } from "./SelettoreSquadraBot";
 import {
   LIVELLI,
@@ -13,6 +14,17 @@ interface Props {
   config: ConfigPartita;
   onChange: (config: ConfigPartita) => void;
   onAvvia: () => void;
+}
+
+/** Gradino della scala piu' vicino a una media, per posizionare lo slider. */
+function indiceVicino(media: number): number {
+  let vicino = 0;
+  LIVELLI.forEach((l, i) => {
+    if (Math.abs(l.media - media) < Math.abs(LIVELLI[vicino].media - media)) {
+      vicino = i;
+    }
+  });
+  return vicino;
 }
 
 /** Schermata di configurazione della partita 501 contro il bot. */
@@ -38,6 +50,10 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
   const botSquadra = config.livello.id === "squadra";
   const [mostraSquadra, setMostraSquadra] = useState(botSquadra);
   const controBot = config.avversario === "bot";
+  const indiceLivello = Math.max(
+    0,
+    LIVELLI.findIndex((l) => l.id === config.livello.id),
+  );
 
   return (
     <section>
@@ -255,29 +271,34 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
       {/* Livello del bot: giocando in due non serve a niente. */}
       {controBot && (
       <div className="scheda">
-        <h3>Livello del bot</h3>
-        <div className="opzioni-lista">
-          {LIVELLI.map((l) => (
-            <button
-              key={l.id}
-              className={config.livello.id === l.id ? "opzione attiva" : "opzione"}
-              onClick={() => patch({ livello: l })}
-            >
-              <strong>{l.nome}</strong>
-              <span className="mini">{l.nota ?? `Media ${l.media}`}</span>
-            </button>
-          ))}
+        <SelettoreLivello
+          livelli={LIVELLI.map((l) => ({
+            nome: l.nome,
+            nota: l.nota ?? `media ${l.media}`,
+          }))}
+          // Col bot squadra il livello non sta sulla scala: si mostra il
+          // gradino piu' vicino per media, e muovere lo slider torna ai fissi.
+          indice={botSquadra ? indiceVicino(config.livello.media) : indiceLivello}
+          onCambia={(i) => patch({ livello: LIVELLI[i] })}
+          badge={botSquadra ? `👥 ${Math.round(config.livello.media)}` : undefined}
+          descrizione={
+            botSquadra
+              ? `Gioca come ${config.livello.nome} · media ${Math.round(config.livello.media)}`
+              : undefined
+          }
+        />
 
+        <div className="opzioni-lista">
           <button
             className={`opzione squadra-bot-toggle${botSquadra ? " attiva" : ""}`}
             onClick={() => setMostraSquadra((v) => !v)}
           >
             <strong>Bot livello squadra 👥</strong>
+            {/* Chi sta imitando lo dice gia' la riga sotto lo slider: qui
+                basta dire a cosa serve il pulsante. */}
             <span className="mini">
               {botSquadra
-                ? `Stai sfidando: ${config.livello.nome} (media ${Math.round(
-                    config.livello.media,
-                  )})`
+                ? "Tocca per cambiare compagno"
                 : "Gioca con la media di un compagno di squadra"}
             </span>
           </button>

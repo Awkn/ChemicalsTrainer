@@ -1232,6 +1232,111 @@ textarea:focus {
   gap: 0.5rem;
 }
 
+/* ---------- scelta del livello del bot (slider) ---------- */
+
+.livelli-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+  font-weight: 700;
+}
+
+.livelli-badge {
+  background: var(--ok);
+  /* Scritta scura: sul verde regge il contrasto sia di giorno che di notte. */
+  color: #06210f;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.25rem 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.livelli-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.6rem;
+  border-radius: 999px;
+  /* Il riempimento e' un gradiente ritagliato: `--pos` arriva dal componente. */
+  background:
+    linear-gradient(90deg, #f97316, var(--ko)) 0 / var(--pos, 0%) 100% no-repeat,
+    var(--bg-3);
+  outline-offset: 4px;
+  cursor: pointer;
+}
+
+.livelli-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+}
+
+.livelli-slider::-moz-range-thumb {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+}
+
+/* Le tacche sono anche pulsanti: sul telefono centrare il pollice su uno
+   scalino stretto e' piu' facile che trascinare. */
+.livelli-tacche {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+}
+
+.livelli-tacca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 1;
+  padding: 0.15rem 0;
+  background: none;
+  border: none;
+  color: var(--testo-2);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.livelli-tacca:first-child {
+  align-items: flex-start;
+}
+
+.livelli-tacca:last-child {
+  align-items: flex-end;
+}
+
+.livelli-segno {
+  width: 2px;
+  height: 0.45rem;
+  border-radius: 1px;
+  background: var(--bordo);
+}
+
+.livelli-tacca.attiva {
+  color: var(--testo);
+  font-weight: 700;
+}
+
+.livelli-tacca.attiva .livelli-segno {
+  background: var(--ko);
+}
+
+.livelli-descr {
+  margin: 0.5rem 0 0;
+}
+
 .opzione {
   display: flex;
   flex-direction: column;
