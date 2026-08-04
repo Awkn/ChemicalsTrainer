@@ -11,7 +11,7 @@ import { db } from "../../lib/db";
 import { registraRisultato } from "../../lib/repo";
 import { dataIso } from "../../lib/date";
 import { nomeGiocatore } from "../../lib/giocatore";
-import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
+import { doppioDiChiusura, percentualeDoppi, totaleDoppi } from "../../lib/doppi";
 import { registraDoppi } from "../../lib/doppiStorico";
 import { salvaPartita } from "../../lib/partite";
 import { InvitoRipresa } from "../../components/InvitoRipresa";
@@ -104,6 +104,10 @@ export function Gioco501Page() {
   const stato = storia.length > 0 ? storia[storia.length - 1] : null;
   // Tirata che chiude un leg, in attesa che l'utente indichi le frecce usate.
   const [chiusura, setChiusura] = useState<Tirata | null>(null);
+  // Visita partita da un doppio secco e non andata a segno: si chiede quante
+  // frecce ci sono state tirate, altrimenti col tastierino i doppi sbagliati
+  // non finirebbero da nessuna parte e la percentuale sarebbe tutta rosea.
+  const [doppioMancato, setDoppioMancato] = useState<Tirata | null>(null);
   // Le statistiche della partita finita sono state salvate nell'esercizio 501.
   const [salvato, setSalvato] = useState(false);
   /**
@@ -224,8 +228,9 @@ export function Gioco501Page() {
    * quindi basta richiudere la domanda.
    */
   function annulla() {
-    if (chiusura) {
+    if (chiusura || doppioMancato) {
       setChiusura(null);
+      setDoppioMancato(null);
       return;
     }
     setStoria((s) => {
@@ -278,17 +283,27 @@ export function Gioco501Page() {
   function inviaTirata(t: Tirata) {
     if (!stato) return;
     const di = stato.leg.turno;
+    const rimanente = rimanenteDi(stato.leg, di);
+    // Col bersaglio ogni freccia e' gia' nota: non c'e' niente da chiedere.
+    const daChiedere =
+      t.dardi == null &&
+      stato.config.chiusura === "double" &&
+      doppioDiChiusura(rimanente) != null;
+
     if (t.bust) {
-      spingi(giocaVisita(stato, di, t));
+      if (daChiedere) setDoppioMancato(t);
+      else spingi(giocaVisita(stato, di, t));
       return;
     }
     const chiude = risultatoVisita(
-      rimanenteDi(stato.leg, di),
+      rimanente,
       t.punteggio,
       stato.config.chiusura,
     ).chiuso;
     if (chiude && t.frecce == null) {
       setChiusura(t);
+    } else if (!chiude && daChiedere) {
+      setDoppioMancato(t);
     } else {
       spingi(giocaVisita(stato, di, t));
     }
@@ -296,8 +311,26 @@ export function Gioco501Page() {
 
   function confermaChiusura(frecce: number) {
     if (!stato || !chiusura) return;
-    spingi(giocaVisita(stato, stato.leg.turno, { ...chiusura, frecce }));
+    // Chiudendo da un doppio secco quelle frecce sono anche i tentativi al
+    // doppio, e l'ultima e' quella andata a segno.
+    spingi(
+      giocaVisita(stato, stato.leg.turno, {
+        ...chiusura,
+        frecce,
+        frecceAlDoppio: doppioDiChiusura(rimanenteDi(stato.leg, stato.leg.turno))
+          ? frecce
+          : undefined,
+      }),
+    );
     setChiusura(null);
+  }
+
+  function confermaDoppioMancato(frecceAlDoppio: number) {
+    if (!stato || !doppioMancato) return;
+    spingi(
+      giocaVisita(stato, stato.leg.turno, { ...doppioMancato, frecceAlDoppio }),
+    );
+    setDoppioMancato(null);
   }
 
   // ---------- SETUP ----------
@@ -379,7 +412,8 @@ export function Gioco501Page() {
   // serve a far entrare tutto il tabellone nello schermo del telefono.
   const compatto = modoInput === "bersaglio";
   // Con una sola visita nello storico non c'e' ancora niente da annullare.
-  const puoAnnullare = chiusura != null || storia.length > 1;
+  const puoAnnullare =
+    chiusura != null || doppioMancato != null || storia.length > 1;
 
   return (
     <section className="gioco">
@@ -497,6 +531,35 @@ export function Gioco501Page() {
           <button
             className="bottone secondario piccolo"
             onClick={() => setChiusura(null)}
+          >
+            ↶ Annulla
+          </button>
+        </div>
+      ) : doppioMancato != null ? (
+        <div className="chiusura-frecce">
+          <h3>
+            {doppioMancato.punteggio === 0 && !doppioMancato.bust
+              ? "Niente. "
+              : `${doppioMancato.punteggio}. `}
+            Quante frecce al {doppioDiChiusura(rimanente)}?
+          </h3>
+          <div className="chiusura-scelte">
+            {[0, 1, 2, 3].map((n) => (
+              <button
+                key={n}
+                className="bottone"
+                onClick={() => confermaDoppioMancato(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <p className="mini">
+            Servono per la percentuale sui doppi. Se non ci hai mirato, zero.
+          </p>
+          <button
+            className="bottone secondario piccolo"
+            onClick={() => setDoppioMancato(null)}
           >
             ↶ Annulla
           </button>

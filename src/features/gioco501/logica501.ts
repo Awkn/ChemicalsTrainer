@@ -15,7 +15,13 @@
  */
 
 import type { Dardo } from "../../lib/bersaglio";
-import { contaDoppiVisita, unisciConti, type ContiDoppi } from "../../lib/doppi";
+import {
+  contaDoppiVisita,
+  doppioDiChiusura,
+  tentativiDichiarati,
+  unisciConti,
+  type ContiDoppi,
+} from "../../lib/doppi";
 
 /** I due posti al tavolo. Chi li occupa lo dice la configurazione. */
 export type Giocatore = "uno" | "due";
@@ -153,8 +159,18 @@ const centro = ([a, b]: [number, number]) => (a + b) / 2;
  * media di quello intero: il numero promesso regge sia che il bot vinca sia
  * che venga tagliato fuori a meta'.
  */
+/**
+ * Quanto vale una visita buttata, in frazione della media di tiro. Non zero:
+ * anche una visita storta di solito qualcosa porta a casa, e un bot che segna
+ * 0 due volte di fila a meta' leg non lo fa nessuno. Con un valore basso ma
+ * non nullo servono piu' visite storte per arrivare alla stessa media, il che
+ * e' anche piu' vicino al vero.
+ */
+const FRAZIONE_BUCA = 0.3;
+
 function quotaBuche(media: number, mediaTiro: number): number {
-  return Math.max(0, Math.round((1 - media / mediaTiro) * 1000) / 1000);
+  const q = (1 - media / mediaTiro) / (1 - FRAZIONE_BUCA);
+  return Math.max(0, Math.min(1, Math.round(q * 1000) / 1000));
 }
 
 /**
@@ -385,6 +401,12 @@ export interface TirataUmana {
   bust?: boolean;
   /** Dettaglio delle singole frecce, se l'input le conosce. */
   dardi?: Dardo[];
+  /**
+   * Frecce tirate al doppio, dichiarate a mano. Serve solo col tastierino,
+   * che il dettaglio per freccia non ce l'ha: senza, i doppi tentati e non
+   * chiusi non finirebbero da nessuna parte.
+   */
+  frecceAlDoppio?: number;
 }
 
 /** Statistiche accumulate su tutta la partita, per il recap finale. */
@@ -634,9 +656,11 @@ export function mossaBot(
     return preparazione(rimanente);
   }
 
-  if (buca) return 0;
-  const sd = Math.max(12, livello.mediaTiro * 0.32);
-  let s = totaleOttenibile(gauss(livello.mediaTiro, sd));
+  // Una visita storta vale poco, non niente: le tre frecce finiscono nei
+  // singoli bassi, non fuori dal tabellone.
+  const mira = buca ? livello.mediaTiro * FRAZIONE_BUCA : livello.mediaTiro;
+  const sd = buca ? mira * 0.45 : Math.max(12, mira * 0.32);
+  let s = totaleOttenibile(gauss(mira, sd));
   const maxSicuro = rimanente - 2; // non scendere sotto 2 (evita bust)
   if (s > maxSicuro) s = totaleOttenibile(Math.max(0, maxSicuro));
   return s;
@@ -646,6 +670,30 @@ interface EsitoApplica {
   leg: StatoLeg;
   stats: StatsGiocatore;
   chiuso: boolean;
+}
+
+interface DatiDoppi {
+  rimanentePrima: number;
+  modo: ModoChiusura;
+  dardi?: Dardo[];
+  frecceAlDoppio?: number;
+  chiuso: boolean;
+}
+
+/** Aggiorna i conteggi dei doppi con quello che l'input riesce a dire. */
+function contaDoppi(precedenti: ContiDoppi, d: DatiDoppi): ContiDoppi {
+  if (d.modo !== "double") return precedenti;
+  if (d.dardi) {
+    return unisciConti(precedenti, contaDoppiVisita(d.rimanentePrima, d.dardi));
+  }
+  // Solo partendo da un punteggio che si chiude con un doppio secco si sa a
+  // quale bersaglio attribuire i tentativi dichiarati.
+  const bersaglio = doppioDiChiusura(d.rimanentePrima);
+  if (bersaglio == null || d.frecceAlDoppio == null) return precedenti;
+  return unisciConti(
+    precedenti,
+    tentativiDichiarati(bersaglio, d.frecceAlDoppio, d.chiuso),
+  );
 }
 
 /**
@@ -664,6 +712,7 @@ function applicaVisita(
   modo: ModoChiusura,
   bustForzato = false,
   dardi?: Dardo[],
+  frecceAlDoppio?: number,
 ): EsitoApplica {
   const primo = giocatore === "uno";
   const rimanentePrima = rimanenteDi(leg, giocatore);
@@ -686,12 +735,17 @@ function applicaVisita(
     chkRiusciti: stats.chkRiusciti + (r.chiuso ? 1 : 0),
     highScore: !r.bust && punteggio > stats.highScore ? punteggio : stats.highScore,
     highFinish: r.chiuso && punteggio > stats.highFinish ? punteggio : stats.highFinish,
-    // I doppi si contano solo se si sa dove e' finita ogni freccia, e solo a
-    // uscita con doppio: con Master o uscita diretta non si mira per forza li'.
-    doppi:
-      dardi && modo === "double"
-        ? unisciConti(stats.doppi, contaDoppiVisita(rimanentePrima, dardi))
-        : stats.doppi,
+    // I doppi si contano solo a uscita con doppio: con Master o uscita diretta
+    // non si mira per forza li'. Col bersaglio si sa dove e' finita ogni
+    // freccia; col tastierino ci si accontenta di quante ne sono state
+    // dichiarate al doppio (vedi `tentativiDichiarati`).
+    doppi: contaDoppi(stats.doppi, {
+      rimanentePrima,
+      modo,
+      dardi,
+      frecceAlDoppio,
+      chiuso: r.chiuso,
+    }),
   };
 
   const nuovoLeg: StatoLeg = primo
@@ -796,6 +850,7 @@ export function giocaVisita(
     stato.config.chiusura,
     tirata.bust ?? false,
     tirata.dardi,
+    tirata.frecceAlDoppio,
   );
 
   if (res.chiuso) {

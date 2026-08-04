@@ -70,6 +70,25 @@ export function contaDoppiVisita(
   return conti;
 }
 
+/**
+ * Tentativi dichiarati a mano su un doppio, per chi gioca col tastierino.
+ * Li' del dettaglio per freccia non si sa niente: si chiede quante frecce sono
+ * andate al doppio e, se la visita ha chiuso, l'ultima e' quella buona.
+ *
+ * E' una stima: partendo da 32 e chiudendo in due frecce, magari la prima ha
+ * preso il singolo 16 e la seconda il D8. Il totale di tentativi e centri
+ * resta giusto, e sbagliata puo' essere solo l'attribuzione al bersaglio.
+ * Chi vuole il dato esatto gioca con l'input a bersaglio.
+ */
+export function tentativiDichiarati(
+  doppio: string,
+  frecce: number,
+  chiuso: boolean,
+): ContiDoppi {
+  if (frecce <= 0) return {};
+  return { [doppio]: { tentativi: frecce, colpiti: chiuso ? 1 : 0 } };
+}
+
 /** Somma due mappe di conteggi (per accumulare visita dopo visita). */
 export function unisciConti(a: ContiDoppi, b: ContiDoppi): ContiDoppi {
   const out: ContiDoppi = { ...a };

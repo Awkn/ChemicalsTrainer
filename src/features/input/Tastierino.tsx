@@ -91,11 +91,9 @@ export function Tastierino({ onInvia, onCambiaModo }: Props) {
         <button className="tast-btn" onClick={() => digita("00")}>
           00
         </button>
-        <button
-          className="tast-btn invia"
-          disabled={valore == null}
-          onClick={() => valore != null && invia(valore)}
-        >
+        {/* Sempre attivo: premerlo a vuoto vale "visita da zero", che e' il
+            caso piu' frequente di tutti e non deve costare un tocco in piu'. */}
+        <button className="tast-btn invia" onClick={() => invia(valore ?? 0)}>
           OK
         </button>
       </div>
