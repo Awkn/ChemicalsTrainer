@@ -1355,6 +1355,11 @@ textarea:focus {
   align-items: center;
   gap: 0.2rem;
   flex: 1;
+  /* Tutte larghe uguale qualunque cosa ci sia scritto dentro: le tacche fanno
+     da righello allo slider, e una parola lunga a un capo sposterebbe tutte
+     le altre. Il testo che non ci sta esce dal riquadro, e va bene: accanto
+     ai due estremi ci sono comunque tacche mute. */
+  min-width: 0;
   padding: 0.15rem 0;
   background: none;
   border: none;

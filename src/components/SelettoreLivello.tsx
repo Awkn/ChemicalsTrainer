@@ -4,6 +4,13 @@ export interface VoceLivello {
   nota: string;
 }
 
+/**
+ * Ai due capi della scala, al posto del numero, come li chiamerebbe uno della
+ * squadra. Nessun altro gradino ha un soprannome: sono questi due che si
+ * guardano prima di scegliere.
+ */
+const ESTREMI = { primo: "floscio", ultimo: "canna" };
+
 interface Props {
   livelli: VoceLivello[];
   /** Indice del livello scelto. */
@@ -71,7 +78,14 @@ export function SelettoreLivello({
           // toccherebbero, quindi restano decorative e se ne scrive una ogni
           // cinque, come su un righello.
           const numerata = fitte ? i === 0 || (i + 1) % 5 === 0 : true;
-          const etichetta = i === ultimo ? "💀" : numerata ? i + 1 : "";
+          const etichetta =
+            i === ultimo
+              ? ESTREMI.ultimo
+              : i === 0
+                ? ESTREMI.primo
+                : numerata
+                  ? i + 1
+                  : "";
           const classe = `livelli-tacca${i === indice ? " attiva" : ""}${
             numerata || i === ultimo ? "" : " muta"
           }`;
