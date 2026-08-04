@@ -1217,6 +1217,29 @@ textarea:focus {
   letter-spacing: 0.05em;
 }
 
+/* Formato e annulla condividono la cella di destra: cosi' il pulsante non
+   costa una riga in piu', che col bersaglio non ci sarebbe. */
+.gioco-testa-fine {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.gioco-testa-fine .mini {
+  text-align: right;
+  max-width: 7rem;
+}
+
+.annulla-visita {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.annulla-visita:disabled {
+  opacity: 0.3;
+}
+
 /* A set nell'intestazione ci sono due punteggi: i set grossi, i leg del set
    in corso sotto e piccoli. Impilati per non allargare la riga. */
 .gioco-punteggio {

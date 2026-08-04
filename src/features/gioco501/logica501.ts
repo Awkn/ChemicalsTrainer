@@ -722,6 +722,34 @@ export function avanzaLeg(stato: StatoPartita): StatoPartita {
   return { ...stato, numeroLeg: stato.numeroLeg + 1, leg };
 }
 
+/**
+ * Stato in cui la palla torna a chi gioca: o tocca a lui tirare, o il leg e'
+ * finito e deve decidere lui quando andare avanti. Sono i punti in cui ha
+ * senso fermarsi tornando indietro.
+ */
+function decideIlPrimo(stato: StatoPartita): boolean {
+  return stato.leg.vincitore != null || stato.leg.turno === "uno";
+}
+
+/**
+ * Fin dove riportare lo storico degli stati per annullare l'ultima visita
+ * (-1 se non c'e' niente da annullare).
+ *
+ * In due si torna indietro di una visita sola: il telefono e' in mano a chi ha
+ * appena segnato. Contro il bot no: togliere solo la sua tirata non servirebbe
+ * a niente, perche' la rigiocherebbe subito da solo. Si risale quindi fino al
+ * turno del giocatore, cioe' si annulla anche la propria visita precedente:
+ * 301-301 torna 401-401, e ripetendo si arriva al 501-501 di partenza.
+ */
+export function indiceAnnulla(storia: StatoPartita[]): number {
+  if (storia.length < 2) return -1;
+  let i = storia.length - 2;
+  if (storia[i].config.avversario === "bot") {
+    while (i > 0 && !decideIlPrimo(storia[i])) i--;
+  }
+  return i;
+}
+
 function arrotonda2(x: number): number {
   return Math.round(x * 100) / 100;
 }

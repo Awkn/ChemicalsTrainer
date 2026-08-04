@@ -19,6 +19,7 @@ import {
   creaPartita,
   giocaBot,
   giocaVisita,
+  indiceAnnulla,
   lancioMoneta,
   LIVELLI,
   media3,
@@ -47,7 +48,10 @@ export function Gioco501Page() {
     const mio = nomeGiocatore();
     return mio ? { ...base, nomi: [mio, base.nomi[1]] } : base;
   });
-  const [stato, setStato] = useState<StatoPartita | null>(null);
+  // Storico degli stati: l'ultimo e' quello corrente, i precedenti servono per
+  // tornare indietro. Il motore e' puro, quindi basta ripescare uno stato.
+  const [storia, setStoria] = useState<StatoPartita[]>([]);
+  const stato = storia.length > 0 ? storia[storia.length - 1] : null;
   // Tirata che chiude un leg, in attesa che l'utente indichi le frecce usate.
   const [chiusura, setChiusura] = useState<Tirata | null>(null);
   // Le statistiche della partita finita sono state salvate nell'esercizio 501.
@@ -66,7 +70,18 @@ export function Gioco501Page() {
     ) {
       return;
     }
-    const t = setTimeout(() => setStato((s) => (s ? giocaBot(s) : s)), 950);
+    const t = setTimeout(
+      () =>
+        setStoria((s) => {
+          const ultimo = s[s.length - 1];
+          if (!ultimo) return s;
+          const dopo = giocaBot(ultimo);
+          // Se non tocca a lui `giocaBot` restituisce lo stato invariato: senza
+          // questo controllo lo storico si riempirebbe di doppioni.
+          return dopo === ultimo ? s : [...s, dopo];
+        }),
+      950,
+    );
     return () => clearTimeout(t);
   }, [fase, stato]);
 
@@ -109,9 +124,30 @@ export function Gioco501Page() {
     };
   }, [stato, salvato]);
 
+  /** Aggiunge uno stato in coda: da qui in poi e' lui quello corrente. */
+  function spingi(nuovo: StatoPartita) {
+    setStoria((s) => (s[s.length - 1] === nuovo ? s : [...s, nuovo]));
+  }
+
+  /**
+   * Torna indietro di una visita (di due contro il bot: vedi `indiceAnnulla`).
+   * Col prompt delle frecce aperto la visita non e' ancora stata applicata,
+   * quindi basta richiudere la domanda.
+   */
+  function annulla() {
+    if (chiusura) {
+      setChiusura(null);
+      return;
+    }
+    setStoria((s) => {
+      const i = indiceAnnulla(s);
+      return i < 0 ? s : s.slice(0, i + 1);
+    });
+  }
+
   function avvia() {
     const primo = lancioMoneta();
-    setStato(creaPartita(config, primo));
+    setStoria([creaPartita(config, primo)]);
     setChiusura(null);
     setSalvato(false);
     setFase("moneta");
@@ -120,7 +156,7 @@ export function Gioco501Page() {
   function rivincita() {
     if (!stato) return;
     const primo = lancioMoneta();
-    setStato(creaPartita(stato.config, primo));
+    setStoria([creaPartita(stato.config, primo)]);
     setChiusura(null);
     setSalvato(false);
     setFase("moneta");
@@ -134,7 +170,7 @@ export function Gioco501Page() {
     if (!stato) return;
     const di = stato.leg.turno;
     if (t.bust) {
-      setStato(giocaVisita(stato, di, t));
+      spingi(giocaVisita(stato, di, t));
       return;
     }
     const chiude = risultatoVisita(
@@ -145,13 +181,13 @@ export function Gioco501Page() {
     if (chiude && t.frecce == null) {
       setChiusura(t);
     } else {
-      setStato(giocaVisita(stato, di, t));
+      spingi(giocaVisita(stato, di, t));
     }
   }
 
   function confermaChiusura(frecce: number) {
     if (!stato || !chiusura) return;
-    setStato(giocaVisita(stato, stato.leg.turno, { ...chiusura, frecce }));
+    spingi(giocaVisita(stato, stato.leg.turno, { ...chiusura, frecce }));
     setChiusura(null);
   }
 
@@ -220,6 +256,8 @@ export function Gioco501Page() {
   // Col bersaglio i pannelli diventano una riga sola: l'altezza risparmiata
   // serve a far entrare tutto il tabellone nello schermo del telefono.
   const compatto = modoInput === "bersaglio";
+  // Con una sola visita nello storico non c'e' ancora niente da annullare.
+  const puoAnnullare = chiusura != null || storia.length > 1;
 
   return (
     <section className="gioco">
@@ -238,7 +276,24 @@ export function Gioco501Page() {
             </span>
           )}
         </span>
-        <span className="mini">{nomeFormato(stato.config)}</span>
+        <span className="gioco-testa-fine">
+          <span className="mini">{nomeFormato(stato.config)}</span>
+          {/* In alto a destra, lontano dai pulsanti che si premono in
+              continuazione: annullare per sbaglio sarebbe peggio del male. */}
+          <button
+            className="icona-btn annulla-visita"
+            onClick={annulla}
+            disabled={!puoAnnullare}
+            aria-label="Annulla l'ultima visita"
+            title={
+              controBot
+                ? "Annulla l'ultima visita (la tua e la risposta del bot)"
+                : "Annulla l'ultima visita"
+            }
+          >
+            ↶
+          </button>
+        </span>
       </div>
 
       {compatto ? (
@@ -298,7 +353,7 @@ export function Gioco501Page() {
           )}
           <button
             className="bottone bottone-largo"
-            onClick={() => setStato(avanzaLeg(stato))}
+            onClick={() => spingi(avanzaLeg(stato))}
           >
             {setChiuso ? "Prossimo set" : "Prossimo leg"}
           </button>
