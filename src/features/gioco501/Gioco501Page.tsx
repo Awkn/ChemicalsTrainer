@@ -14,6 +14,13 @@ import { nomeGiocatore } from "../../lib/giocatore";
 import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
 import { registraDoppi } from "../../lib/doppiStorico";
 import { salvaPartita } from "../../lib/partite";
+import { InvitoRipresa } from "../../components/InvitoRipresa";
+import {
+  leggiRipresa,
+  salvaRipresa,
+  scartaRipresa,
+  type Ripresa,
+} from "../../lib/ripresa";
 import {
   aSet,
   avanzaLeg,
@@ -28,6 +35,7 @@ import {
   media3,
   mediaFirst9,
   nomeFormato,
+  descrizioneInCorso,
   nomiVisualizzati,
   riepilogoPartita,
   rimanenteDi,
@@ -56,6 +64,22 @@ const FORMATO_PROGRAMMA: Pick<
   unita: "legs",
 };
 
+/** Chiave sotto cui vive la partita 501 lasciata a meta'. */
+const RIPRESA_501 = "501";
+
+/**
+ * Quanti stati si portano dietro nella copia di sicurezza. Servono per
+ * l'annulla: tenerli tutti vorrebbe dire riscrivere centinaia di kilobyte a
+ * ogni visita, venticinque bastano per tornare indietro parecchio.
+ */
+const STATI_CONSERVATI = 25;
+
+interface DatiRipresa501 {
+  storia: StatoPartita[];
+  /** Esercizio su cui scrivere il risultato, se la partita nasce dal programma. */
+  esercizioId?: string;
+}
+
 type Fase = "setup" | "moneta" | "gioco";
 
 export function Gioco501Page() {
@@ -82,6 +106,19 @@ export function Gioco501Page() {
   const [chiusura, setChiusura] = useState<Tirata | null>(null);
   // Le statistiche della partita finita sono state salvate nell'esercizio 501.
   const [salvato, setSalvato] = useState(false);
+  /**
+   * Esercizio della partita in corso. Di norma e' quello della rotta, ma
+   * riprendendo una partita interrotta e' quello con cui era iniziata: si puo'
+   * riprendere da Giochi → 501 una partita nata dal programma, e il risultato
+   * deve tornare comunque all'esercizio giusto.
+   */
+  const [esercizioPartita, setEsercizioPartita] = useState<string | undefined>(
+    esercizioId,
+  );
+  // Partita lasciata a meta', letta una volta sola all'apertura.
+  const [ripresa, setRipresa] = useState<Ripresa<DatiRipresa501> | null>(() =>
+    leggiRipresa<DatiRipresa501>(RIPRESA_501),
+  );
 
   // Il bot gioca da solo quando e' il suo turno. Giocando in due non tocca a
   // nessuno tirare al posto di qualcun altro.
@@ -111,6 +148,21 @@ export function Gioco501Page() {
     return () => clearTimeout(t);
   }, [fase, stato]);
 
+  // Copia di sicurezza a ogni visita: se il sistema chiude la PWA (basta
+  // passare a un'altra app per qualche minuto) la partita si ritrova. A
+  // partita finita non c'e' piu' niente da riprendere e la copia si butta.
+  useEffect(() => {
+    if (fase !== "gioco" || !stato) return;
+    if (stato.vincitore) {
+      scartaRipresa(RIPRESA_501);
+      return;
+    }
+    salvaRipresa<DatiRipresa501>(RIPRESA_501, descrizioneInCorso(stato), {
+      storia: storia.slice(-STATI_CONSERVATI),
+      esercizioId: esercizioPartita,
+    });
+  }, [fase, stato, storia, esercizioPartita]);
+
   // A partita finita archivia la partita intera (per riaprirne il recap) e
   // salva le statistiche del GIOCATORE 1 nell'esercizio 501, una volta sola:
   // finiscono nei Progressi e, tramite la sincronizzazione, sulla bacheca.
@@ -135,8 +187,8 @@ export function Gioco501Page() {
       const es =
         stato.statsUno.frecce === 0
           ? undefined
-          : esercizioId
-            ? await db.esercizi.get(esercizioId)
+          : esercizioPartita
+            ? await db.esercizi.get(esercizioPartita)
             : await db.esercizi.where("nome").equals(NOME_ESERCIZIO_501).first();
       if (es && !annullato) {
         const valori: Record<string, number> = {
@@ -159,7 +211,7 @@ export function Gioco501Page() {
     return () => {
       annullato = true;
     };
-  }, [stato, salvato]);
+  }, [stato, salvato, esercizioPartita]);
 
   /** Aggiunge uno stato in coda: da qui in poi e' lui quello corrente. */
   function spingi(nuovo: StatoPartita) {
@@ -187,7 +239,27 @@ export function Gioco501Page() {
     setStoria([creaPartita(config, primo)]);
     setChiusura(null);
     setSalvato(false);
+    setEsercizioPartita(esercizioId);
+    // Iniziandone una nuova, quella lasciata a meta' non serve piu'.
+    setRipresa(null);
+    scartaRipresa(RIPRESA_501);
     setFase("moneta");
+  }
+
+  /** Riparte dalla partita interrotta, con la sua configurazione e il suo esercizio. */
+  function riprendi() {
+    if (!ripresa || ripresa.dati.storia.length === 0) return;
+    setStoria(ripresa.dati.storia);
+    setEsercizioPartita(ripresa.dati.esercizioId);
+    setChiusura(null);
+    setSalvato(false);
+    setRipresa(null);
+    setFase("gioco");
+  }
+
+  function scartaLaRipresa() {
+    setRipresa(null);
+    scartaRipresa(RIPRESA_501);
   }
 
   function rivincita() {
@@ -230,10 +302,21 @@ export function Gioco501Page() {
 
   // ---------- SETUP ----------
   if (fase === "setup") {
-    return daProgramma ? (
-      <AvvioProgramma config={config} onChange={setConfig} onAvvia={avvia} />
-    ) : (
-      <Impostazioni501 config={config} onChange={setConfig} onAvvia={avvia} />
+    return (
+      <>
+        {ripresa && (
+          <InvitoRipresa
+            ripresa={ripresa}
+            onRiprendi={riprendi}
+            onScarta={scartaLaRipresa}
+          />
+        )}
+        {daProgramma ? (
+          <AvvioProgramma config={config} onChange={setConfig} onAvvia={avvia} />
+        ) : (
+          <Impostazioni501 config={config} onChange={setConfig} onAvvia={avvia} />
+        )}
+      </>
     );
   }
 

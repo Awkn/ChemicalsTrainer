@@ -45,10 +45,16 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<OggiPage />} />
         <Route path="giochi" element={<GiochiPage />} />
-        <Route path="501" element={<Gioco501Page />} />
+        {/* Le due rotte montano lo stesso componente: senza `key` React ne
+            riuserebbe l'istanza passando dall'una all'altra, e la partita
+            partirebbe con la configurazione della rotta precedente. */}
+        <Route path="501" element={<Gioco501Page key="501-libero" />} />
         {/* Stessa pagina, ma legata a un esercizio: formato gia' deciso e
             risultato scritto su quell'esercizio a fine partita. */}
-        <Route path="gioco/g501/:esercizioId" element={<Gioco501Page />} />
+        <Route
+          path="gioco/g501/:esercizioId"
+          element={<Gioco501Page key="501-programma" />}
+        />
         <Route path="progressi" element={<ProgressiPage />} />
         <Route path="obiettivi" element={<SogliePage />} />
         <Route

@@ -1040,6 +1040,35 @@ textarea:focus {
   gap: 0.5rem;
 }
 
+/* ---------- partita da riprendere ---------- */
+
+.ripresa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  /* Bordo acceso: e' un invito, non una riga qualsiasi della schermata. */
+  border-color: var(--accento);
+  background: color-mix(in srgb, var(--accento) 12%, var(--bg-2));
+}
+
+.ripresa-testi {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ripresa-testi .mini {
+  margin: 0.1rem 0 0;
+}
+
+.ripresa-azioni {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 /* ---------- archivio delle partite ---------- */
 
 /* Scheda che fa da collegamento: sembra una scheda, si comporta da link. */

@@ -832,6 +832,20 @@ export function peggiorLeg(s: StatsGiocatore): number | null {
   return s.frecceLegVinti.length ? Math.max(...s.frecceLegVinti) : null;
 }
 
+/** Riga di sintesi di una partita a meta', per l'invito a riprenderla. */
+export function descrizioneInCorso(stato: StatoPartita): string {
+  const nomi = nomiVisualizzati(stato.config);
+  const conSet = aSet(stato.config);
+  const uno = conSet ? stato.setUno : stato.legUno;
+  const due = conSet ? stato.setDue : stato.legDue;
+  const dove = conSet
+    ? `set ${stato.numeroSet}, leg ${stato.numeroLeg}`
+    : `leg ${stato.numeroLeg}`;
+  // Anche il rimanente: a inizio partita il punteggio dei leg e' 0 — 0 e da
+  // solo non direbbe niente su dove si era arrivati.
+  return `${nomi[0]} ${uno} — ${due} ${nomi[1]} · ${dove} · ${stato.leg.puntiUno}-${stato.leg.puntiDue}`;
+}
+
 export interface RiepilogoPartita {
   /** "Tu 3 — 1 Bot", gia' pronto da mostrare in una lista. */
   titolo: string;

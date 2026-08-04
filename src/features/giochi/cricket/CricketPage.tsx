@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { InvitoRipresa } from "../../../components/InvitoRipresa";
 import { SelettoreLivello } from "../../../components/SelettoreLivello";
+import {
+  leggiRipresa,
+  salvaRipresa,
+  scartaRipresa,
+  type Ripresa,
+} from "../../../lib/ripresa";
 import { InputBersaglio } from "../../input/InputBersaglio";
 import type { Tirata } from "../../input/tirata";
 import { usaVerticale } from "../../../lib/orientamento";
@@ -26,9 +33,15 @@ import {
  * Serve per forza l'input a bersaglio, perche' qui conta dove finisce ogni
  * freccia e non il totale della visita.
  */
+/** Chiave sotto cui vive la partita di Cricket lasciata a meta'. */
+const RIPRESA_CRICKET = "cricket";
+
 export default function CricketPage() {
   const navigate = useNavigate();
   const esci = usaUscitaGioco();
+  const [ripresa, setRipresa] = useState<Ripresa<StatoCricket> | null>(() =>
+    leggiRipresa<StatoCricket>(RIPRESA_CRICKET),
+  );
   const [config, setConfig] = useState<ConfigCricket>({
     punteggio: "classico",
     bot: LIVELLI_CRICKET[1],
@@ -48,8 +61,32 @@ export default function CricketPage() {
     return () => clearTimeout(t);
   }, [stato]);
 
+  // Copia di sicurezza a ogni visita: se il sistema chiude la PWA la partita
+  // si ritrova. A partita finita non c'e' piu' niente da riprendere.
+  useEffect(() => {
+    if (!stato) return;
+    if (stato.vincitore != null) {
+      scartaRipresa(RIPRESA_CRICKET);
+      return;
+    }
+    const [a, b] = stato.giocatori;
+    salvaRipresa(
+      RIPRESA_CRICKET,
+      `${a.nome} ${a.punti} — ${b.punti} ${b.nome}`,
+      stato,
+    );
+  }, [stato]);
+
   function avvia() {
+    setRipresa(null);
+    scartaRipresa(RIPRESA_CRICKET);
     setStato(creaPartita(config));
+  }
+
+  function riprendi() {
+    if (!ripresa) return;
+    setStato(ripresa.dati);
+    setRipresa(null);
   }
 
   function invia(t: Tirata) {
@@ -60,7 +97,19 @@ export default function CricketPage() {
   // ---------- SETUP ----------
   if (!stato) {
     return (
-      <Setup config={config} onChange={setConfig} onAvvia={avvia} />
+      <>
+        {ripresa && (
+          <InvitoRipresa
+            ripresa={ripresa}
+            onRiprendi={riprendi}
+            onScarta={() => {
+              setRipresa(null);
+              scartaRipresa(RIPRESA_CRICKET);
+            }}
+          />
+        )}
+        <Setup config={config} onChange={setConfig} onAvvia={avvia} />
+      </>
     );
   }
 
