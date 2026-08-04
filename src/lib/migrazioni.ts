@@ -197,6 +197,37 @@ async function completaObiettivi(): Promise<void> {
   }
 }
 
+/**
+ * Rende giocabile "501 contro il computer": prima si giocava altrove (la
+ * descrizione mandava a DartCounter) e qui si trascrivevano i numeri a mano.
+ * Ora la partita si gioca nell'app e il risultato si scrive da solo, quindi
+ * si aggiorna anche il testo — ma solo se e' rimasto quello originale, per
+ * non calpestare le note di chi l'ha riscritto a modo suo.
+ */
+const DESCRIZIONE_501_VECCHIA =
+  "Best of 11 (oppure Best of 9) con DartCounter.\nLivello leggermente sopra la tua media.\nDopo ogni partita annota: media, first 9, checkout %, doppio peggiore, doppio migliore.";
+const DESCRIZIONE_501_NUOVA =
+  "Partita al meglio di 11 leg contro il bot.\nScegli un livello leggermente sopra la tua media.\nMedia, first 9, checkout % e doppi si registrano da soli a fine partita.";
+
+async function collegaGioco501(): Promise<void> {
+  const esercizi = await db.esercizi
+    .where("nome")
+    .equals("501 contro il computer")
+    .toArray();
+  for (const e of esercizi) {
+    const modifiche: { gioco?: GiocoId; descrizione?: string; obiettivo?: string } =
+      {};
+    if (e.gioco == null) modifiche.gioco = "g501";
+    if (e.descrizione === DESCRIZIONE_501_VECCHIA) {
+      modifiche.descrizione = DESCRIZIONE_501_NUOVA;
+      modifiche.obiettivo = "Gioca la partita e batti il bot";
+    }
+    if (Object.keys(modifiche).length > 0) {
+      await db.esercizi.update(e.id, modifiche);
+    }
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
@@ -207,6 +238,7 @@ const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 7, esegui: aggiungiRecord121 },
   { versione: 8, esegui: aggiungiDoppi501 },
   { versione: 9, esegui: completaObiettivi },
+  { versione: 10, esegui: collegaGioco501 },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {

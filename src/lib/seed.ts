@@ -180,8 +180,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Partita",
     durataMin: 45,
     descrizione:
-      "Best of 11 (oppure Best of 9) con DartCounter.\nLivello leggermente sopra la tua media.\nDopo ogni partita annota: media, first 9, checkout %, doppio peggiore, doppio migliore.",
-    obiettivo: "Annota le statistiche di partita",
+      "Partita al meglio di 11 leg contro il bot.\nScegli un livello leggermente sopra la tua media.\nMedia, first 9, checkout % e doppi si registrano da soli a fine partita.",
+    obiettivo: "Gioca la partita e batti il bot",
+    gioco: "g501",
     metriche: [
       { id: "media", nome: "Media 3 dart", unita: "punti" },
       { id: "first9", nome: "First 9", unita: "punti" },

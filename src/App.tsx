@@ -46,6 +46,9 @@ export function App() {
         <Route index element={<OggiPage />} />
         <Route path="giochi" element={<GiochiPage />} />
         <Route path="501" element={<Gioco501Page />} />
+        {/* Stessa pagina, ma legata a un esercizio: formato gia' deciso e
+            risultato scritto su quell'esercizio a fine partita. */}
+        <Route path="gioco/g501/:esercizioId" element={<Gioco501Page />} />
         <Route path="progressi" element={<ProgressiPage />} />
         <Route path="obiettivi" element={<SogliePage />} />
         <Route

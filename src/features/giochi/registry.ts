@@ -12,6 +12,7 @@ export const GIOCHI: Record<GiocoId, { titolo: string }> = {
   ladder: { titolo: "Doubles Ladder" },
   pressuredoubles: { titolo: "Pressure Doubles" },
   co61100: { titolo: "61-100 Checkouts" },
+  g501: { titolo: "501 contro il computer" },
 };
 
 /** Percorso della schermata di gioco per un dato esercizio. */
@@ -23,7 +24,12 @@ export function percorsoGioco(gioco: GiocoId, esercizioId: string): string {
  * Giochi lanciabili direttamente dalla sezione Esercizi (senza programma).
  * I due giochi "a oltranza" partono in versione sfida a numero chiuso.
  */
-export const GIOCHI_DA_ESERCIZI = new Set<GiocoId>(["co121", "bob27", "co61100"]);
+export const GIOCHI_DA_ESERCIZI = new Set<GiocoId>([
+  "co121",
+  "bob27",
+  "co61100",
+  "g501",
+]);
 
 /** True se l'esercizio-gioco puo' essere avviato dalla sezione Esercizi. */
 export function giocabileDaEsercizi(gioco: GiocoId): boolean {

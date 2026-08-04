@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { AvvioProgramma } from "./AvvioProgramma";
 import { InputTirata } from "../input/InputTirata";
 import { usaModoInput } from "../input/preferenza";
 import type { Tirata } from "../input/tirata";
@@ -39,16 +41,38 @@ import {
 /** Esercizio di libreria su cui salvare le statistiche del 501. */
 const NOME_ESERCIZIO_501 = "501 contro il computer";
 
+/**
+ * Formato della partita quando il 501 parte da un esercizio del programma: la
+ * serata di match si gioca al meglio di 11 leg, e non c'e' niente da scegliere
+ * a parte l'avversario. Per una partita su misura si passa da Giochi → 501.
+ */
+const FORMATO_PROGRAMMA: Pick<
+  ConfigPartita,
+  "avversario" | "formato" | "numero" | "unita"
+> = {
+  avversario: "bot",
+  formato: "bestof",
+  numero: 11,
+  unita: "legs",
+};
+
 type Fase = "setup" | "moneta" | "gioco";
 
 export function Gioco501Page() {
   const modoInput = usaModoInput();
+  // Presente solo quando si arriva da un esercizio: dice anche su quale
+  // esercizio scrivere il risultato, senza doverlo cercare per nome.
+  const { esercizioId } = useParams<{ esercizioId?: string }>();
+  const daProgramma = esercizioId != null;
   const [fase, setFase] = useState<Fase>("setup");
   const [config, setConfig] = useState<ConfigPartita>(() => {
     const base = configPredefinita(LIVELLO_PREDEFINITO);
     // Chi ha gia' un nome sulla bacheca non deve riscriverlo per giocare in due.
     const mio = nomeGiocatore();
-    return mio ? { ...base, nomi: [mio, base.nomi[1]] } : base;
+    const conNome: ConfigPartita = mio
+      ? { ...base, nomi: [mio, base.nomi[1]] }
+      : base;
+    return daProgramma ? { ...conNome, ...FORMATO_PROGRAMMA } : conNome;
   });
   // Storico degli stati: l'ultimo e' quello corrente, i precedenti servono per
   // tornare indietro. Il motore e' puro, quindi basta ripescare uno stato.
@@ -106,11 +130,14 @@ export function Gioco501Page() {
       });
 
       // Senza una freccia tirata non c'e' niente da misurare: la partita resta
-      // in archivio ma non sporca i Progressi con degli zeri.
+      // in archivio ma non sporca i Progressi con degli zeri. Arrivando da un
+      // esercizio si scrive su quello, altrimenti si cerca il 501 di libreria.
       const es =
         stato.statsUno.frecce === 0
           ? undefined
-          : await db.esercizi.where("nome").equals(NOME_ESERCIZIO_501).first();
+          : esercizioId
+            ? await db.esercizi.get(esercizioId)
+            : await db.esercizi.where("nome").equals(NOME_ESERCIZIO_501).first();
       if (es && !annullato) {
         const valori: Record<string, number> = {
           media: media3(stato.statsUno),
@@ -203,7 +230,9 @@ export function Gioco501Page() {
 
   // ---------- SETUP ----------
   if (fase === "setup") {
-    return (
+    return daProgramma ? (
+      <AvvioProgramma config={config} onChange={setConfig} onAvvia={avvia} />
+    ) : (
       <Impostazioni501 config={config} onChange={setConfig} onAvvia={avvia} />
     );
   }

@@ -52,7 +52,8 @@ export type GiocoId =
   | "atc"
   | "ladder"
   | "pressuredoubles"
-  | "co61100";
+  | "co61100"
+  | "g501";
 
 /**
  * Definizione di una metrica misurabile per un esercizio (es. "Punteggio",

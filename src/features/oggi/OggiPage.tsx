@@ -113,7 +113,7 @@ export function OggiPage() {
                   className="bottone piccolo compito-registra"
                   to={percorsoGioco(esercizio.gioco, esercizio.id)}
                 >
-                  ▶ Inizia
+                  ▶ Gioca ora
                 </Link>
               ) : soloCompletamento(esercizio) ? (
                 <button
