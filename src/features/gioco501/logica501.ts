@@ -53,20 +53,20 @@ export interface Livello {
  * gradini della scala, sia il bot che imita la media di un compagno. Una sola
  * curva, cosi' due bot con la stessa media giocano davvero allo stesso modo.
  *
- * `p` e' la probabilita' di chiudere in una visita avendo il checkout a tiro:
- * per un principiante circa una volta su dieci, per un fenomeno piu' di una
- * su due.
+ * `p` e' la probabilita' di chiudere in una VISITA (tre frecce) avendo il
+ * checkout a tiro, non in una singola freccia: un principiante che prende il
+ * doppio una volta su dieci per freccia lo prende una volta su tre per visita.
  */
 const ANCORE = [
-  { m: 20, p: 0.1, c: 32 },
-  { m: 30, p: 0.14, c: 40 },
-  { m: 40, p: 0.18, c: 50 },
-  { m: 55, p: 0.25, c: 80 },
-  { m: 65, p: 0.32, c: 110 },
-  { m: 80, p: 0.42, c: 140 },
-  { m: 95, p: 0.52, c: 170 },
-  { m: 110, p: 0.62, c: 170 },
-  { m: 140, p: 0.75, c: 170 },
+  { m: 20, p: 0.36, c: 32 },
+  { m: 30, p: 0.46, c: 40 },
+  { m: 40, p: 0.56, c: 50 },
+  { m: 55, p: 0.64, c: 80 },
+  { m: 65, p: 0.67, c: 110 },
+  { m: 80, p: 0.7, c: 140 },
+  { m: 95, p: 0.73, c: 170 },
+  { m: 110, p: 0.76, c: 170 },
+  { m: 140, p: 0.82, c: 170 },
 ];
 
 /** Probabilita' e cap di chiusura per una media qualsiasi, interpolati. */
@@ -96,10 +96,25 @@ const LEG_TIPO = 501;
 const QUOTA_INGRESSO = 0.6;
 
 /**
+ * Scarto ammesso fra la media promessa dal livello e quella che il bot mostra
+ * davvero a fine partita: ±8%.
+ */
+export const SCARTO_MEDIA = 0.08;
+
+/**
  * Ricava la media dei tiri dalla media promessa. Il leg si divide in due: le
- * visite in cui si segna e quelle passate sul doppio, che valgono zero e sono
- * in media `1 / pCheckout`. Le prime devono coprire tutto il percorso, quindi
- * vanno tirate piu' su di quanto dice la media finale.
+ * visite in cui si segna e quelle passate sul doppio senza chiuderlo, che
+ * valgono zero e sono in media `1 / pCheckout - 1`. Le prime devono coprire
+ * tutto il percorso, quindi vanno tirate un po' piu' su della media finale.
+ *
+ * Il margine va tenuto stretto, e non per eleganza: se l'avversario chiude il
+ * leg per primo, le visite sul doppio il bot non le paga e a video resta solo
+ * la fase di scoring. Piu' i due numeri divergono, piu' la media mostrata a
+ * fine partita dipende da chi ha vinto invece che dal livello scelto.
+ *
+ * Il tetto e' quindi meta' dello scarto ammesso: il leg finito sta sotto la
+ * promessa, quello troncato sopra, e la forbice cade a cavallo del numero
+ * promesso invece di appoggiarcisi tutta sopra.
  */
 function mediaTiroPerMedia(
   media: number,
@@ -111,7 +126,9 @@ function mediaTiroPerMedia(
   // Almeno una visita a punti: senza, non si partirebbe nemmeno da 501.
   const visiteAPunti = Math.max(1, visiteTotali - visiteSulDoppio);
   const daSegnare = LEG_TIPO - capCheckout * QUOTA_INGRESSO;
-  return Math.round((daSegnare / visiteAPunti) * 10) / 10;
+  const grezza = daSegnare / visiteAPunti;
+  const tetto = media * (1 + SCARTO_MEDIA / 2);
+  return Math.round(Math.min(grezza, tetto) * 10) / 10;
 }
 
 /** Livello completo a partire dalla sola media promessa. */
