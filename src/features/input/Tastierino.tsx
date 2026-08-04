@@ -44,6 +44,8 @@ export function Tastierino({ onInvia, onCambiaModo }: Props) {
 
   return (
     <div className="tastierino">
+      {/* Cambio input, punteggio e invio su una riga sola: l'invio finisce
+          all'altezza del pollice invece che in fondo alla griglia. */}
       <div className="tast-display">
         {onCambiaModo && (
           <button
@@ -58,15 +60,9 @@ export function Tastierino({ onInvia, onCambiaModo }: Props) {
         <span className={valore == null ? "placeholder" : ""}>
           {valore == null ? "punteggio tirata" : valore}
         </span>
-        {testo !== "" && (
-          <button
-            className="icona-btn mini-btn"
-            onClick={() => setTesto((prec) => prec.slice(0, -1))}
-            aria-label="Cancella"
-          >
-            ⌫
-          </button>
-        )}
+        <button className="tast-invia" onClick={() => invia(valore ?? 0)}>
+          Invia
+        </button>
       </div>
 
       {errore && <p className="esito-ko">⚠️ {errore}</p>}
@@ -85,16 +81,21 @@ export function Tastierino({ onInvia, onCambiaModo }: Props) {
             {d}
           </button>
         ))}
-        <button className="tast-btn" onClick={() => digita("0")}>
-          0
-        </button>
         <button className="tast-btn" onClick={() => digita("00")}>
           00
         </button>
-        {/* Sempre attivo: premerlo a vuoto vale "visita da zero", che e' il
-            caso piu' frequente di tutti e non deve costare un tocco in piu'. */}
-        <button className="tast-btn invia" onClick={() => invia(valore ?? 0)}>
-          OK
+        <button className="tast-btn" onClick={() => digita("0")}>
+          0
+        </button>
+        {/* La cancellazione sta qui e non nel display: li' compariva e
+            spariva col testo, facendo saltare la riga a ogni cifra. */}
+        <button
+          className="tast-btn"
+          onClick={() => setTesto((prec) => prec.slice(0, -1))}
+          disabled={testo === ""}
+          aria-label="Cancella l'ultima cifra"
+        >
+          ⌫
         </button>
       </div>
     </div>

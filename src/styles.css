@@ -139,6 +139,18 @@ a {
   padding-bottom: 5.5rem;
 }
 
+/* Schermo pieno: via le due barre, e il contenuto arriva ai bordi. Sono un
+   centinaio di pixel, che sul telefono decidono se il tasto di invio sta
+   sotto il pollice o va cercato scorrendo. */
+.app.schermo-pieno > .app-header,
+.app.schermo-pieno > .app-nav {
+  display: none;
+}
+
+.app.schermo-pieno > .app-main {
+  padding: 0.75rem 0.9rem calc(0.75rem + env(safe-area-inset-bottom));
+}
+
 .app-nav {
   position: fixed;
   bottom: 0;
@@ -1474,7 +1486,14 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Uscita e indicazione del leg, appaiate a sinistra. */
+.gioco-testa-inizio {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .leg-score {
@@ -1717,14 +1736,22 @@ textarea:focus {
   background: var(--bg-3);
 }
 
-.tast-btn.invia {
-  background: var(--accento);
-  border-color: var(--accento);
-  color: white;
+/* Invio dentro la riga del punteggio, non in fondo alla griglia: e' il tasto
+   che si preme a ogni visita e deve stare dove sta gia' il pollice. */
+.tast-invia {
+  flex: 0 0 auto;
+  background: var(--ok);
+  border: none;
+  color: #06210f;
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.tast-btn.invia:disabled {
-  opacity: 0.4;
+.tast-btn:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 

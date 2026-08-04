@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { PromemoriaBackup } from "../features/backup/PromemoriaBackup";
 import { usaSchermoAcceso } from "../lib/schermoAcceso";
+import { usaSchermoPieno } from "../lib/schermoPieno";
 
 /**
  * Rotte durante le quali lo schermo non deve spegnersi. Sta qui, e non nelle
@@ -42,9 +43,12 @@ export function Layout() {
   useEffect(() => setMenuAperto(false), [posizione.pathname]);
 
   usaSchermoAcceso(inPartita(posizione.pathname));
+  // A schermo pieno la pagina si prende anche lo spazio delle due barre: e'
+  // la partita a chiederlo, e a offrire la propria via d'uscita.
+  const pieno = usaSchermoPieno();
 
   return (
-    <div className="app">
+    <div className={pieno ? "app schermo-pieno" : "app"}>
       <header className="app-header">
         <h1>
           <img className="logo" src={logo} alt="" /> Chemicals Darts
@@ -73,7 +77,7 @@ export function Layout() {
       )}
 
       <main className="app-main">
-        <PromemoriaBackup />
+        {!pieno && <PromemoriaBackup />}
         <Outlet />
       </main>
 

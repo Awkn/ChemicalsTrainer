@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { usaTieniSchermoPieno } from "../../lib/schermoPieno";
 import { AvvioProgramma } from "./AvvioProgramma";
 import { InputTirata } from "../input/InputTirata";
 import { usaModoInput } from "../input/preferenza";
@@ -88,6 +89,7 @@ export function Gioco501Page() {
   // esercizio scrivere il risultato, senza doverlo cercare per nome.
   const { esercizioId } = useParams<{ esercizioId?: string }>();
   const daProgramma = esercizioId != null;
+  const navigate = useNavigate();
   const [fase, setFase] = useState<Fase>("setup");
   const [config, setConfig] = useState<ConfigPartita>(() => {
     const base = configPredefinita(LIVELLO_PREDEFINITO);
@@ -123,6 +125,12 @@ export function Gioco501Page() {
   const [ripresa, setRipresa] = useState<Ripresa<DatiRipresa501> | null>(() =>
     leggiRipresa<DatiRipresa501>(RIPRESA_501),
   );
+
+  // Solo a partita in corso: nelle impostazioni e nel recap le barre servono.
+  usaTieniSchermoPieno(fase === "gioco");
+
+  /** Uscita dalla partita: la copia di sicurezza la conserva, si riprende dopo. */
+  const dovePosso = daProgramma ? "/" : "/giochi";
 
   // Il bot gioca da solo quando e' il suo turno. Giocando in due non tocca a
   // nessuno tirare al posto di qualcun altro.
@@ -418,8 +426,23 @@ export function Gioco501Page() {
   return (
     <section className="gioco">
       <div className="gioco-testa">
-        <span className="mini">
-          {conSet ? `Set ${stato.numeroSet} · Leg ${stato.numeroLeg}` : `Leg ${stato.numeroLeg}`}
+        <span className="gioco-testa-inizio">
+          {/* Senza la barra in basso questa e' l'unica via d'uscita. La
+              partita resta nella copia di sicurezza: si riprende quando si
+              vuole, quindi non si chiede conferma. */}
+          <button
+            className="icona-btn"
+            aria-label="Esci dalla partita"
+            title="Esci: la partita resta e la riprendi quando vuoi"
+            onClick={() => navigate(dovePosso)}
+          >
+            ←
+          </button>
+          <span className="mini">
+            {conSet
+              ? `Set ${stato.numeroSet} · Leg ${stato.numeroLeg}`
+              : `Leg ${stato.numeroLeg}`}
+          </span>
         </span>
         <span className="gioco-punteggio">
           <span className="leg-score">
