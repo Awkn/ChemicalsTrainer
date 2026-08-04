@@ -13,23 +13,25 @@ import type {
  * Serve per passare programmi ai compagni (un file .json da importare).
  */
 export async function esportaTutto(): Promise<ExportBundle> {
-  const [programmi, esercizi, assegnazioni, risultati, doppi] =
+  const [programmi, esercizi, assegnazioni, risultati, doppi, partite] =
     await Promise.all([
       db.programmi.toArray(),
       db.esercizi.toArray(),
       db.assegnazioni.toArray(),
       db.risultati.toArray(),
       db.doppi.toArray(),
+      db.partite.toArray(),
     ]);
   return {
     formato: "darts-trainer",
-    versione: 3,
+    versione: 4,
     esportatoIl: Date.now(),
     programmi,
     esercizi,
     assegnazioni,
     risultati,
     doppi,
+    partite,
   };
 }
 
@@ -85,13 +87,11 @@ export async function ripristinaBundle(
 ): Promise<ConteggiRipristino> {
   const risultati = bundle.risultati ?? [];
   const doppi = bundle.doppi ?? [];
+  const partite = bundle.partite ?? [];
+  // Oltre le cinque tabelle Dexie vuole l'elenco in un array.
   await db.transaction(
     "rw",
-    db.esercizi,
-    db.programmi,
-    db.assegnazioni,
-    db.risultati,
-    db.doppi,
+    [db.esercizi, db.programmi, db.assegnazioni, db.risultati, db.doppi, db.partite],
     async () => {
       await Promise.all([
         db.esercizi.clear(),
@@ -99,12 +99,14 @@ export async function ripristinaBundle(
         db.assegnazioni.clear(),
         db.risultati.clear(),
         db.doppi.clear(),
+        db.partite.clear(),
       ]);
       await db.esercizi.bulkAdd(bundle.esercizi);
       await db.programmi.bulkAdd(bundle.programmi);
       await db.assegnazioni.bulkAdd(bundle.assegnazioni);
       await db.risultati.bulkAdd(risultati);
       await db.doppi.bulkAdd(doppi);
+      await db.partite.bulkAdd(partite);
     },
   );
   return {
@@ -120,9 +122,9 @@ export async function ripristinaBundle(
  * rigenera gli id di programmi/esercizi e rimappa le assegnazioni.
  * I dati esistenti NON vengono cancellati: l'import e' additivo.
  *
- * I tentativi al doppio restano fuori di proposito: un file importato arriva
- * da un compagno, e la sua resa sui bersagli non e' la propria. Nel backup
- * personale invece ci sono (vedi ripristinaBundle).
+ * I tentativi al doppio e le partite archiviate restano fuori di proposito: un
+ * file importato arriva da un compagno, e le sue partite non sono le proprie.
+ * Nel backup personale invece ci sono (vedi ripristinaBundle).
  */
 export async function importaBundle(testoJson: string): Promise<{
   programmiImportati: number;

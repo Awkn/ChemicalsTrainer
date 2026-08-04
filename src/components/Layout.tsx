@@ -28,6 +28,7 @@ const principali = [
 
 /** Voci secondarie, raccolte nel menu in alto. */
 const secondarie = [
+  { to: "/partite", label: "Partite", icona: "🗂️" },
   { to: "/esercizi", label: "Esercizi", icona: "📋" },
   { to: "/impostazioni", label: "Impostazioni", icona: "⚙️" },
 ];

@@ -2,6 +2,7 @@ import Dexie, { type Table } from "dexie";
 import type {
   Assegnazione,
   Esercizio,
+  PartitaSalvata,
   Programma,
   Risultato,
   SessioneDoppi,
@@ -18,6 +19,7 @@ class DartsDB extends Dexie {
   assegnazioni!: Table<Assegnazione, string>;
   risultati!: Table<Risultato, string>;
   doppi!: Table<SessioneDoppi, string>;
+  partite!: Table<PartitaSalvata, string>;
 
   constructor() {
     super("darts-trainer");
@@ -36,6 +38,12 @@ class DartsDB extends Dexie {
     // arrivano da piu' giochi e servono a misurare la resa su ogni bersaglio.
     this.version(3).stores({
       doppi: "id, data, gioco",
+    });
+    // v4: archivio delle partite concluse, per riaprirne il recap. Ne restano
+    // solo le ultime (vedi lib/partite.ts): serve a rivedere com'e' andata, non
+    // a tenere la storia di tutto.
+    this.version(4).stores({
+      partite: "id, finita, gioco",
     });
   }
 }

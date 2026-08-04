@@ -24,6 +24,11 @@ const DrillDoppioPage = lazy(
   () => import("./features/giochi/drilldoppio/DrillDoppioPage"),
 );
 const CricketPage = lazy(() => import("./features/giochi/cricket/CricketPage"));
+// L'archivio si apre di rado: non deve pesare sull'avvio.
+const PartitePage = lazy(() => import("./features/partite/PartitePage"));
+const RecapPartitaPage = lazy(
+  () => import("./features/partite/RecapPartitaPage"),
+);
 import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
@@ -115,6 +120,22 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <CricketPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="partite"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <PartitePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="partite/:id"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <RecapPartitaPage />
             </Suspense>
           }
         />

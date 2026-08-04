@@ -16,14 +16,16 @@ import {
 export function useBackupAutomatico(): void {
   // Firma dei dati: cambia a ogni inserimento/modifica/rimozione.
   const firma = useLiveQuery(async () => {
-    const [esercizi, programmi, assegnazioni, risultati] = await Promise.all([
-      db.esercizi.count(),
-      db.programmi.count(),
-      db.assegnazioni.count(),
-      db.risultati.toArray(),
-    ]);
+    const [esercizi, programmi, assegnazioni, risultati, partite] =
+      await Promise.all([
+        db.esercizi.count(),
+        db.programmi.count(),
+        db.assegnazioni.count(),
+        db.risultati.toArray(),
+        db.partite.count(),
+      ]);
     const ultimo = risultati.reduce((m, r) => Math.max(m, r.createdAt), 0);
-    return `${esercizi}:${programmi}:${assegnazioni}:${risultati.length}:${ultimo}`;
+    return `${esercizi}:${programmi}:${assegnazioni}:${risultati.length}:${ultimo}:${partite}`;
   }, []);
 
   const inCorso = useRef(false);

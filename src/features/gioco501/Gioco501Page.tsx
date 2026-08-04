@@ -11,6 +11,7 @@ import { dataIso } from "../../lib/date";
 import { nomeGiocatore } from "../../lib/giocatore";
 import { percentualeDoppi, totaleDoppi } from "../../lib/doppi";
 import { registraDoppi } from "../../lib/doppiStorico";
+import { salvaPartita } from "../../lib/partite";
 import {
   aSet,
   avanzaLeg,
@@ -26,6 +27,7 @@ import {
   mediaFirst9,
   nomeFormato,
   nomiVisualizzati,
+  riepilogoPartita,
   rimanenteDi,
   risultatoVisita,
   type ConfigPartita,
@@ -85,22 +87,30 @@ export function Gioco501Page() {
     return () => clearTimeout(t);
   }, [fase, stato]);
 
-  // A partita finita salva le statistiche del GIOCATORE 1 nell'esercizio 501
-  // (una volta): finiscono nei Progressi e, tramite la sincronizzazione, sulla
-  // bacheca. Quelle del secondo posto restano nel recap: sono di chi ha in mano
-  // il telefono solo quando gioca da primo, e non vanno nel suo storico.
+  // A partita finita archivia la partita intera (per riaprirne il recap) e
+  // salva le statistiche del GIOCATORE 1 nell'esercizio 501, una volta sola:
+  // finiscono nei Progressi e, tramite la sincronizzazione, sulla bacheca.
+  // Quelle del secondo posto restano nel recap: sono di chi ha in mano il
+  // telefono solo quando gioca da primo, e non vanno nel suo storico.
   useEffect(() => {
     if (!stato || !stato.vincitore || salvato) return;
-    if (stato.statsUno.frecce === 0) {
-      setSalvato(true);
-      return;
-    }
     let annullato = false;
     (async () => {
-      const es = await db.esercizi
-        .where("nome")
-        .equals(NOME_ESERCIZIO_501)
-        .first();
+      // L'archivio tiene la partita per intero; l'esercizio invece ne conserva
+      // solo le metriche, che sono quelle che disegnano i grafici nel tempo.
+      await salvaPartita({
+        gioco: "501",
+        finita: Date.now(),
+        ...riepilogoPartita(stato),
+        stato,
+      });
+
+      // Senza una freccia tirata non c'e' niente da misurare: la partita resta
+      // in archivio ma non sporca i Progressi con degli zeri.
+      const es =
+        stato.statsUno.frecce === 0
+          ? undefined
+          : await db.esercizi.where("nome").equals(NOME_ESERCIZIO_501).first();
       if (es && !annullato) {
         const valori: Record<string, number> = {
           media: media3(stato.statsUno),

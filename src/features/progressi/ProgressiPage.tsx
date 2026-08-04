@@ -75,6 +75,11 @@ export function ProgressiPage() {
       <CruscottoObiettivi />
       <SchedaDoppi />
 
+      <Link className="scheda scheda-link" to="/partite">
+        <span>🗂️ Le tue ultime partite</span>
+        <span className="mini">Riapri il recap completo →</span>
+      </Link>
+
       <label className="campo">
         <span>Esercizio</span>
         <select

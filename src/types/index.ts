@@ -160,10 +160,33 @@ export interface SessioneDoppi {
   conti: Record<string, { tentativi: number; colpiti: number }>;
 }
 
+/**
+ * Una partita conclusa, conservata per poterne riaprire il recap. Del motore
+ * si salva lo stato finale intero: e' esattamente cio' che il recap sa gia'
+ * disegnare, e cosi' lo storico non deve conoscere le regole di nessun gioco.
+ * Titolo e sottotitolo sono precalcolati apposta perche' la lista possa
+ * mostrarli senza interpretare `stato`.
+ */
+export interface PartitaSalvata {
+  id: string;
+  /** Gioco di provenienza: dice come va letto `stato`. Elenco aperto. */
+  gioco: "501";
+  /** Istante di fine partita: e' l'ordine in cui si mostrano. */
+  finita: number;
+  /** Riga principale della lista, es. "Tu 3 — 1 Bot". */
+  titolo: string;
+  /** Riga piccola: formato, punteggio iniziale, media. */
+  sottotitolo: string;
+  /** Esito per chi tiene il telefono (il giocatore 1). */
+  vinta: boolean;
+  /** Stato finale del motore, cosi' com'e'. */
+  stato: unknown;
+}
+
 /** Struttura del file di import/export (per condividere programmi coi compagni). */
 export interface ExportBundle {
   formato: "darts-trainer";
-  versione: 1 | 2 | 3;
+  versione: 1 | 2 | 3 | 4;
   esportatoIl: number;
   programmi: Programma[];
   esercizi: Esercizio[];
@@ -172,4 +195,6 @@ export interface ExportBundle {
   risultati?: Risultato[];
   /** Presente dalla versione 3. Assente nei file piu' vecchi. */
   doppi?: SessioneDoppi[];
+  /** Presente dalla versione 4. Assente nei file piu' vecchi. */
+  partite?: PartitaSalvata[];
 }

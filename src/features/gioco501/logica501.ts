@@ -778,3 +778,33 @@ export function migliorLeg(s: StatsGiocatore): number | null {
 export function peggiorLeg(s: StatsGiocatore): number | null {
   return s.frecceLegVinti.length ? Math.max(...s.frecceLegVinti) : null;
 }
+
+export interface RiepilogoPartita {
+  /** "Tu 3 — 1 Bot", gia' pronto da mostrare in una lista. */
+  titolo: string;
+  /** Formato, punteggio iniziale e media di chi tiene il telefono. */
+  sottotitolo: string;
+  /** Esito dal punto di vista del giocatore 1. */
+  vinta: boolean;
+}
+
+/**
+ * Due righe che riassumono una partita finita, per l'archivio. Stanno qui
+ * perche' e' qui che si sa cosa decide il punteggio (set o leg) e chi occupa
+ * il secondo posto.
+ */
+export function riepilogoPartita(stato: StatoPartita): RiepilogoPartita {
+  const nomi = nomiVisualizzati(stato.config);
+  const conSet = aSet(stato.config);
+  const uno = conSet ? stato.setUno : stato.legUno;
+  const due = conSet ? stato.setDue : stato.legDue;
+  const avversario =
+    stato.config.avversario === "bot"
+      ? `Bot · ${stato.config.livello.nome}`
+      : nomi[1];
+  return {
+    titolo: `${nomi[0]} ${uno} — ${due} ${avversario}`,
+    sottotitolo: `${nomeFormato(stato.config)} · ${stato.config.puntiIniziali} · media ${media3(stato.statsUno)}`,
+    vinta: stato.vincitore === "uno",
+  };
+}

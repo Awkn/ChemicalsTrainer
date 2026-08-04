@@ -23,8 +23,12 @@ interface Props {
   stato: StatoPartita;
   /** True quando le statistiche sono state salvate nell'esercizio 501. */
   salvato?: boolean;
-  onRivincita: () => void;
-  onImpostazioni: () => void;
+  /**
+   * Assenti quando il recap viene riaperto dall'archivio: li' la partita e'
+   * gia' finita e archiviata, non c'e' nessuna rivincita da giocare.
+   */
+  onRivincita?: () => void;
+  onImpostazioni?: () => void;
 }
 
 /** Recap statistico a fine partita, in stile scheda risultato. */
@@ -142,14 +146,20 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
         </p>
       )}
 
-      <div className="modale-azioni">
-        <button className="bottone secondario" onClick={onImpostazioni}>
-          Impostazioni
-        </button>
-        <button className="bottone" onClick={onRivincita}>
-          Rivincita
-        </button>
-      </div>
+      {(onImpostazioni || onRivincita) && (
+        <div className="modale-azioni">
+          {onImpostazioni && (
+            <button className="bottone secondario" onClick={onImpostazioni}>
+              Impostazioni
+            </button>
+          )}
+          {onRivincita && (
+            <button className="bottone" onClick={onRivincita}>
+              Rivincita
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 }

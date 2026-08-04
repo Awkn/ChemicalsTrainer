@@ -1040,6 +1040,94 @@ textarea:focus {
   gap: 0.5rem;
 }
 
+/* ---------- archivio delle partite ---------- */
+
+/* Scheda che fa da collegamento: sembra una scheda, si comporta da link. */
+.scheda-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.scheda-link .mini {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.lista-partite {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.partita {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--bordo);
+  border-left: 3px solid var(--bordo);
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+}
+
+/* Il bordo colorato dice l'esito senza doverlo leggere. */
+.partita.vinta {
+  border-left-color: var(--ok);
+}
+
+.partita.persa {
+  border-left-color: var(--ko);
+}
+
+.partita-corpo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.partita-esito {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.partita-testi {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.partita-testi strong {
+  font-size: 0.95rem;
+}
+
+/* Titolo e sottotitolo non devono mandare a capo la riga sul telefono. */
+.partita-testi > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.partita-testi .mini {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.torna-partite {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
 .sessione {
   display: flex;
   justify-content: space-between;
