@@ -28,19 +28,28 @@ export type LivelloId = `l${number}` | "squadra";
 
 export interface Livello {
   id: LivelloId;
+  /** Etichetta breve, es. "Lv. 12". Finisce nel recap accanto a "Bot". */
   nome: string;
+  /** Fascia di bravura, es. "Buono": da' un carattere al numero. */
+  fascia: string;
   /**
-   * Media 3 dart che il bot realizza davvero sul leg intero: e' la promessa
-   * fatta all'utente, ed e' confrontabile con la propria media nei Progressi.
+   * Media 3 dart che il bot realizza davvero sulla partita intera: e' la
+   * promessa, confrontabile con la propria media nei Progressi. E' il centro
+   * della banda dichiarata, non un valore che uscira' preciso ogni volta.
    */
   media: number;
+  /** Banda dichiarata attorno a `media`, quella che si mostra all'utente. */
+  mediaMin: number;
+  mediaMax: number;
   /**
    * Media dei tiri mentre segna. E' piu' alta di `media` perche' le visite
    * passate sul doppio senza chiuderlo valgono zero e tirano giu' il conto
    * finale: per arrivare alla media promessa, segnando bisogna fare di piu'.
    */
   mediaTiro: number;
-  /** Probabilita' di chiudere quando il punteggio e' alla portata. */
+  /** Quota di visite buttate, che valgono zero. Vedi `quotaBuche`. */
+  quotaBuche: number;
+  /** Probabilita' di chiudere in una visita, avendo il checkout a tiro. */
   pCheckout: number;
   /** Punteggio massimo dal quale il bot tenta la chiusura. */
   capCheckout: number;
@@ -57,38 +66,97 @@ export interface Livello {
  * checkout a tiro, non in una singola freccia: un principiante che prende il
  * doppio una volta su dieci per freccia lo prende una volta su tre per visita.
  */
-const ANCORE = [
-  { m: 20, p: 0.36, c: 32 },
-  { m: 30, p: 0.46, c: 40 },
-  { m: 40, p: 0.56, c: 50 },
-  { m: 55, p: 0.64, c: 80 },
-  { m: 65, p: 0.67, c: 110 },
-  { m: 80, p: 0.7, c: 140 },
-  { m: 95, p: 0.73, c: 170 },
-  { m: 110, p: 0.76, c: 170 },
-  { m: 140, p: 0.82, c: 170 },
-];
-
-/** Probabilita' e cap di chiusura per una media qualsiasi, interpolati. */
-function resaDaMedia(media: number): { pCheckout: number; capCheckout: number } {
-  const x = Math.max(ANCORE[0].m, Math.min(ANCORE[ANCORE.length - 1].m, media));
-  let p = ANCORE[0].p;
-  let c = ANCORE[0].c;
-  for (let i = 0; i < ANCORE.length - 1; i++) {
-    const a = ANCORE[i];
-    const b = ANCORE[i + 1];
-    if (x >= a.m && x <= b.m) {
-      const t = (x - a.m) / (b.m - a.m);
-      p = a.p + t * (b.p - a.p);
-      c = Math.round(a.c + t * (b.c - a.c));
-      break;
-    }
-  }
-  return { pCheckout: Math.round(p * 100) / 100, capCheckout: c };
+/**
+ * La scala: venti gradini, per ognuno la banda della media 3 dart sulla
+ * partita intera e quella della media mentre si segna. Sono le stesse due
+ * misure che usa DartCounter per il suo bot, prese sui suoi venti livelli:
+ * cosi' "gioco contro il livello 12" vuol dire la stessa cosa nelle due app,
+ * e i compagni possono confrontarsi senza tradurre niente.
+ *
+ * Le due bande non sono ridondanti. Chi e' scarso segna molto meglio di
+ * quanto dica la sua media finale (al livello 1 il doppio!) perche' brucia
+ * mezza partita sul doppio senza chiuderlo; piu' si sale piu' i due numeri si
+ * avvicinano. E' questa distanza a dare al bot il suo carattere.
+ */
+interface GradinoScala {
+  media: [number, number];
+  punteggio: [number, number];
+  chiusura: [number, number];
 }
 
-/** Leg di riferimento su cui e' tarata la media. */
-const LEG_TIPO = 501;
+const SCALA: GradinoScala[] = [
+  { media: [10, 20], punteggio: [25, 35], chiusura: [1, 20] },
+  { media: [15, 25], punteggio: [28, 38], chiusura: [5, 20] },
+  { media: [20, 30], punteggio: [31, 41], chiusura: [5, 25] },
+  { media: [25, 35], punteggio: [34, 44], chiusura: [8, 25] },
+  { media: [30, 40], punteggio: [37, 47], chiusura: [8, 30] },
+  { media: [33, 43], punteggio: [40, 50], chiusura: [10, 30] },
+  { media: [37, 47], punteggio: [43, 53], chiusura: [10, 35] },
+  { media: [41, 51], punteggio: [45, 55], chiusura: [15, 35] },
+  { media: [45, 55], punteggio: [48, 58], chiusura: [15, 40] },
+  { media: [48, 58], punteggio: [53, 63], chiusura: [20, 40] },
+  { media: [52, 62], punteggio: [57, 67], chiusura: [20, 45] },
+  { media: [56, 66], punteggio: [60, 70], chiusura: [25, 45] },
+  { media: [60, 70], punteggio: [64, 74], chiusura: [25, 50] },
+  { media: [64, 74], punteggio: [68, 78], chiusura: [30, 50] },
+  { media: [67, 77], punteggio: [75, 85], chiusura: [30, 55] },
+  { media: [70, 80], punteggio: [78, 88], chiusura: [35, 55] },
+  { media: [74, 84], punteggio: [82, 92], chiusura: [35, 60] },
+  { media: [78, 88], punteggio: [86, 96], chiusura: [40, 65] },
+  { media: [80, 90], punteggio: [90, 100], chiusura: [40, 70] },
+  { media: [90, 100], punteggio: [95, 105], chiusura: [45, 80] },
+];
+
+/** Fascia di appartenenza, un nome ogni quattro gradini. */
+const FASCE = ["Principiante", "Amatore", "Buono", "Esperto", "Fuoriclasse"];
+
+/**
+ * Da quale punteggio rimanente il bot prova a chiudere. Non e' bravura pura:
+ * un principiante non tenta un 96 nemmeno per sbaglio, un professionista si'.
+ */
+const ANCORE_CAP: [number, number][] = [
+  [15, 28],
+  [30, 40],
+  [45, 60],
+  [60, 90],
+  [75, 115],
+  [95, 140],
+];
+
+function capDaMedia(media: number): number {
+  const x = Math.max(15, Math.min(95, media));
+  for (let i = 0; i < ANCORE_CAP.length - 1; i++) {
+    const [ma, ca] = ANCORE_CAP[i];
+    const [mb, cb] = ANCORE_CAP[i + 1];
+    if (x >= ma && x <= mb) {
+      return Math.round(ca + ((x - ma) / (mb - ma)) * (cb - ca));
+    }
+  }
+  return 170;
+}
+
+const centro = ([a, b]: [number, number]) => (a + b) / 2;
+
+/**
+ * Quota di visite buttate: quelle che valgono zero perche' le tre frecce sono
+ * finite dove non contano.
+ *
+ * E' la chiave di tutto il modello. La media di punteggio e' molto piu' alta
+ * della media finale (al primo gradino il doppio), e la differenza sono
+ * proprio le visite buttate. Il punto e' DOVE si mettono: se stanno tutte in
+ * fondo, sul doppio da chiudere, il bot le paga solo nei leg che porta a
+ * termine — e se l'avversario chiude per primo a video resta la sola fase di
+ * scoring, gonfiata. E' l'errore che avevo fatto: il livello 1 mostrava 30
+ * invece di 15.
+ *
+ * Sparse su tutta la partita, invece, qualunque pezzo di leg ha la stessa
+ * media di quello intero: il numero promesso regge sia che il bot vinca sia
+ * che venga tagliato fuori a meta'.
+ */
+function quotaBuche(media: number, mediaTiro: number): number {
+  return Math.max(0, Math.round((1 - media / mediaTiro) * 1000) / 1000);
+}
+
 /**
  * Quanto resta da fare, in media, quando il checkout entra a tiro: il bot ci
  * arriva da sopra, quindi si ferma nella meta' alta della finestra.
@@ -96,98 +164,94 @@ const LEG_TIPO = 501;
 const QUOTA_INGRESSO = 0.6;
 
 /**
- * Scarto ammesso fra la media promessa dal livello e quella che il bot mostra
- * davvero a fine partita: ±8%.
- */
-export const SCARTO_MEDIA = 0.08;
-
-/**
- * Ricava la media dei tiri dalla media promessa. Il leg si divide in due: le
- * visite in cui si segna e quelle passate sul doppio senza chiuderlo, che
- * valgono zero e sono in media `1 / pCheckout - 1`. Le prime devono coprire
- * tutto il percorso, quindi vanno tirate un po' piu' su della media finale.
+ * Probabilita' di chiudere avendo il checkout a tiro, quando la visita non e'
+ * gia' andata buca. Con le buche a coprire lo spreco sparso, al doppio resta
+ * da coprire solo il pezzo finale del leg: da qui esce quanto in fretta il bot
+ * deve chiudere perche' i conti tornino.
  *
- * Il margine va tenuto stretto, e non per eleganza: se l'avversario chiude il
- * leg per primo, le visite sul doppio il bot non le paga e a video resta solo
- * la fase di scoring. Piu' i due numeri divergono, piu' la media mostrata a
- * fine partita dipende da chi ha vinto invece che dal livello scelto.
- *
- * Il tetto e' quindi meta' dello scarto ammesso: il leg finito sta sotto la
- * promessa, quello troncato sopra, e la forbice cade a cavallo del numero
- * promesso invece di appoggiarcisi tutta sopra.
+ * Attenzione: questa NON e' la percentuale di chiusura che si vedra' nelle
+ * statistiche. Li' un tentativo e' ogni visita con il resto sotto 170, anche
+ * quando il bot non ci sta nemmeno provando, e la probabilita' vera per visita
+ * e' comunque abbassata dalle buche.
  */
-function mediaTiroPerMedia(
-  media: number,
-  pCheckout: number,
-  capCheckout: number,
-): number {
-  const visiteTotali = LEG_TIPO / media;
-  const visiteSulDoppio = 1 / pCheckout;
-  // Almeno una visita a punti: senza, non si partirebbe nemmeno da 501.
-  const visiteAPunti = Math.max(1, visiteTotali - visiteSulDoppio);
-  const daSegnare = LEG_TIPO - capCheckout * QUOTA_INGRESSO;
-  const grezza = daSegnare / visiteAPunti;
-  const tetto = media * (1 + SCARTO_MEDIA / 2);
-  return Math.round(Math.min(grezza, tetto) * 10) / 10;
+function pDaMedie(mediaTiro: number, cap: number): number {
+  const puntiInChiusura = cap * QUOTA_INGRESSO;
+  return Math.min(1, Math.round((mediaTiro / puntiInChiusura) * 100) / 100);
 }
 
-/** Livello completo a partire dalla sola media promessa. */
+/** Livello completo a partire dalle bande dichiarate. */
 function livelloDa(
   id: LivelloId,
   nome: string,
-  media: number,
+  fascia: string,
+  gradino: GradinoScala,
   compagnoId?: string,
 ): Livello {
-  const resa = resaDaMedia(media);
+  const m = centro(gradino.media);
+  const mediaTiro = centro(gradino.punteggio);
   return {
     id,
     nome,
-    media,
-    mediaTiro: mediaTiroPerMedia(media, resa.pCheckout, resa.capCheckout),
-    ...resa,
+    fascia,
+    media: m,
+    mediaMin: gradino.media[0],
+    mediaMax: gradino.media[1],
+    mediaTiro,
+    quotaBuche: quotaBuche(m, mediaTiro),
+    pCheckout: pDaMedie(mediaTiro, capDaMedia(m)),
+    capCheckout: capDaMedia(m),
     ...(compagnoId ? { compagnoId } : {}),
   };
 }
 
+export const LIVELLI: Livello[] = SCALA.map((s, i) =>
+  livelloDa(
+    `l${i + 1}`,
+    `Lv. ${i + 1}`,
+    FASCE[Math.min(FASCE.length - 1, Math.floor(i / 4))],
+    s,
+  ),
+);
+
+/** Gradino proposto all'apertura: mezza scala, un avversario alla pari. */
+export const LIVELLO_PREDEFINITO = LIVELLI[9];
+
 /**
  * Costruisce un livello a partire dalla media condivisa di un compagno, cosi'
- * il bot "gioca come" chi ha quella media.
+ * il bot "gioca come" chi ha quella media. Le altre grandezze si prendono dal
+ * gradino della scala piu' vicino, interpolando: una sola curva per tutti,
+ * quindi due bot con la stessa media giocano davvero allo stesso modo.
  */
 export function livelloDaMedia(
   nome: string,
   media: number,
   compagnoId: string,
 ): Livello {
-  return livelloDa("squadra", nome, media, compagnoId);
-}
+  const centri = SCALA.map((s) => centro(s.media));
+  const primo = centri[0];
+  const ultimo = centri[centri.length - 1];
+  const x = Math.max(primo, Math.min(ultimo, media));
 
-/** Nomi dei gradini, dal piu' scarso al piu' forte. */
-const NOMI_LIVELLI = [
-  "Pivello",
-  "Base",
-  "Amatore",
-  "Medio",
-  "Discreto",
-  "Alto",
-  "Esperto",
-  "Super",
-  "Letale",
-  "Fenomeno",
-];
+  let i = 0;
+  while (i < centri.length - 2 && centri[i + 1] < x) i++;
+  const t = (x - centri[i]) / (centri[i + 1] - centri[i]);
+  const fra = (a: number, b: number) => a + t * (b - a);
 
-/** Media del primo e dell'ultimo gradino: in mezzo la scala e' lineare. */
-const MEDIA_MIN = 20;
-const MEDIA_MAX = 100;
-
-export const LIVELLI: Livello[] = NOMI_LIVELLI.map((nome, i) => {
-  const media = Math.round(
-    MEDIA_MIN + (i * (MEDIA_MAX - MEDIA_MIN)) / (NOMI_LIVELLI.length - 1),
+  const tiro = fra(centro(SCALA[i].punteggio), centro(SCALA[i + 1].punteggio));
+  const chk = fra(centro(SCALA[i].chiusura), centro(SCALA[i + 1].chiusura));
+  const mezza = (SCALA[i].media[1] - SCALA[i].media[0]) / 2;
+  return livelloDa(
+    "squadra",
+    nome,
+    "Compagno",
+    {
+      media: [Math.round(media - mezza), Math.round(media + mezza)],
+      punteggio: [Math.round(tiro - mezza), Math.round(tiro + mezza)],
+      chiusura: [Math.round(chk), Math.round(chk)],
+    },
+    compagnoId,
   );
-  return livelloDa(`l${i + 1}`, nome, media);
-});
-
-/** Gradino proposto all'apertura: mezza scala, un avversario alla pari. */
-export const LIVELLO_PREDEFINITO = LIVELLI[4];
+}
 
 export type ModoChiusura = "single" | "master" | "double";
 export type ModoIngresso = "single" | "master" | "double";
@@ -537,19 +601,40 @@ function totaleOttenibile(n: number): number {
   return x;
 }
 
+/** Doppi su cui ci si mette volentieri, dal piu' comodo al meno. */
+const DOPPI_COMODI = [40, 36, 32, 24, 20, 16, 8];
+
+/**
+ * Cosa segna il bot quando ha il checkout a tiro ma non lo chiude. Se e' gia'
+ * appoggiato a un doppio non segna niente: ci ha tirato e l'ha sbagliato.
+ * Altrimenti si sistema, lasciandosi il doppio piu' comodo che riesce —
+ * proprio come si fa al tabellone, e diversamente da prima, quando scendeva
+ * fino a 2 e li' restava impantanato a segnare zero.
+ */
+function preparazione(rimanente: number): number {
+  if (rimanente <= 40) return 0;
+  const bersaglio = DOPPI_COMODI.find((d) => d < rimanente);
+  return bersaglio == null ? 0 : rimanente - bersaglio;
+}
+
 /** Calcola il punteggio della tirata del bot (mai bust, sempre ottenibile). */
 export function mossaBot(
   rimanente: number,
   livello: Livello,
   modo: ModoChiusura,
 ): number {
-  if (
-    finibile(rimanente, modo) &&
-    rimanente <= livello.capCheckout &&
-    Math.random() < livello.pCheckout
-  ) {
-    return rimanente; // chiude
+  // Visita buttata: tre frecce dove non contano. Capita a tutti, ai
+  // principianti spesso, ed e' cio' che separa quanto segna da quanto vale la
+  // sua media. Si estrae per prima, cosi' le buche sono sparse su tutta la
+  // partita e non ammucchiate sull'ultimo doppio (vedi `quotaBuche`).
+  const buca = Math.random() < livello.quotaBuche;
+
+  if (finibile(rimanente, modo) && rimanente <= livello.capCheckout) {
+    if (!buca && Math.random() < livello.pCheckout) return rimanente;
+    return preparazione(rimanente);
   }
+
+  if (buca) return 0;
   const sd = Math.max(12, livello.mediaTiro * 0.32);
   let s = totaleOttenibile(gauss(livello.mediaTiro, sd));
   const maxSicuro = rimanente - 2; // non scendere sotto 2 (evita bust)

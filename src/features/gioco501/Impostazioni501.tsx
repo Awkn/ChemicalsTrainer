@@ -273,8 +273,8 @@ export function Impostazioni501({ config, onChange, onAvvia }: Props) {
       <div className="scheda">
         <SelettoreLivello
           livelli={LIVELLI.map((l) => ({
-            nome: l.nome,
-            nota: `media ${l.media}`,
+            nome: l.fascia,
+            nota: `media ${l.mediaMin}-${l.mediaMax}`,
           }))}
           // Col bot squadra il livello non sta sulla scala: si mostra il
           // gradino piu' vicino per media, e muovere lo slider torna ai fissi.

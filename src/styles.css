@@ -1383,6 +1383,11 @@ textarea:focus {
   font-weight: 700;
 }
 
+/* Tacca senza numero: resta il trattino, che fa da righello. */
+.livelli-tacca.muta {
+  font-size: 0;
+}
+
 .livelli-tacca.attiva .livelli-segno {
   background: var(--ko);
 }

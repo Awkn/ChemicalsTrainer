@@ -38,6 +38,8 @@ export function SelettoreLivello({
 }: Props) {
   const ultimo = livelli.length - 1;
   const scelto = livelli[indice];
+  /** Oltre una dozzina di gradini le tacche non stanno piu' sotto un dito. */
+  const fitte = livelli.length > 12;
   // Posizione del riempimento: il pollice sta al centro della sua corsa, non
   // sul bordo, quindi agli estremi la barra non arriva mai proprio a 0 o 100.
   const frazione = ultimo > 0 ? indice / ultimo : 0;
@@ -63,18 +65,38 @@ export function SelettoreLivello({
       />
 
       <div className="livelli-tacche">
-        {livelli.map((l, i) => (
-          <button
-            key={l.nome}
-            className={`livelli-tacca${i === indice ? " attiva" : ""}`}
-            onClick={() => onCambia(i)}
-            aria-label={l.nome}
-            tabIndex={-1}
-          >
-            <span className="livelli-segno" />
-            <span>{i === ultimo ? "💀" : i + 1}</span>
-          </button>
-        ))}
+        {livelli.map((_, i) => {
+          // Con pochi gradini le tacche sono anche pulsanti e si numerano
+          // tutte; con venti sarebbero larghe un dito di neonato e i numeri si
+          // toccherebbero, quindi restano decorative e se ne scrive una ogni
+          // cinque, come su un righello.
+          const numerata = fitte ? i === 0 || (i + 1) % 5 === 0 : true;
+          const etichetta = i === ultimo ? "💀" : numerata ? i + 1 : "";
+          const classe = `livelli-tacca${i === indice ? " attiva" : ""}${
+            numerata || i === ultimo ? "" : " muta"
+          }`;
+          const dentro = (
+            <>
+              <span className="livelli-segno" />
+              <span>{etichetta}</span>
+            </>
+          );
+          return fitte ? (
+            <span key={i} className={classe} aria-hidden="true">
+              {dentro}
+            </span>
+          ) : (
+            <button
+              key={i}
+              className={classe}
+              onClick={() => onCambia(i)}
+              aria-label={livelli[i].nome}
+              tabIndex={-1}
+            >
+              {dentro}
+            </button>
+          );
+        })}
       </div>
 
       <p className="mini livelli-descr">

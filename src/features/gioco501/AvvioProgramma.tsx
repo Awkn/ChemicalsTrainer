@@ -31,8 +31,8 @@ export function AvvioProgramma({ config, onChange, onAvvia }: Props) {
       <div className="scheda">
         <SelettoreLivello
           livelli={LIVELLI.map((l) => ({
-            nome: l.nome,
-            nota: `media ${l.media}`,
+            nome: l.fascia,
+            nota: `media ${l.mediaMin}-${l.mediaMax}`,
           }))}
           indice={indice}
           onCambia={(i) => onChange({ ...config, livello: LIVELLI[i] })}
