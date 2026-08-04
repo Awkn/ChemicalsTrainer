@@ -1393,6 +1393,15 @@ textarea:focus {
   font-size: 0;
 }
 
+/* Il soprannome dei due estremi, appeso sotto il proprio numero. */
+.livelli-soprannome {
+  font-size: 0.65rem;
+  font-style: italic;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--accento-2);
+}
+
 .livelli-tacca.attiva .livelli-segno {
   background: var(--ko);
 }

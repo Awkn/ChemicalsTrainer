@@ -5,9 +5,9 @@ export interface VoceLivello {
 }
 
 /**
- * Ai due capi della scala, al posto del numero, come li chiamerebbe uno della
- * squadra. Nessun altro gradino ha un soprannome: sono questi due che si
- * guardano prima di scegliere.
+ * Come li chiamerebbe uno della squadra i due capi della scala. Stanno SOTTO
+ * il numero, non al suo posto: da soli non direbbero a quale gradino
+ * corrispondono, e il righello serve prima di tutto a quello.
  */
 const ESTREMI = { primo: "floscio", ultimo: "canna" };
 
@@ -77,22 +77,23 @@ export function SelettoreLivello({
           // tutte; con venti sarebbero larghe un dito di neonato e i numeri si
           // toccherebbero, quindi restano decorative e se ne scrive una ogni
           // cinque, come su un righello.
-          const numerata = fitte ? i === 0 || (i + 1) % 5 === 0 : true;
-          const etichetta =
-            i === ultimo
-              ? ESTREMI.ultimo
-              : i === 0
-                ? ESTREMI.primo
-                : numerata
-                  ? i + 1
-                  : "";
+          // Gli estremi sono sempre numerati: sono i due che portano anche il
+          // soprannome, e senza numero non si capirebbe di quale gradino sia.
+          const numerata =
+            fitte ? i === 0 || i === ultimo || (i + 1) % 5 === 0 : true;
+          const etichetta = numerata ? i + 1 : "";
+          const soprannome =
+            i === 0 ? ESTREMI.primo : i === ultimo ? ESTREMI.ultimo : null;
           const classe = `livelli-tacca${i === indice ? " attiva" : ""}${
-            numerata || i === ultimo ? "" : " muta"
+            numerata ? "" : " muta"
           }`;
           const dentro = (
             <>
               <span className="livelli-segno" />
               <span>{etichetta}</span>
+              {soprannome && (
+                <span className="livelli-soprannome">{soprannome}</span>
+              )}
             </>
           );
           return fitte ? (
