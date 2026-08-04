@@ -33,6 +33,7 @@ import { ProgrammaPage } from "./features/programma/ProgrammaPage";
 import { EserciziPage } from "./features/esercizi/EserciziPage";
 import { ImpostazioniPage } from "./features/impostazioni/ImpostazioniPage";
 import { SogliePage } from "./features/obiettivi/SogliePage";
+import { LeaguePage } from "./features/league/LeaguePage";
 
 export function App() {
   // tiene aggiornata la bacheca di squadra quando cambiano i risultati
@@ -57,6 +58,7 @@ export function App() {
         />
         <Route path="progressi" element={<ProgressiPage />} />
         <Route path="obiettivi" element={<SogliePage />} />
+        <Route path="league" element={<LeaguePage />} />
         <Route
           path="squadra"
           element={

@@ -24,6 +24,7 @@ const principali = [
   { to: "/giochi", label: "Giochi", icona: "🎮", end: false },
   { to: "/progressi", label: "Progressi", icona: "📈", end: false },
   { to: "/squadra", label: "Squadra", icona: "👥", end: false },
+  { to: "/league", label: "League", icona: "🏆", end: false },
 ];
 
 /** Voci secondarie, raccolte nel menu in alto. */

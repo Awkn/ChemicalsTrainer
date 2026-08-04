@@ -1040,6 +1040,31 @@ textarea:focus {
   gap: 0.5rem;
 }
 
+/* ---------- League (segnaposto) ---------- */
+
+.league-attesa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+}
+
+.league-icona {
+  font-size: 3rem;
+  line-height: 1;
+  /* Spenta: la coppa e' un'insegna, non un premio gia' vinto. */
+  opacity: 0.45;
+}
+
+.league-presto {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--testo-2);
+  margin: 0;
+}
+
 /* ---------- partita da riprendere ---------- */
 
 .ripresa {
