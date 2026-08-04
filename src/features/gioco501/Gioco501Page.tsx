@@ -22,7 +22,7 @@ import {
   giocaVisita,
   indiceAnnulla,
   lancioMoneta,
-  LIVELLI,
+  LIVELLO_PREDEFINITO,
   media3,
   mediaFirst9,
   nomeFormato,
@@ -45,7 +45,7 @@ export function Gioco501Page() {
   const modoInput = usaModoInput();
   const [fase, setFase] = useState<Fase>("setup");
   const [config, setConfig] = useState<ConfigPartita>(() => {
-    const base = configPredefinita(LIVELLI[1]);
+    const base = configPredefinita(LIVELLO_PREDEFINITO);
     // Chi ha gia' un nome sulla bacheca non deve riscriverlo per giocare in due.
     const mio = nomeGiocatore();
     return mio ? { ...base, nomi: [mio, base.nomi[1]] } : base;

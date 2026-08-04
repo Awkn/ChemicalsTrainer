@@ -23,61 +23,60 @@ export type Giocatore = "uno" | "due";
 /** Chi siede nel secondo posto. */
 export type Avversario = "bot" | "umano";
 
-export type LivelloId =
-  | "base"
-  | "medio"
-  | "alto"
-  | "super"
-  | "letale"
-  | "fuego"
-  | "squadra";
+/** "l1".."l10" per la scala fissa, "squadra" per chi imita un compagno. */
+export type LivelloId = `l${number}` | "squadra";
 
 export interface Livello {
   id: LivelloId;
   nome: string;
-  /** Media punti per tirata da 3 frecce. */
+  /**
+   * Media 3 dart che il bot realizza davvero sul leg intero: e' la promessa
+   * fatta all'utente, ed e' confrontabile con la propria media nei Progressi.
+   */
   media: number;
+  /**
+   * Media dei tiri mentre segna. E' piu' alta di `media` perche' le visite
+   * passate sul doppio senza chiuderlo valgono zero e tirano giu' il conto
+   * finale: per arrivare alla media promessa, segnando bisogna fare di piu'.
+   */
+  mediaTiro: number;
   /** Probabilita' di chiudere quando il punteggio e' alla portata. */
   pCheckout: number;
   /** Punteggio massimo dal quale il bot tenta la chiusura. */
   capCheckout: number;
-  /**
-   * Tirate prestabilite: se presente, il bot ripete sempre questa sequenza
-   * invece di tirare attorno alla media. Usato per il leg perfetto.
-   */
-  sequenza?: number[];
-  /** Testo mostrato nella scelta del livello al posto della media. */
-  nota?: string;
   /** Se e' un "bot livello squadra", id del compagno di cui imita la media. */
   compagnoId?: string;
 }
 
 /**
- * Costruisce un livello a partire dalla media condivisa di un compagno:
- * probabilita' e cap di chiusura sono interpolati sugli ancoraggi dei livelli
- * fissi, cosi' il bot "gioca come" chi ha quella media.
+ * Ancoraggi media -> resa in chiusura. Da qui esce ogni livello: sia i dieci
+ * gradini della scala, sia il bot che imita la media di un compagno. Una sola
+ * curva, cosi' due bot con la stessa media giocano davvero allo stesso modo.
+ *
+ * `p` e' la probabilita' di chiudere in una visita avendo il checkout a tiro:
+ * per un principiante circa una volta su dieci, per un fenomeno piu' di una
+ * su due.
  */
-export function livelloDaMedia(
-  nome: string,
-  media: number,
-  compagnoId: string,
-): Livello {
-  const ancore = [
-    { m: 30, p: 0.08, c: 40 },
-    { m: 40, p: 0.12, c: 50 },
-    { m: 55, p: 0.2, c: 80 },
-    { m: 65, p: 0.3, c: 110 },
-    { m: 80, p: 0.45, c: 140 },
-    { m: 95, p: 0.6, c: 170 },
-    { m: 110, p: 0.78, c: 170 },
-    { m: 140, p: 0.92, c: 170 },
-  ];
-  const x = Math.max(ancore[0].m, Math.min(ancore[ancore.length - 1].m, media));
-  let p = ancore[0].p;
-  let c = ancore[0].c;
-  for (let i = 0; i < ancore.length - 1; i++) {
-    const a = ancore[i];
-    const b = ancore[i + 1];
+const ANCORE = [
+  { m: 20, p: 0.1, c: 32 },
+  { m: 30, p: 0.14, c: 40 },
+  { m: 40, p: 0.18, c: 50 },
+  { m: 55, p: 0.25, c: 80 },
+  { m: 65, p: 0.32, c: 110 },
+  { m: 80, p: 0.42, c: 140 },
+  { m: 95, p: 0.52, c: 170 },
+  { m: 110, p: 0.62, c: 170 },
+  { m: 140, p: 0.75, c: 170 },
+];
+
+/** Probabilita' e cap di chiusura per una media qualsiasi, interpolati. */
+function resaDaMedia(media: number): { pCheckout: number; capCheckout: number } {
+  const x = Math.max(ANCORE[0].m, Math.min(ANCORE[ANCORE.length - 1].m, media));
+  let p = ANCORE[0].p;
+  let c = ANCORE[0].c;
+  for (let i = 0; i < ANCORE.length - 1; i++) {
+    const a = ANCORE[i];
+    const b = ANCORE[i + 1];
     if (x >= a.m && x <= b.m) {
       const t = (x - a.m) / (b.m - a.m);
       p = a.p + t * (b.p - a.p);
@@ -85,32 +84,93 @@ export function livelloDaMedia(
       break;
     }
   }
+  return { pCheckout: Math.round(p * 100) / 100, capCheckout: c };
+}
+
+/** Leg di riferimento su cui e' tarata la media. */
+const LEG_TIPO = 501;
+/**
+ * Quanto resta da fare, in media, quando il checkout entra a tiro: il bot ci
+ * arriva da sopra, quindi si ferma nella meta' alta della finestra.
+ */
+const QUOTA_INGRESSO = 0.6;
+
+/**
+ * Ricava la media dei tiri dalla media promessa. Il leg si divide in due: le
+ * visite in cui si segna e quelle passate sul doppio, che valgono zero e sono
+ * in media `1 / pCheckout`. Le prime devono coprire tutto il percorso, quindi
+ * vanno tirate piu' su di quanto dice la media finale.
+ */
+function mediaTiroPerMedia(
+  media: number,
+  pCheckout: number,
+  capCheckout: number,
+): number {
+  const visiteTotali = LEG_TIPO / media;
+  const visiteSulDoppio = 1 / pCheckout;
+  // Almeno una visita a punti: senza, non si partirebbe nemmeno da 501.
+  const visiteAPunti = Math.max(1, visiteTotali - visiteSulDoppio);
+  const daSegnare = LEG_TIPO - capCheckout * QUOTA_INGRESSO;
+  return Math.round((daSegnare / visiteAPunti) * 10) / 10;
+}
+
+/** Livello completo a partire dalla sola media promessa. */
+function livelloDa(
+  id: LivelloId,
+  nome: string,
+  media: number,
+  compagnoId?: string,
+): Livello {
+  const resa = resaDaMedia(media);
   return {
-    id: "squadra",
+    id,
     nome,
     media,
-    pCheckout: Math.round(p * 100) / 100,
-    capCheckout: c,
-    compagnoId,
+    mediaTiro: mediaTiroPerMedia(media, resa.pCheckout, resa.capCheckout),
+    ...resa,
+    ...(compagnoId ? { compagnoId } : {}),
   };
 }
 
-export const LIVELLI: Livello[] = [
-  { id: "base", nome: "Base", media: 40, pCheckout: 0.12, capCheckout: 50 },
-  { id: "medio", nome: "Medio", media: 55, pCheckout: 0.2, capCheckout: 80 },
-  { id: "alto", nome: "Alto", media: 65, pCheckout: 0.3, capCheckout: 110 },
-  { id: "super", nome: "Super", media: 80, pCheckout: 0.45, capCheckout: 140 },
-  { id: "letale", nome: "Letale", media: 95, pCheckout: 0.6, capCheckout: 170 },
-  {
-    id: "fuego",
-    nome: "Fuego 🔥",
-    media: 167,
-    pCheckout: 1,
-    capCheckout: 170,
-    sequenza: [180, 180, 141],
-    nota: "Leg perfetto: 180 · 180 · 141",
-  },
+/**
+ * Costruisce un livello a partire dalla media condivisa di un compagno, cosi'
+ * il bot "gioca come" chi ha quella media.
+ */
+export function livelloDaMedia(
+  nome: string,
+  media: number,
+  compagnoId: string,
+): Livello {
+  return livelloDa("squadra", nome, media, compagnoId);
+}
+
+/** Nomi dei gradini, dal piu' scarso al piu' forte. */
+const NOMI_LIVELLI = [
+  "Pivello",
+  "Base",
+  "Amatore",
+  "Medio",
+  "Discreto",
+  "Alto",
+  "Esperto",
+  "Super",
+  "Letale",
+  "Fenomeno",
 ];
+
+/** Media del primo e dell'ultimo gradino: in mezzo la scala e' lineare. */
+const MEDIA_MIN = 20;
+const MEDIA_MAX = 100;
+
+export const LIVELLI: Livello[] = NOMI_LIVELLI.map((nome, i) => {
+  const media = Math.round(
+    MEDIA_MIN + (i * (MEDIA_MAX - MEDIA_MIN)) / (NOMI_LIVELLI.length - 1),
+  );
+  return livelloDa(`l${i + 1}`, nome, media);
+});
+
+/** Gradino proposto all'apertura: mezza scala, un avversario alla pari. */
+export const LIVELLO_PREDEFINITO = LIVELLI[4];
 
 export type ModoChiusura = "single" | "master" | "double";
 export type ModoIngresso = "single" | "master" | "double";
@@ -460,35 +520,12 @@ function totaleOttenibile(n: number): number {
   return x;
 }
 
-/**
- * Punteggio successivo di una sequenza prestabilita, dedotto dal rimanente:
- * il percorso e' deterministico (es. 501 → 321 → 141 → 0), quindi il punteggio
- * rimasto identifica sempre la tirata da fare.
- */
-function tirataDaSequenza(
-  rimanente: number,
-  sequenza: number[],
-  puntiIniziali: number,
-): number {
-  let restante = puntiIniziali;
-  for (const tirata of sequenza) {
-    if (restante === rimanente) return tirata;
-    restante -= tirata;
-  }
-  // Fuori sequenza (non dovrebbe accadere): chiude se puo', altrimenti tira al massimo.
-  return Math.min(rimanente, sequenza[0] ?? 0);
-}
-
 /** Calcola il punteggio della tirata del bot (mai bust, sempre ottenibile). */
 export function mossaBot(
   rimanente: number,
   livello: Livello,
   modo: ModoChiusura,
-  puntiIniziali: number,
 ): number {
-  if (livello.sequenza) {
-    return tirataDaSequenza(rimanente, livello.sequenza, puntiIniziali);
-  }
   if (
     finibile(rimanente, modo) &&
     rimanente <= livello.capCheckout &&
@@ -496,8 +533,8 @@ export function mossaBot(
   ) {
     return rimanente; // chiude
   }
-  const sd = Math.max(12, livello.media * 0.32);
-  let s = totaleOttenibile(gauss(livello.media, sd));
+  const sd = Math.max(12, livello.mediaTiro * 0.32);
+  let s = totaleOttenibile(gauss(livello.mediaTiro, sd));
   const maxSicuro = rimanente - 2; // non scendere sotto 2 (evita bust)
   if (s > maxSicuro) s = totaleOttenibile(Math.max(0, maxSicuro));
   return s;
@@ -691,7 +728,6 @@ export function giocaBot(stato: StatoPartita): StatoPartita {
     stato.leg.puntiDue,
     stato.config.livello,
     stato.config.chiusura,
-    stato.config.puntiIniziali,
   );
   return giocaVisita(stato, "due", { punteggio, frecce: 3 });
 }
