@@ -2674,6 +2674,57 @@ textarea:focus {
   margin: 0;
 }
 
+/* ---------- Personal bests ---------- */
+.pb-gioco {
+  border-top: 1px solid var(--bordo);
+  padding-top: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.pb-testa {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pb-lista {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Il valore sta al centro e non in fondo, in una colonna di larghezza fissa:
+   incolonnato si confronta a colpo d'occhio anche fra giochi diversi. */
+.pb-lista li {
+  display: grid;
+  grid-template-columns: 1fr 3.4rem 5.2rem;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.pb-metrica {
+  font-size: 0.85rem;
+  color: var(--testo-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pb-valore {
+  font-size: 1.05rem;
+  color: var(--accento-2);
+  text-align: right;
+}
+
+.pb-quando {
+  text-align: right;
+  white-space: nowrap;
+}
+
 /* ---------- Backup cloud: codice di ripristino ---------- */
 .codice-ripristino {
   background: var(--bg);

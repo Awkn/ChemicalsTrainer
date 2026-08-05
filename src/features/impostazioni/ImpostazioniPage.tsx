@@ -11,6 +11,7 @@ import { impostaNomeGiocatore, usaNomeGiocatore } from "../../lib/giocatore";
 import { confermaNomeDuplicato, nomeInUso } from "../../lib/squadra/nomeUnico";
 import { setTema, usaTema } from "../../lib/tema";
 import { setModoInput, usaModoInput } from "../input/preferenza";
+import { SchedaRecord } from "./SchedaRecord";
 
 function dataOra(ms: number): string {
   return new Date(ms).toLocaleString("it-IT", {
@@ -202,6 +203,9 @@ export function ImpostazioniPage() {
           )}
         </div>
       )}
+
+      {/* ---------- Personal bests ---------- */}
+      <SchedaRecord />
 
       {/* ---------- Aspetto ---------- */}
       <div className="scheda">
