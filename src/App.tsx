@@ -24,6 +24,13 @@ const DrillDoppioPage = lazy(
   () => import("./features/giochi/drilldoppio/DrillDoppioPage"),
 );
 const CricketPage = lazy(() => import("./features/giochi/cricket/CricketPage"));
+const SerieCheckoutPage = lazy(
+  () => import("./features/giochi/seriecheckout/SerieCheckoutPage"),
+);
+const Shanghai20Page = lazy(
+  () => import("./features/giochi/shanghai20/Shanghai20Page"),
+);
+const DpGamePage = lazy(() => import("./features/giochi/dpgame/DpGamePage"));
 // L'archivio si apre di rado: non deve pesare sull'avvio.
 const PartitePage = lazy(() => import("./features/partite/PartitePage"));
 const RecapPartitaPage = lazy(
@@ -112,6 +119,41 @@ export function App() {
           element={
             <Suspense fallback={<p className="mini">Carico…</p>}>
               <Co61100Page />
+            </Suspense>
+          }
+        />
+        {/* Due esercizi diversi sulla stessa pagina: la `key` evita che React
+            ne riusi l'istanza passando dall'uno all'altro, che si porterebbe
+            dietro la serie di bersagli gia' estratta. */}
+        <Route
+          path="gioco/co60170/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <SerieCheckoutPage key="co60170" gioco="co60170" />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/gameshot/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <SerieCheckoutPage key="gameshot" gioco="gameshot" />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/shanghai20/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <Shanghai20Page />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gioco/dpgame/:esercizioId"
+          element={
+            <Suspense fallback={<p className="mini">Carico…</p>}>
+              <DpGamePage />
             </Suspense>
           }
         />

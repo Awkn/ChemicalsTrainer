@@ -229,8 +229,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Checkout",
     durataMin: 30,
     descrizione:
-      "Generatore casuale, 30 checkout.\nMax 3 frecce.\nAnnota: riuscito / non riuscito.",
+      "Esce un checkout casuale fra 60 e 170, trenta volte.\nUna visita (3 frecce) per chiuderlo, poi si passa al prossimo.\nTocca 'Gioca ora': i riusciti si contano da soli.",
     obiettivo: "Traccia i checkout riusciti",
+    gioco: "co60170",
     metriche: [
       { id: "riusciti", nome: "Riusciti su 30", unita: "numero" },
     ],
@@ -241,8 +242,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Doppi",
     durataMin: 20,
     descrizione:
-      "Scegli 10 doppi, chiudi entro 3 frecce.\nSe sbagli: -1. Prima freccia: +3, seconda: +2, terza: +1.",
+      "Dieci doppi estratti a sorte, da chiudere entro 3 frecce.\nPrima freccia: +3, seconda: +2, terza: +1. Fuori: -1.\nTocca 'Gioca ora' e di' con quale freccia hai chiuso.",
     obiettivo: "Oltre 20 punti",
+    gioco: "dpgame",
     metriche: [{ id: "punti", nome: "Punti", unita: "punti", obiettivo: 20 }],
   },
   {
@@ -251,8 +253,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Tripli",
     durataMin: 15,
     descrizione:
-      "In una visita: Single 20, Treble 20, Double 20.\nRipeti 20 volte.",
+      "In una visita: Single 20, Treble 20, Double 20.\nRipeti 20 volte.\nTocca 'Gioca ora' e segna cosa hai preso a ogni visita.",
     obiettivo: "20 ripetizioni",
+    gioco: "shanghai20",
     metriche: [
       { id: "completati", nome: "Shanghai completati", unita: "numero" },
     ],
@@ -263,8 +266,9 @@ const ESERCIZI: DefEsercizio[] = [
     categoria: "Checkout",
     durataMin: 15,
     descrizione:
-      "Con il cronometro, gioca solo gli ultimi turni: 52, 68, 81, 96, 100, 110, 121, 124, 130.\nOgni turno e' 'per vincere il match'.\nNon ritirare mai le frecce se sbagli la prima: gioca sempre la soluzione migliore.",
+      "Solo gli ultimi turni: 52, 68, 81, 96, 100, 110, 121, 124, 130.\nOgni turno e' 'per vincere il match': una visita sola.\nNon ritirare mai le frecce se sbagli la prima: gioca sempre la soluzione migliore.",
     obiettivo: "Chiudi sotto pressione",
+    gioco: "gameshot",
     metriche: [
       {
         id: "chiuse",

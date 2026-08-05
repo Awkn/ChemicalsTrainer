@@ -228,6 +228,58 @@ async function collegaGioco501(): Promise<void> {
   }
 }
 
+/**
+ * Rende giocabili quattro esercizi che finora chiedevano solo di trascrivere il
+ * risultato a mano. Le metriche esistono gia' e i giochi le riempiono con gli
+ * stessi id, quindi lo storico continua da dove era rimasto.
+ */
+async function collegaGiochiDrill(): Promise<void> {
+  const GIOCO_PER_NOME: Record<string, GiocoId> = {
+    "Checkout 60-170": "co60170",
+    "Game Shot": "gameshot",
+    "Shanghai 20": "shanghai20",
+    "Doubles Pressure Game": "dpgame",
+  };
+  // Le istruzioni parlavano di annotare a mano. Si riscrivono solo se sono
+  // rimaste quelle originali, per non calpestare le note di chi le ha cambiate.
+  const TESTI: Record<string, { vecchia: string; nuova: string }> = {
+    "Checkout 60-170": {
+      vecchia:
+        "Generatore casuale, 30 checkout.\nMax 3 frecce.\nAnnota: riuscito / non riuscito.",
+      nuova:
+        "Esce un checkout casuale fra 60 e 170, trenta volte.\nUna visita (3 frecce) per chiuderlo, poi si passa al prossimo.\nTocca 'Gioca ora': i riusciti si contano da soli.",
+    },
+    "Doubles Pressure Game": {
+      vecchia:
+        "Scegli 10 doppi, chiudi entro 3 frecce.\nSe sbagli: -1. Prima freccia: +3, seconda: +2, terza: +1.",
+      nuova:
+        "Dieci doppi estratti a sorte, da chiudere entro 3 frecce.\nPrima freccia: +3, seconda: +2, terza: +1. Fuori: -1.\nTocca 'Gioca ora' e di' con quale freccia hai chiuso.",
+    },
+    "Shanghai 20": {
+      vecchia: "In una visita: Single 20, Treble 20, Double 20.\nRipeti 20 volte.",
+      nuova:
+        "In una visita: Single 20, Treble 20, Double 20.\nRipeti 20 volte.\nTocca 'Gioca ora' e segna cosa hai preso a ogni visita.",
+    },
+    "Game Shot": {
+      vecchia:
+        "Con il cronometro, gioca solo gli ultimi turni: 52, 68, 81, 96, 100, 110, 121, 124, 130.\nOgni turno e' 'per vincere il match'.\nNon ritirare mai le frecce se sbagli la prima: gioca sempre la soluzione migliore.",
+      nuova:
+        "Solo gli ultimi turni: 52, 68, 81, 96, 100, 110, 121, 124, 130.\nOgni turno e' 'per vincere il match': una visita sola.\nNon ritirare mai le frecce se sbagli la prima: gioca sempre la soluzione migliore.",
+    },
+  };
+
+  const esercizi = await db.esercizi.toArray();
+  for (const e of esercizi) {
+    const gioco = GIOCO_PER_NOME[e.nome];
+    if (!gioco) continue;
+    const modifiche: { gioco?: GiocoId; descrizione?: string } = {};
+    if (e.gioco == null) modifiche.gioco = gioco;
+    const testo = TESTI[e.nome];
+    if (testo && e.descrizione === testo.vecchia) modifiche.descrizione = testo.nuova;
+    if (Object.keys(modifiche).length > 0) await db.esercizi.update(e.id, modifiche);
+  }
+}
+
 const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 1, esegui: assegnaMetricheMancanti },
   { versione: 2, esegui: correggiVersoFrecce },
@@ -239,6 +291,7 @@ const MIGRAZIONI: { versione: number; esegui: () => Promise<void> }[] = [
   { versione: 8, esegui: aggiungiDoppi501 },
   { versione: 9, esegui: completaObiettivi },
   { versione: 10, esegui: collegaGioco501 },
+  { versione: 11, esegui: collegaGiochiDrill },
 ];
 
 export async function applicaMigrazioni(): Promise<void> {

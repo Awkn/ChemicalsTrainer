@@ -13,6 +13,10 @@ export const GIOCHI: Record<GiocoId, { titolo: string }> = {
   pressuredoubles: { titolo: "Pressure Doubles" },
   co61100: { titolo: "61-100 Checkouts" },
   g501: { titolo: "501 contro il computer" },
+  co60170: { titolo: "Checkout 60-170" },
+  gameshot: { titolo: "Game Shot" },
+  shanghai20: { titolo: "Shanghai 20" },
+  dpgame: { titolo: "Doubles Pressure Game" },
 };
 
 /** Percorso della schermata di gioco per un dato esercizio. */
@@ -29,6 +33,13 @@ export const GIOCHI_DA_ESERCIZI = new Set<GiocoId>([
   "bob27",
   "co61100",
   "g501",
+  "co60170",
+  "gameshot",
+  "shanghai20",
+  "dpgame",
+  "ladder",
+  "pressuredoubles",
+  "atc",
 ]);
 
 /** True se l'esercizio-gioco puo' essere avviato dalla sezione Esercizi. */

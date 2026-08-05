@@ -53,7 +53,11 @@ export type GiocoId =
   | "ladder"
   | "pressuredoubles"
   | "co61100"
-  | "g501";
+  | "g501"
+  | "co60170"
+  | "gameshot"
+  | "shanghai20"
+  | "dpgame";
 
 /**
  * Definizione di una metrica misurabile per un esercizio (es. "Punteggio",

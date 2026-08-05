@@ -459,6 +459,61 @@ a {
   align-self: center;
 }
 
+/* ---------- Shanghai 20: cosa hai preso ---------- */
+.sh-pezzi {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+/* Sono interruttori, non pulsanti d'azione: si toccano mentre le frecce sono
+   ancora nel bersaglio e restano premuti finche' non si conferma. */
+.sh-pezzo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 1.1rem 0.4rem;
+  border: 2px solid var(--bordo);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  color: var(--testo);
+  cursor: pointer;
+}
+
+.sh-pezzo.preso {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 22%, var(--bg-2));
+}
+
+/* ---------- Doubles Pressure Game: con che freccia hai chiuso ---------- */
+.dp-frecce {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.dp-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 1.1rem 0.3rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.dp-btn.preso {
+  background: var(--ok);
+  color: #06240f;
+}
+
+.dp-btn.mancato {
+  background: var(--bg-3);
+  color: var(--testo);
+}
+
 /* ---------- gioco 121 Checkout ---------- */
 
 .co121 {
