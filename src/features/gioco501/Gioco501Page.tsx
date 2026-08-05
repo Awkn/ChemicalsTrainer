@@ -316,17 +316,9 @@ export function Gioco501Page() {
 
   function confermaChiusura(frecce: number) {
     if (!stato || !chiusura) return;
-    // Chiudendo da un doppio secco quelle frecce sono anche i tentativi al
-    // doppio, e l'ultima e' quella andata a segno.
-    spingi(
-      giocaVisita(stato, stato.leg.turno, {
-        ...chiusura,
-        frecce,
-        frecceAlDoppio: doppioDiChiusura(rimanenteDi(stato.leg, stato.leg.turno))
-          ? frecce
-          : undefined,
-      }),
-    );
+    // Basta il numero di frecce: i tentativi al doppio li ricava il motore
+    // ripercorrendo la strada della chiusura (vedi `tentativiChiusura`).
+    spingi(giocaVisita(stato, stato.leg.turno, { ...chiusura, frecce }));
     setChiusura(null);
   }
 

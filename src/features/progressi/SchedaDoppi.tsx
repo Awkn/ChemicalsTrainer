@@ -22,9 +22,9 @@ export function SchedaDoppi() {
       <div className="scheda">
         <h3>🎯 I tuoi doppi</h3>
         <p className="mini">
-          Giocando con l'input a bersaglio l'app conta quante volte centri il
-          doppio avendolo davvero davanti, e ti dice su quale sei più debole.
-          Attivalo col pulsante 🎯 durante una partita.
+          Giocando a uscita con doppio l'app conta quante volte centri il doppio
+          avendolo davanti, e ti dice su quale sei più debole. Col pulsante 🎯
+          durante la partita il conto diventa esatto, freccia per freccia.
         </p>
         <Link className="bottone secondario" to="/drill-doppio">
           Allena un doppio

@@ -18,6 +18,7 @@ import type { Dardo } from "../../lib/bersaglio";
 import {
   contaDoppiVisita,
   doppioDiChiusura,
+  tentativiChiusura,
   tentativiDichiarati,
   unisciConti,
   type ContiDoppi,
@@ -748,6 +749,8 @@ interface DatiDoppi {
   rimanentePrima: number;
   modo: ModoChiusura;
   dardi?: Dardo[];
+  /** Frecce della visita: quelle vere se note, altrimenti le 3 d'ordinanza. */
+  frecce: number;
   frecceAlDoppio?: number;
   chiuso: boolean;
 }
@@ -758,14 +761,21 @@ function contaDoppi(precedenti: ContiDoppi, d: DatiDoppi): ContiDoppi {
   if (d.dardi) {
     return unisciConti(precedenti, contaDoppiVisita(d.rimanentePrima, d.dardi));
   }
-  // Solo partendo da un punteggio che si chiude con un doppio secco si sa a
-  // quale bersaglio attribuire i tentativi dichiarati.
+  // Chi ha chiuso ha per forza colpito un doppio, e la strada per arrivarci si
+  // ripercorre dal rimanente: non serve chiedere altro. Vale anche partendo da
+  // lontano (da 100 la prima freccia prepara e la seconda tenta), dove prima
+  // non si registrava nessun tentativo.
+  if (d.chiuso) {
+    return unisciConti(
+      precedenti,
+      tentativiChiusura(d.rimanentePrima, d.frecce),
+    );
+  }
+  // Visita non chiusa: l'unica cosa che si sa e' quante frecce l'utente dice
+  // di aver tirato al doppio che gli stava davanti.
   const bersaglio = doppioDiChiusura(d.rimanentePrima);
   if (bersaglio == null || d.frecceAlDoppio == null) return precedenti;
-  return unisciConti(
-    precedenti,
-    tentativiDichiarati(bersaglio, d.frecceAlDoppio, d.chiuso),
-  );
+  return unisciConti(precedenti, tentativiDichiarati(bersaglio, d.frecceAlDoppio));
 }
 
 /**
@@ -812,12 +822,14 @@ function applicaVisita(
     fasce: contaFascia(stats.fasce ?? {}, r.bust ? 0 : punteggio),
     // I doppi si contano solo a uscita con doppio: con Master o uscita diretta
     // non si mira per forza li'. Col bersaglio si sa dove e' finita ogni
-    // freccia; col tastierino ci si accontenta di quante ne sono state
-    // dichiarate al doppio (vedi `tentativiDichiarati`).
+    // freccia; col tastierino si ricostruisce la strada quando la visita ha
+    // chiuso, e altrimenti ci si affida a quante frecce l'utente dichiara di
+    // aver tirato al doppio (vedi `tentativiChiusura` e `tentativiDichiarati`).
     doppi: contaDoppi(stats.doppi, {
       rimanentePrima,
       modo,
       dardi,
+      frecce,
       frecceAlDoppio,
       chiuso: r.chiuso,
     }),

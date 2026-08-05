@@ -262,8 +262,9 @@ function SchedaDoppiPartita({
         </span>
       </h3>
       <p className="mini">
-        Contati freccia per freccia: quante volte il doppio è stato centrato
-        avendolo davvero davanti.
+        Quante volte il doppio è stato centrato avendolo davanti: contato
+        freccia per freccia con l'input a bersaglio, ricostruito dalla strada
+        della chiusura col tastierino.
       </p>
       <ListaDoppi righe={classificaDoppi(stats.doppi)} />
     </div>
