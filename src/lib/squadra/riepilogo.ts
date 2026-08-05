@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { inOrdine } from "../cronologia";
 import { dataIso } from "../date";
 import type { UnitaMetrica } from "../../types";
 
@@ -52,7 +53,7 @@ export async function calcolaRiepilogo(
 
     const suoi = risultati
       .filter((r) => r.esercizioId === esercizio.id)
-      .sort((a, b) => a.data.localeCompare(b.data));
+      .sort(inOrdine);
     if (suoi.length === 0) continue;
 
     for (const m of esercizio.metriche) {

@@ -3,11 +3,20 @@ import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db";
 import { eliminaRisultato, risultatiPerEsercizio } from "../../lib/repo";
+import { inOrdineInverso } from "../../lib/cronologia";
 import { Grafico, formattaValore } from "../../components/Grafico";
 import { dataIso } from "../../lib/date";
 import { eMiglioramento, type MetricaDef } from "../../types";
 import { CruscottoObiettivi } from "./CruscottoObiettivi";
 import { SchedaDoppi } from "./SchedaDoppi";
+
+/** Ora di registrazione, "21:14". */
+function ora(createdAt: number): string {
+  return new Date(createdAt).toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export function ProgressiPage() {
   // Solo esercizi che hanno almeno un risultato registrato.
@@ -134,11 +143,16 @@ export function ProgressiPage() {
         <h3>{daSpuntare ? "Quando l'hai fatto" : "Sessioni registrate"}</h3>
         <ul className="lista-sessioni">
           {[...(risultati ?? [])]
-            .sort((a, b) => b.data.localeCompare(a.data))
-            .map((r) => (
+            .sort(inOrdineInverso)
+            .map((r, _, tutte) => (
               <li key={r.id} className="sessione">
                 <div>
                   <strong>{r.data}</strong>
+                  {/* L'ora compare solo quando serve a distinguere: piu'
+                      sessioni lo stesso giorno, altrimenti e' rumore. */}
+                  {tutte.filter((x) => x.data === r.data).length > 1 && (
+                    <span className="mini"> · {ora(r.createdAt)}</span>
+                  )}
                   <span className="sessione-valori">
                     {daSpuntare
                       ? "✓ Fatto"

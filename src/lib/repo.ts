@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { inOrdine } from "./cronologia";
 import { nuovoId } from "./id";
 import type {
   Assegnazione,
@@ -180,7 +181,7 @@ export async function annullaFatto(
   await db.risultati.bulkDelete(daRimuovere);
 }
 
-/** Risultati di un esercizio, ordinati per data crescente (per i grafici). */
+/** Risultati di un esercizio, dal piu' vecchio al piu' recente (per i grafici). */
 export async function risultatiPerEsercizio(
   esercizioId: string,
 ): Promise<Risultato[]> {
@@ -188,6 +189,6 @@ export async function risultatiPerEsercizio(
     .where("esercizioId")
     .equals(esercizioId)
     .toArray();
-  r.sort((a, b) => a.data.localeCompare(b.data));
+  r.sort(inOrdine);
   return r;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
+import { inOrdine } from "../cronologia";
 import { nomeGiocatore } from "../giocatore";
 import { squadraConfigurata } from "./config";
 import type { VoceSquadra } from "./client";
@@ -42,7 +43,7 @@ function useMiaMedia501(): MediaCompagno | null {
         .toArray();
       const conMedia = risultati
         .filter((r) => metrica.id in r.valori)
-        .sort((a, b) => a.data.localeCompare(b.data));
+        .sort(inOrdine);
       if (conMedia.length === 0) return null;
 
       const media = conMedia[conMedia.length - 1].valori[metrica.id];
