@@ -1919,7 +1919,7 @@ textarea:focus {
   font-weight: 700;
 }
 
-.doppi-lista {
+.barre-lista {
   list-style: none;
   margin: 0.7rem 0 0;
   padding: 0;
@@ -1928,36 +1928,47 @@ textarea:focus {
   gap: 0.35rem;
 }
 
-.doppi-lista li {
+/* La terza colonna cresce con il testo: i doppi ci mettono "3/8", la
+   distribuzione dei punteggi una percentuale piu' lunga. */
+.barre-lista li {
   display: grid;
-  grid-template-columns: 2.6rem 1fr 2.6rem;
+  grid-template-columns: 2.6rem 1fr minmax(2.6rem, auto);
   align-items: center;
   gap: 0.5rem;
 }
 
-.doppi-nome {
+.barre-nome {
   font-weight: 700;
   font-size: 0.85rem;
 }
 
-.doppi-barra {
+.barre-guscio {
   height: 0.55rem;
   background: var(--bg-3);
   border-radius: 999px;
   overflow: hidden;
 }
 
-.doppi-riempi {
+.barre-riempi {
   display: block;
   height: 100%;
   background: var(--accento);
   border-radius: 999px;
 }
 
-.doppi-conto {
+.barre-conto {
   font-size: 0.78rem;
   color: var(--testo-2);
   text-align: right;
+  white-space: nowrap;
+}
+
+.recap-condividi {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .doppio-debole {

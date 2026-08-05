@@ -9,6 +9,7 @@ import { dataIso } from "../../lib/date";
 import { eMiglioramento, type MetricaDef } from "../../types";
 import { CruscottoObiettivi } from "./CruscottoObiettivi";
 import { SchedaDoppi } from "./SchedaDoppi";
+import { SchedaDistribuzione } from "./SchedaDistribuzione";
 
 /** Ora di registrazione, "21:14". */
 function ora(createdAt: number): string {
@@ -82,6 +83,7 @@ export function ProgressiPage() {
           attraversa tutti, i secondi arrivano da piu' giochi. Stanno quindi
           sopra al selettore, non dentro. */}
       <CruscottoObiettivi />
+      <SchedaDistribuzione />
       <SchedaDoppi />
 
       <Link className="scheda scheda-link" to="/partite">

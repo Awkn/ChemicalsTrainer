@@ -409,6 +409,72 @@ export interface TirataUmana {
   frecceAlDoppio?: number;
 }
 
+/**
+ * Fasce in cui si classifica il totale di una visita. La media da sola non
+ * distingue chi tira sempre 60 da chi alterna 140 e 20: qui si vede.
+ * Ordine dalla piu' alta alla piu' bassa, ognuna vale da `min` in su.
+ */
+export const FASCE_PUNTEGGIO = [
+  { id: "f180", etichetta: "180", min: 180 },
+  { id: "f140", etichetta: "140+", min: 140 },
+  { id: "f100", etichetta: "100+", min: 100 },
+  { id: "f60", etichetta: "60+", min: 60 },
+  { id: "f0", etichetta: "< 60", min: 0 },
+] as const;
+
+/** Quante visite sono cadute in ogni fascia, per id. */
+export type ContiFasce = Record<string, number>;
+
+function fasciaDi(punteggio: number): string {
+  return (
+    FASCE_PUNTEGGIO.find((f) => punteggio >= f.min) ??
+    FASCE_PUNTEGGIO[FASCE_PUNTEGGIO.length - 1]
+  ).id;
+}
+
+function contaFascia(precedenti: ContiFasce, punteggio: number): ContiFasce {
+  const id = fasciaDi(punteggio);
+  return { ...precedenti, [id]: (precedenti[id] ?? 0) + 1 };
+}
+
+export interface RigaFascia {
+  id: string;
+  etichetta: string;
+  visite: number;
+  percentuale: number;
+}
+
+/**
+ * Distribuzione delle visite sulle fasce. Le fasce mai colpite restano nella
+ * lista a zero: e' proprio l'assenza a dire qualcosa (nessun 140+).
+ * Su zero visite torna una lista vuota, cosi' chi la mostra puo' saltarla.
+ */
+export function distribuzione(conti: ContiFasce | undefined): RigaFascia[] {
+  const c = conti ?? {};
+  const totale = FASCE_PUNTEGGIO.reduce((s, f) => s + (c[f.id] ?? 0), 0);
+  if (totale === 0) return [];
+  return FASCE_PUNTEGGIO.map((f) => {
+    const visite = c[f.id] ?? 0;
+    return {
+      id: f.id,
+      etichetta: f.etichetta,
+      visite,
+      percentuale: Math.round((visite / totale) * 100),
+    };
+  });
+}
+
+/** Somma le distribuzioni di piu' partite. */
+export function unisciFasce(liste: (ContiFasce | undefined)[]): ContiFasce {
+  const somma: ContiFasce = {};
+  for (const c of liste) {
+    for (const [id, n] of Object.entries(c ?? {})) {
+      somma[id] = (somma[id] ?? 0) + n;
+    }
+  }
+  return somma;
+}
+
 /** Statistiche accumulate su tutta la partita, per il recap finale. */
 export interface StatsGiocatore {
   /** Punti segnati (esclusi i bust). */
@@ -429,6 +495,11 @@ export interface StatsGiocatore {
   /** Frecce usate in ciascun leg vinto (per miglior/peggior leg). */
   frecceLegVinti: number[];
   /**
+   * Visite per fascia di punteggio. Assente nelle partite archiviate prima
+   * che esistesse: chi la legge deve reggere l'`undefined`.
+   */
+  fasce: ContiFasce;
+  /**
    * Tentativi al doppio per bersaglio, contati freccia per freccia. Si
    * riempie solo giocando con l'input a bersaglio e a uscita con doppio:
    * altrove non c'e' modo di sapere dove sia finita ogni freccia.
@@ -447,6 +518,7 @@ function statsVuote(): StatsGiocatore {
     highScore: 0,
     highFinish: 0,
     frecceLegVinti: [],
+    fasce: {},
     doppi: {},
   };
 }
@@ -735,6 +807,9 @@ function applicaVisita(
     chkRiusciti: stats.chkRiusciti + (r.chiuso ? 1 : 0),
     highScore: !r.bust && punteggio > stats.highScore ? punteggio : stats.highScore,
     highFinish: r.chiuso && punteggio > stats.highFinish ? punteggio : stats.highFinish,
+    // Uno sballo vale zero, come nella media: la visita c'e' stata e nella
+    // distribuzione deve pesare, altrimenti i tiri buttati sparirebbero.
+    fasce: contaFascia(stats.fasce ?? {}, r.bust ? 0 : punteggio),
     // I doppi si contano solo a uscita con doppio: con Master o uscita diretta
     // non si mira per forza li'. Col bersaglio si sa dove e' finita ogni
     // freccia; col tastierino ci si accontenta di quante ne sono state

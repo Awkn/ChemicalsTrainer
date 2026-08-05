@@ -1,6 +1,8 @@
+import { useState } from "react";
 import {
   aSet,
   checkoutPerc,
+  distribuzione,
   etichettaChiusura,
   etichettaIngresso,
   media3,
@@ -18,6 +20,9 @@ import {
   totaleDoppi,
 } from "../../lib/doppi";
 import { ListaDoppi } from "../../components/ListaDoppi";
+import { ListaBarre } from "../../components/ListaBarre";
+import { condividiTesto } from "../../lib/condivisione";
+import { testoPartita } from "./condivisione501";
 
 interface Props {
   stato: StatoPartita;
@@ -129,6 +134,16 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
         ))}
       </div>
 
+      {/* Dove sono finiti i tiri. La media dice quanto hai segnato, questa
+          dice come: 60 tutte le volte o 140 e 20 a giro. */}
+      <Distribuzione
+        titolo={controBot ? "I tuoi punteggi" : `I punteggi di ${nomi[0]}`}
+        stats={statsUno}
+      />
+      {!controBot && (
+        <Distribuzione titolo={`I punteggi di ${nomi[1]}`} stats={statsDue} />
+      )}
+
       {/* Il dettaglio sui doppi esiste solo giocando con l'input a bersaglio.
           In due lo si mostra per entrambi: hanno tirato tutti e due. */}
       <SchedaDoppiPartita
@@ -138,6 +153,8 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
       {!controBot && (
         <SchedaDoppiPartita titolo={`I doppi di ${nomi[1]}`} stats={statsDue} />
       )}
+
+      <Condividi stato={stato} />
 
       {salvato && (
         <p className="mini recap-salvato">
@@ -161,6 +178,67 @@ export function Recap501({ stato, salvato, onRivincita, onImpostazioni }: Props)
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Distribuzione dei punteggi di un giocatore. Le fasce mai centrate restano
+ * a zero invece di sparire: e' l'assenza di 140+ a dire dove sei fermo.
+ */
+function Distribuzione({
+  titolo,
+  stats,
+}: {
+  titolo: string;
+  stats: StatsGiocatore;
+}) {
+  const righe = distribuzione(stats.fasce);
+  if (righe.length === 0) return null;
+
+  const visite = righe.reduce((s, f) => s + f.visite, 0);
+
+  return (
+    <div className="recap-doppi">
+      <h3>
+        {titolo}{" "}
+        <span className="recap-doppi-tot">
+          {visite} {visite === 1 ? "tirata" : "tirate"}
+        </span>
+      </h3>
+      <ListaBarre
+        righe={righe.map((f) => ({
+          chiave: f.id,
+          etichetta: f.etichetta,
+          percentuale: f.percentuale,
+          testo: `${f.visite} · ${f.percentuale}%`,
+        }))}
+      />
+    </div>
+  );
+}
+
+/**
+ * Manda il risultato alle app del telefono (in pratica: al gruppo della
+ * squadra). Sul desktop, dove il foglio nativo non c'e', copia negli appunti
+ * e lo dice.
+ */
+function Condividi({ stato }: { stato: StatoPartita }) {
+  const [esito, setEsito] = useState<string | null>(null);
+
+  async function invia() {
+    const r = await condividiTesto("Chemicals Darts", testoPartita(stato));
+    if (r === "copiato") setEsito("Risultato copiato negli appunti.");
+    else if (r === "fallito") setEsito("Non sono riuscito a condividere.");
+    else setEsito(null);
+  }
+
+  return (
+    <div className="recap-condividi">
+      <button className="bottone secondario" onClick={invia}>
+        📤 Condividi il risultato
+      </button>
+      {esito && <p className="mini">{esito}</p>}
+    </div>
   );
 }
 
